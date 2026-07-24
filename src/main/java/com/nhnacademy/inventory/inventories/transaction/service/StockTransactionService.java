@@ -22,11 +22,10 @@ public class StockTransactionService {
     @Transactional
     public void createStockTransaction(StockTransactionCommand command){
         StockTransaction stockTransaction = StockTransaction.builder()
-                .medicineInventory(command.medicineInventory())
+                .medicinePackageUnit(command.medicinePackageUnit())
+                .zone(command.zone())
                 .transactionType(command.transactionType())
                 .quantity(command.quantity())
-                .beforeQuantity(command.before_quantity())
-                .afterQuantity(command.after_quantity())
                 .reason(command.reason())
                 .memo(command.memo())
                 .processedBy(command.processedBy())

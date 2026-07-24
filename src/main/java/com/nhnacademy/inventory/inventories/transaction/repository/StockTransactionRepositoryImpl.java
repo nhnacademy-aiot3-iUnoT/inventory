@@ -37,18 +37,15 @@ public class StockTransactionRepositoryImpl implements StockTransactionRepositor
                         medicinePackageUnit.packUnit,
                         stockTransaction.transactionType,
                         stockTransaction.quantity,
-                        stockTransaction.beforeQuantity,
-                        stockTransaction.afterQuantity,
                         stockTransaction.reason,
                         stockTransaction.memo,
                         stockTransaction.processedBy,
                         stockTransaction.processedAt))
                 .from(stockTransaction)
-                .join(stockTransaction.medicineInventory, medicineInventory)
-                .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
+                .join(stockTransaction.medicinePackageUnit, medicinePackageUnit)
                 .join(medicinePackageUnit.medicine, medicine)
                 .where(
-                        zoneIdEq(zoneId),
+                        stockTransaction.zone.id.eq(zoneId),
                         medicineNameContains(condition.medicineName()),
                         transactionTypeEq(condition.transactionType()),
                         processedAtGoe(condition.startDate()),
@@ -62,11 +59,10 @@ public class StockTransactionRepositoryImpl implements StockTransactionRepositor
         Long total = queryFactory
                 .select(stockTransaction.count())
                 .from(stockTransaction)
-                .join(stockTransaction.medicineInventory, medicineInventory)
-                .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
+                .join(stockTransaction.medicinePackageUnit, medicinePackageUnit)
                 .join(medicinePackageUnit.medicine, medicine)
                 .where(
-                        zoneIdEq(zoneId),
+                        stockTransaction.zone.id.eq(zoneId),
                         medicineNameContains(condition.medicineName()),
                         transactionTypeEq(condition.transactionType()),
                         processedAtGoe(condition.startDate()),
@@ -75,10 +71,6 @@ public class StockTransactionRepositoryImpl implements StockTransactionRepositor
                 .fetchOne();
 
         return new PageImpl<>(responseList, pageable, total != null ? total: 0L);
-    }
-
-    private BooleanExpression zoneIdEq(Long zoneId){
-        return zoneId != null ? medicineInventory.zone.id.eq(zoneId) : null;
     }
 
     private BooleanExpression medicineNameContains(String medicineName){

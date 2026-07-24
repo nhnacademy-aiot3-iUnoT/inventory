@@ -10,8 +10,6 @@ public record StockTransactionSearchResponse (
         String packUnit,
         TransactionType transactionType,
         Integer quantity,
-        Integer beforeQuantity,
-        Integer afterQuantity,
         String reason,
         String memo,
         byte[] processedBy,
