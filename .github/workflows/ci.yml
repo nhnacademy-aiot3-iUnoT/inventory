@@ -15,6 +15,11 @@ jobs:
   build-test:
     name: 빌드 & 테스트
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
     steps:
       - name: 체크아웃 # Repository 코드를 러너로 클론
         uses: actions/checkout@v7
