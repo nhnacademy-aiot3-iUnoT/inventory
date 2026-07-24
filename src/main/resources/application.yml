@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: inventory
+
+  config:
+    import: optional:file:.env[.properties]
+
+  # 데이터베이스 연결 설정
+  datasource:
+    url: ${DB_URL}
+    driver-class-name: ${DB_DRIVER}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  # Hibernate 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # H2 콘솔 사용 (웹에서 데이터베이스 보기)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  # Redis Connection Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE:0}
+
+server:
+  port: 8080
+
+# Eureka 서버에 등록하는 기능을 잠시 끄기
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
