@@ -49,6 +49,9 @@ public class MedicineInventory {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "last_")
+    private LocalDateTime lastReviewAt;
+
     @Builder
     private MedicineInventory(MedicinePackageUnit medicinePackageUnit, Zone zone, String lotNumber,
                               LocalDate expirationDate, Integer currentQuantity,

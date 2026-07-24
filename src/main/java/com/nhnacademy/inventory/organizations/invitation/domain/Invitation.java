@@ -27,15 +27,15 @@ public class Invitation {
     @Column(name = "email", length = 255, nullable = false)
     private String email;
 
-    @Column(name = "token", length = 36, nullable = false, unique = true)
-    private String token;
+    @Column(name = "token", columnDefinition = "BINARY(16)", nullable = false, unique = true)
+    private byte[] token;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "invitation_status", nullable = false)
     private InvitationStatus invitationStatus;
 
-    @Column(name = "is_email_sent", nullable = false)
-    private Boolean isEmailSent;
+    @Column(name = "email_sent_at")
+    private LocalDateTime emailSentAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -47,13 +47,13 @@ public class Invitation {
     private LocalDateTime usedAt;
 
     @Builder
-    private Invitation(Organization organization, String email, String token,
-                       InvitationStatus invitationStatus, Boolean isEmailSent, LocalDateTime expiredAt) {
+    private Invitation(Organization organization, String email, byte[] token,
+                       InvitationStatus invitationStatus, LocalDateTime emailSentAt, LocalDateTime expiredAt) {
         this.organization = organization;
         this.email = email;
         this.token = token;
         this.invitationStatus = invitationStatus;
-        this.isEmailSent = isEmailSent;
+        this.emailSentAt = emailSentAt;
         this.expiredAt = expiredAt;
     }
 

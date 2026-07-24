@@ -1,6 +1,8 @@
 package com.nhnacademy.inventory.inventories.transaction.domain;
 
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,8 +23,12 @@ public class StockTransaction {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_id", nullable = false)
-    private MedicineInventory medicineInventory;
+    @JoinColumn(name = "medicine_package_unit_id", nullable = false)
+    private MedicinePackageUnit medicinePackageUnit;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "zone_id", nullable = false)
+    private Zone zone;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
@@ -30,12 +36,6 @@ public class StockTransaction {
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
-
-    @Column(name = "before_quantity", nullable = false)
-    private Integer beforeQuantity;
-
-    @Column(name = "after_quantity", nullable = false)
-    private Integer afterQuantity;
 
     @Column(name = "reason", length = 100)
     private String reason;
@@ -50,14 +50,13 @@ public class StockTransaction {
     private LocalDateTime processedAt;
 
     @Builder
-    private StockTransaction(MedicineInventory medicineInventory, TransactionType transactionType,
-                             Integer quantity, Integer beforeQuantity, Integer afterQuantity,
+    private StockTransaction(MedicinePackageUnit medicinePackageUnit, Zone zone,
+                             TransactionType transactionType, Integer quantity,
                              String reason, String memo, byte[] processedBy) {
-        this.medicineInventory = medicineInventory;
+        this.medicinePackageUnit = medicinePackageUnit;
+        this.zone = zone;
         this.transactionType = transactionType;
         this.quantity = quantity;
-        this.beforeQuantity = beforeQuantity;
-        this.afterQuantity = afterQuantity;
         this.reason = reason;
         this.memo = memo;
         this.processedBy = processedBy;

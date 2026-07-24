@@ -25,10 +25,10 @@ public class Organization {
     @Column(name = "name", length = 50, nullable = false)
     private String name;
 
-    @Column(name = "road_address", length = 100, nullable = false)
+    @Column(name = "road_address", length = 100)
     private String roadAddress;
 
-    @Column(name = "zip_code", length = 5, nullable = false)
+    @Column(name = "zip_code", length = 5)
     private String zipCode;
 
     @Column(name = "address_detail", length = 50)
