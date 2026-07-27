@@ -11,3 +11,7 @@ spring:
       port: 6379
       password: ""
       database: 0
+
+eureka:
+  client:
+    enabled: false
