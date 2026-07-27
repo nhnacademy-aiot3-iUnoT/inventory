@@ -25,7 +25,7 @@ public class OrganizationMember {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
-    @Column(name = "account_uuid", columnDefinition = "BINARY(16)", nullable = false)
+    @Column(name = "account_uuid", columnDefinition = "BINARY(16)", nullable = false, unique = true)
     private UUID accountUuid;
 
     @Enumerated(EnumType.STRING)
