@@ -5,6 +5,8 @@ import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 
+import java.util.UUID;
+
 public record StockTransactionCommand (
         MedicinePackageUnit medicinePackageUnit,
         Zone zone,
@@ -12,6 +14,6 @@ public record StockTransactionCommand (
         Integer quantity,
         String reason,
         String memo,
-        byte[] processedBy
+        UUID processedBy
 ){
 }

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "invitations")
@@ -28,7 +29,7 @@ public class Invitation {
     private String email;
 
     @Column(name = "token", columnDefinition = "BINARY(16)", nullable = false, unique = true)
-    private byte[] token;
+    private UUID token;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "invitation_status", nullable = false)
@@ -47,7 +48,7 @@ public class Invitation {
     private LocalDateTime usedAt;
 
     @Builder
-    private Invitation(Organization organization, String email, byte[] token,
+    private Invitation(Organization organization, String email, UUID token,
                        InvitationStatus invitationStatus, LocalDateTime emailSentAt, LocalDateTime expiredAt) {
         this.organization = organization;
         this.email = email;
