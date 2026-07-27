@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/inventory")
+@RequestMapping("/api/core")
 @RequiredArgsConstructor
 public class StockTransactionController {
 
@@ -28,10 +28,9 @@ public class StockTransactionController {
             StockTransactionSearchCondition condition,
             @PageableDefault(size = 20, sort = "processedAt", direction = Sort.Direction.DESC)Pageable pageable
             ){
+        Page<StockTransactionSearchResponse> responsePage =
+                stockTransactionService.searchTransactionByCondition(zoneId, condition, pageable);
 
-        return ResponseEntity.ok(ApiResponse.success(
-                stockTransactionService.searchTransactionByCondition(
-                        zoneId, condition, pageable)
-        ));
+        return ResponseEntity.ok(ApiResponse.success(responsePage));
     }
 }

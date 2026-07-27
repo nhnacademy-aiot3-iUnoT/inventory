@@ -57,4 +57,17 @@ public class Storage {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void close(){
+        status = StorageStatus.CLOSED;
+    }
+
+    public void updateInfo(String name, String description){
+        this.name = name;
+        this.description = description;
+    }
+
+    public void changeStatus(StorageStatus status){
+        this.status = status;
+    }
 }
