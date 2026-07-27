@@ -10,7 +10,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "departments")
+@Table(name = "departments",
+        uniqueConstraints = {
+            @UniqueConstraint(name = "uk_org_dep",
+                    columnNames = {"organization_id", "name"}
+            )})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Department {
