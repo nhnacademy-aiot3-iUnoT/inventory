@@ -1,5 +1,10 @@
 package com.nhnacademy.inventory.medicines.medicine.domain;
 
+import com.nhnacademy.inventory.global.error.ErrorCode;
+import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
+import com.nhnacademy.inventory.medicines.medicine.exception.CompanyNameRequiredException;
+import com.nhnacademy.inventory.medicines.medicine.exception.ItemCodeRequiredException;
+import com.nhnacademy.inventory.medicines.medicine.exception.ProductNameRequiredException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -34,8 +39,6 @@ public class Medicine {
     @Column(name = "ingredient_content", length = 50)
     private String ingredientContent;
 
-    @Column(name = "storage_precautions", length = 100)
-    private String storagePrecautions;
 
     @Column(name = "narcotic_kind_code", length = 50)
     private String narcoticKindCode;
@@ -51,14 +54,25 @@ public class Medicine {
 
     @Builder
     private Medicine(String itemCode, String productName, String storageMethod, String validityPeriod,
-                     String ingredientContent, String storagePrecautions, String narcoticKindCode,
+                     String ingredientContent, String narcoticKindCode,
                      String companyName) {
+
+        if(itemCode == null || itemCode.isBlank()){
+            throw new ItemCodeRequiredException(MedicineErrorCode.ITEM_CODE_REQUIRED);
+        }
+        if(productName == null || productName.isBlank()){
+            throw new ProductNameRequiredException(MedicineErrorCode.PRODUCT_NAME_REQUIRED);
+        }
+        if(companyName == null || companyName.isBlank()){
+            throw new CompanyNameRequiredException(MedicineErrorCode.COMPANY_NAME_REQUIRED);
+        }
+
+
         this.itemCode = itemCode;
         this.productName = productName;
         this.storageMethod = storageMethod;
         this.validityPeriod = validityPeriod;
         this.ingredientContent = ingredientContent;
-        this.storagePrecautions = storagePrecautions;
         this.narcoticKindCode = narcoticKindCode;
         this.companyName = companyName;
     }
@@ -72,4 +86,22 @@ public class Medicine {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    @Builder(builderMethodName="createBuilder")
+    public static Medicine create(String itemCode, String productName, String storageMethod, String validityPeriod,
+                         String ingredientContent, String narcoticKindCode,
+                         String companyName){
+
+
+        return new Medicine(
+                itemCode,
+                productName,
+                storageMethod,
+                validityPeriod,
+                ingredientContent,
+                narcoticKindCode,
+                companyName);
+    }
+
+
 }

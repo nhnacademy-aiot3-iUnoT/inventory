@@ -14,7 +14,8 @@ public class GlobalExceptionHandler{
         return ResponseEntity
                 .status(e.getErrorCode().getStatus())
                 .body(ApiResponse.error(
-                        e.getErrorCode()
+                        e.getErrorCode().getCode(),
+                        e.getErrorCode().getMessage()
                 ));
     }
 
@@ -23,17 +24,19 @@ public class GlobalExceptionHandler{
         String message = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
-                .orElse(ErrorCode.INVALID_INPUT.getMessage());
+                .orElse(GlobalErrorCode.INVALID_INPUT.getMessage());
 
         return ResponseEntity
-                .status(ErrorCode.INVALID_INPUT.getStatus())
-                .body(ApiResponse.error(ErrorCode.INVALID_INPUT.getCode(), message));
+                .status(GlobalErrorCode.INVALID_INPUT.getStatus())
+                .body(ApiResponse.error(GlobalErrorCode.INVALID_INPUT.getCode(), message));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception e) {
         return ResponseEntity
-                .status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus())
-                .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR));
+                .status(GlobalErrorCode.INTERNAL_SERVER_ERROR.getStatus())
+                .body(ApiResponse.error(GlobalErrorCode.INTERNAL_SERVER_ERROR.getCode(),
+                        GlobalErrorCode.INTERNAL_SERVER_ERROR.getMessage()
+                ));
     }
 }
