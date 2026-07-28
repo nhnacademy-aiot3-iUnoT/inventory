@@ -1,7 +1,11 @@
 package com.nhnacademy.inventory.medicines.medicine.exception;
 
-public class CompanyNameRequiredException extends RuntimeException {
-    public CompanyNameRequiredException(String message) {
-        super(message);
+
+import com.nhnacademy.inventory.global.error.BaseException;
+import com.nhnacademy.inventory.global.error.ErrorCode;
+
+public class CompanyNameRequiredException extends BaseException {
+    public CompanyNameRequiredException(ErrorCode errorCode) {
+        super(errorCode);
     }
 }

@@ -22,7 +22,7 @@ public class MedicineApiService {
     private static final int PAGE_SIZE = 500;
 
 
-    public List<MedicineResponse> getAllMedicines(){
+    public void savedAllMedicines(){
 
 
         List<MedicineResponse> medicines = new ArrayList<>();
@@ -63,7 +63,7 @@ public class MedicineApiService {
 
         log.info("medicines size: {}",medicines.size());
 
-        return medicines;
+
 
     }
 

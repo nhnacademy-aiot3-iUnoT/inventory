@@ -16,7 +16,7 @@ public class MedicineController {
     @PostMapping("/api/admin/medicines/import")
     public ResponseEntity<String> importMedicines(){
 
-        medicineApiService.getAllMedicines();
+        //medicineApiService.getAllMedicines();
         return ResponseEntity.ok("의약품 저장 완료");
 
     }

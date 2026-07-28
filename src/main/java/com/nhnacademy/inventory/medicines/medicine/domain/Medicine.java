@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.medicines.medicine.domain;
 
+import com.nhnacademy.inventory.global.error.ErrorCode;
 import com.nhnacademy.inventory.medicines.medicine.exception.CompanyNameRequiredException;
 import com.nhnacademy.inventory.medicines.medicine.exception.ItemCodeRequiredException;
 import com.nhnacademy.inventory.medicines.medicine.exception.ProductNameRequiredException;
@@ -56,13 +57,13 @@ public class Medicine {
                      String companyName) {
 
         if(itemCode == null || itemCode.isBlank()){
-            throw new ItemCodeRequiredException("품목기준코드는 필수입니다.");
+            throw new ItemCodeRequiredException(ErrorCode.ITEMCODE_REQUIRED);
         }
         if(productName == null || productName.isBlank()){
-            throw new ProductNameRequiredException("제품명은 필수입니다.");
+            throw new ProductNameRequiredException(ErrorCode.PRODUCTNAME_REQUIRED);
         }
         if(companyName == null || companyName.isBlank()){
-            throw new CompanyNameRequiredException("업체명은 필수입니다.");
+            throw new CompanyNameRequiredException(ErrorCode.COMPANYNAME_REQUIRED);
         }
 
 
