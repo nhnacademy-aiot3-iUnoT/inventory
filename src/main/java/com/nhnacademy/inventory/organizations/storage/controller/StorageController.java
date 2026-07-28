@@ -53,13 +53,11 @@ public class StorageController {
         UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
         StorageInfoResponse response = storageService.updateStorage(organizationId, storageId, uuid, request);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PutMapping("/organizations/{organizationId}/storages/{storageId}/status")
-    public ResponseEntity<ApiResponse<StorageInfoResponse>> updateStorage(
+    public ResponseEntity<ApiResponse<StorageInfoResponse>> updateStorageStatus(
             @PathVariable Long organizationId,
             @PathVariable Long storageId,
             @RequestBody @Valid StorageStatusUpdateRequest request
@@ -67,9 +65,7 @@ public class StorageController {
         UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
         StorageInfoResponse response = storageService.updateStorageStatus(organizationId, storageId, uuid, request);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @DeleteMapping("/organizations/{organizationId}/storages/{storageId}")

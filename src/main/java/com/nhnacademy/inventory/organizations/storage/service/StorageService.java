@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.storage.service;
 
+import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -9,7 +10,6 @@ import com.nhnacademy.inventory.organizations.storage.dto.StorageCreateRequest;
 import com.nhnacademy.inventory.organizations.storage.dto.StorageInfoResponse;
 import com.nhnacademy.inventory.organizations.storage.dto.StorageStatusUpdateRequest;
 import com.nhnacademy.inventory.organizations.storage.dto.StorageUpdateRequest;
-import com.nhnacademy.inventory.organizations.storage.exception.StorageForbiddenException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNameAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
@@ -33,6 +33,8 @@ public class StorageService {
     @Transactional
     public StorageInfoResponse createStorage(Long organizationId, UUID accountUuid, StorageCreateRequest request){
         Organization organization = validateOrganizationMember(organizationId, accountUuid);
+
+        validateDuplicateStorageName(organization, request.name());
 
         Storage storage = Storage.builder()
                 .organization(organization)
@@ -59,7 +61,7 @@ public class StorageService {
     public StorageInfoResponse updateStorage(Long organizationId, Long storageId, UUID accountUuid, StorageUpdateRequest request){
         Storage storage = findByIdAndValidate(organizationId, storageId, accountUuid);
 
-        validateDuplicateStorageName(storage.getOrganization(), request.name());
+        validateDuplicateStorageName(storage.getOrganization(), request.name(), storage.getId());
 
         storage.updateInfo(request.name(), request.description());
 
@@ -84,10 +86,10 @@ public class StorageService {
 
     private Organization validateOrganizationMember(Long organizationId, UUID accountUuid){
         OrganizationMember member = memberRepository.findByAccountUuid(accountUuid)
-                .orElseThrow(StorageForbiddenException::new);
+                .orElseThrow(ForbiddenException::new);
 
         if(!Objects.equals(member.getOrganization().getId(), organizationId)){
-            throw new StorageForbiddenException();
+            throw new ForbiddenException();
         }
 
         return member.getOrganization();
@@ -98,6 +100,16 @@ public class StorageService {
 
         return storageRepository.findByIdAndOrganization(storageId, organization)
                 .orElseThrow(StorageNotFoundException::new);
+    }
+
+    private void validateDuplicateStorageName(Organization organization, String name, Long storageId){
+        boolean exists = storageRepository.existsByOrganizationAndNameAndStatusNotAndIdNot(
+                organization, name, StorageStatus.CLOSED, storageId
+        );
+
+        if (exists) {
+            throw new StorageNameAlreadyExistsException();
+        }
     }
 
     private void validateDuplicateStorageName(Organization organization, String name){
