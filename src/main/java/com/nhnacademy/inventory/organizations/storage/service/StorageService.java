@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.storage.service;
 
+import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -9,7 +10,6 @@ import com.nhnacademy.inventory.organizations.storage.dto.StorageCreateRequest;
 import com.nhnacademy.inventory.organizations.storage.dto.StorageInfoResponse;
 import com.nhnacademy.inventory.organizations.storage.dto.StorageStatusUpdateRequest;
 import com.nhnacademy.inventory.organizations.storage.dto.StorageUpdateRequest;
-import com.nhnacademy.inventory.organizations.storage.exception.StorageForbiddenException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNameAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
@@ -86,10 +86,10 @@ public class StorageService {
 
     private Organization validateOrganizationMember(Long organizationId, UUID accountUuid){
         OrganizationMember member = memberRepository.findByAccountUuid(accountUuid)
-                .orElseThrow(StorageForbiddenException::new);
+                .orElseThrow(ForbiddenException::new);
 
         if(!Objects.equals(member.getOrganization().getId(), organizationId)){
-            throw new StorageForbiddenException();
+            throw new ForbiddenException();
         }
 
         return member.getOrganization();
