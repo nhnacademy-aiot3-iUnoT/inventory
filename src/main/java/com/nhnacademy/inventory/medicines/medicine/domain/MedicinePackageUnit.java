@@ -1,5 +1,8 @@
 package com.nhnacademy.inventory.medicines.medicine.domain;
 
+import com.nhnacademy.inventory.global.error.ErrorCode;
+import com.nhnacademy.inventory.medicines.medicine.exception.MedicineRequiredException;
+import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitRequiredException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -26,7 +29,23 @@ public class MedicinePackageUnit {
 
     @Builder
     private MedicinePackageUnit(Medicine medicine, String packUnit) {
+
+        if(medicine == null){
+            throw new MedicineRequiredException(ErrorCode.MEDICINE_REQUIRED);
+        }
+        if(packUnit == null || packUnit.isBlank()){
+            throw new PackUnitRequiredException(ErrorCode.PACKUNIT_REQUIRED);
+        }
+
+
         this.medicine = medicine;
-        this.packUnit = packUnit;
+        this.packUnit = packUnit.trim();
     }
+
+    public static MedicinePackageUnit create(Medicine medicine, String packUnit){
+
+        return new MedicinePackageUnit(medicine, packUnit);
+    }
+
+
 }
