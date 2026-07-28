@@ -34,6 +34,8 @@ public class StorageService {
     public StorageInfoResponse createStorage(Long organizationId, UUID accountUuid, StorageCreateRequest request){
         Organization organization = validateOrganizationMember(organizationId, accountUuid);
 
+        validateDuplicateStorageName(organization, request.name());
+
         Storage storage = Storage.builder()
                 .organization(organization)
                 .name(request.name())
@@ -59,7 +61,7 @@ public class StorageService {
     public StorageInfoResponse updateStorage(Long organizationId, Long storageId, UUID accountUuid, StorageUpdateRequest request){
         Storage storage = findByIdAndValidate(organizationId, storageId, accountUuid);
 
-        validateDuplicateStorageName(storage.getOrganization(), request.name());
+        validateDuplicateStorageName(storage.getOrganization(), request.name(), storage.getId());
 
         storage.updateInfo(request.name(), request.description());
 
@@ -98,6 +100,16 @@ public class StorageService {
 
         return storageRepository.findByIdAndOrganization(storageId, organization)
                 .orElseThrow(StorageNotFoundException::new);
+    }
+
+    private void validateDuplicateStorageName(Organization organization, String name, Long storageId){
+        boolean exists = storageRepository.existsByOrganizationAndNameAndStatusNotAndIdNot(
+                organization, name, StorageStatus.CLOSED, storageId
+        );
+
+        if (exists) {
+            throw new StorageNameAlreadyExistsException();
+        }
     }
 
     private void validateDuplicateStorageName(Organization organization, String name){
