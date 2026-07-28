@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.medicines.medicine.domain;
 
 import com.nhnacademy.inventory.global.error.ErrorCode;
+import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
 import com.nhnacademy.inventory.medicines.medicine.exception.MedicineRequiredException;
 import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitRequiredException;
 import jakarta.persistence.*;
@@ -31,10 +32,10 @@ public class MedicinePackageUnit {
     private MedicinePackageUnit(Medicine medicine, String packUnit) {
 
         if(medicine == null){
-            throw new MedicineRequiredException(ErrorCode.MEDICINE_REQUIRED);
+            throw new MedicineRequiredException(MedicineErrorCode.MEDICINE_REQUIRED);
         }
         if(packUnit == null || packUnit.isBlank()){
-            throw new PackUnitRequiredException(ErrorCode.PACKUNIT_REQUIRED);
+            throw new PackUnitRequiredException(MedicineErrorCode.PACK_UNIT_REQUIRED);
         }
 
 

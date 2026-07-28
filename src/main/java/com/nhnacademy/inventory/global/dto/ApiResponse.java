@@ -22,9 +22,7 @@ public record ApiResponse<T>(
         return new ApiResponse<>(false, null, new ErrorDetail(code, message), LocalDateTime.now());
     }
 
-    public static ApiResponse<Void> error(ErrorCode errorCode) {
-        return new ApiResponse<>(false, null, new ErrorDetail(errorCode.name(), errorCode.getMessage()), LocalDateTime.now());
-    }
+
 }
 
 
