@@ -8,6 +8,8 @@ cd ~/inventory
 set -a
 source ~/infra/common.env
 set +a
+echo "DEBUG: EUREKA=$EUREKA_DEFAULT_ZONE / ZIPKIN=$ZIPKIN_ENDPOINT / GHCR=$GHCR_OWNER"
+NEW_TAG="${IMAGE_TAG:-latest}"
 NEW_TAG="${IMAGE_TAG:-latest}"
 LAST_GOOD_FILE=".last-good-tag"
 OLD_TAG=$(cat "$LAST_GOOD_FILE" 2>/dev/null || echo "latest")
