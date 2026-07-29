@@ -131,38 +131,112 @@ class MedicineApiServiceTest {
 
 
     @Test
-    @DisplayName("포장단위가 없는 경우")
-    void packUnitTest(){
+    @DisplayName("모든 정보 Null 체크 및 포장 단위 null인 경우")
+    void errorTest(){
+
 
         String json = """
                 
                 {
+                
                     "body": {
+               
                         "totalCount": 1,
-                        "items": [  
+                        "items": [
                         {
-                            
-                            
-                        
-                        
+                            "ITEM_SEQ": null,
+                            "ITEM_NAME": null,
+                            "ENTP_NAME": null,
+                            "STORAGE_METHOD": null,
+                            "VALID_TERM": null,
+                            "PACK_UNIT": null,
+                            "NARCOTIC_KIND_CODE": null
                             }
                         ]
-                       
-                    
-                    
+                
                     }
-                  
 
                 
                 }
-                
 
                 """;
 
 
+        when(medicineApiClient.getJson(1,500)).thenReturn(json);
+        medicineApiService.savedAllMedicines();
+
+        ArgumentCaptor<List<MedicineResponse>> captor = ArgumentCaptor.captor();
+        verify(medicineSaveService).saveMedicines(captor.capture());
+
+        MedicineResponse response = captor.getValue().getFirst();
+
+        assertAll(
+
+                () -> assertNull(response.itemCode()),
+                () -> assertNull(response.productName()),
+                () -> assertNull(response.companyName()),
+                () -> assertNull(response.storageMethod()),
+                () -> assertEquals(List.of("포장단위 정보 없음"),response.packageUnits()),
+                () -> assertNull(response.validityPeriod()),
+                () -> assertNull(response.narcoticKindCode()),
+                () -> assertDoesNotThrow(()-> medicineApiService.savedAllMedicines())
+
+
+
+        );
+
 
 
     }
+
+
+
+    @Test
+    @DisplayName("포장단위 수출용 무시 및 파싱 체크")
+    void packOutput(){
+
+        String json = """
+                
+                {
+                
+                    "body": {
+               
+                        "totalCount": 1,
+                        "items": [
+                        {
+                            "ITEM_SEQ": "12345",
+                            "ITEM_NAME": "테스트약",
+                            "ENTP_NAME": "테스트제약",
+                            "STORAGE_METHOD": "실온보관",
+                            "VALID_TERM": "24개월",
+                            "PACK_UNIT": "수출용 500mL/병, 1000mL/병",
+                            "NARCOTIC_KIND_CODE": null
+                            }
+                        ]
+                
+                    }
+
+                
+                }
+
+                """;
+
+
+        when(medicineApiClient.getJson(1,500)).thenReturn(json);
+        medicineApiService.savedAllMedicines();
+
+        ArgumentCaptor<List<MedicineResponse>> captor = ArgumentCaptor.captor();
+        verify(medicineSaveService).saveMedicines(captor.capture());
+
+        MedicineResponse response = captor.getValue().getFirst();
+
+        assertNotNull(response.packageUnits().getFirst());
+        assertEquals("1000mL/병",response.packageUnits().getFirst());
+
+
+
+    }
+
 
 
 

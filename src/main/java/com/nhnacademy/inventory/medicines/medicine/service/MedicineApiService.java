@@ -34,7 +34,7 @@ public class MedicineApiService {
 
         List<MedicineResponse> firstPageResponse = convertToMedicineResponse(items);
 
-        //medicineSaveService.saveMedicines(firstPageResponse);
+        medicineSaveService.saveMedicines(firstPageResponse);
 
 
 
@@ -48,7 +48,7 @@ public class MedicineApiService {
         log.info("의약품 저장 완료. page= {}/{} size= {}",1,totalPages,firstPageResponse.size());
 
 
-        for(int pageNo = 54; pageNo <= totalPages; pageNo++){
+        for(int pageNo = 2; pageNo <= totalPages; pageNo++){
 
             String forJson = medicineApiClient.getJson(pageNo,PAGE_SIZE);
             JsonNode pageJson= objectMapper.readTree(forJson);
@@ -80,9 +80,9 @@ public class MedicineApiService {
 
         for(JsonNode item : items){
 
-            String itemCode = item.path("ITEM_SEQ").asString();
-            String productName = item.path("ITEM_NAME").asString();
-            String companyName = item.path("ENTP_NAME").asString();
+            String itemCode = item.path("ITEM_SEQ").asString(null);
+            String productName = item.path("ITEM_NAME").asString(null);
+            String companyName = item.path("ENTP_NAME").asString(null);
             String validityPeriod = item.path("VALID_TERM").asString(null);
             String packUnit = item.path("PACK_UNIT").asString(null);
             String narcoticKindCode = item.path("NARCOTIC_KIND_CODE").asString(null);
@@ -108,7 +108,7 @@ public class MedicineApiService {
 
         List<String> units = new ArrayList<>();
 
-        if(packageUnit == null || packageUnit.isBlank()){
+        if(packageUnit == null || packageUnit.isBlank() || packageUnit.equals(".")){
             return List.of("포장단위 정보 없음");
         }
 
@@ -117,6 +117,7 @@ public class MedicineApiService {
         for (String part : parts){
 
             String unit = part.trim();
+
 
             if(unit.isBlank()){
                 continue;
