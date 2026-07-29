@@ -30,6 +30,7 @@ public class MedicineSaveService {
         int savedCount = 0;
         int failedCount= 0;
 
+        log.info("======의약품 저장 시작 =========");
         for(MedicineResponse medicineResponse : responses){
 
             String itemCode = medicineResponse.itemCode();
@@ -44,6 +45,7 @@ public class MedicineSaveService {
                 failedCount ++;
                 continue;
             }
+
 
             Medicine medicine = medicineMapper.toMedicineEntity(medicineResponse);
             Medicine savedMedicine = medicineRepository.save(medicine);

@@ -10,7 +10,6 @@ public record MedicineResponse(
         String storageMethod,
         String validityPeriod,
         List<String> packageUnits,
-        String ingredientContent,
         String narcoticKindCode
 
 
