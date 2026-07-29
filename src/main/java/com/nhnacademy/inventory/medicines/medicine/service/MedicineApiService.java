@@ -25,7 +25,6 @@ public class MedicineApiService {
     public void savedAllMedicines(){
 
 
-        List<MedicineResponse> medicines = new ArrayList<>();
         String json = medicineApiClient.getJson(1,PAGE_SIZE);
         //log.info("json: {}",json);
 
@@ -34,7 +33,8 @@ public class MedicineApiService {
         JsonNode items = jsonBody.path("items");
 
         List<MedicineResponse> firstPageResponse = convertToMedicineResponse(items);
-        medicineSaveService.saveMedicines(firstPageResponse);
+
+        //medicineSaveService.saveMedicines(firstPageResponse);
 
 
 
@@ -48,7 +48,7 @@ public class MedicineApiService {
         log.info("의약품 저장 완료. page= {}/{} size= {}",1,totalPages,firstPageResponse.size());
 
 
-        for(int pageNo = 2; pageNo <= totalPages; pageNo++){
+        for(int pageNo = 54; pageNo <= totalPages; pageNo++){
 
             String forJson = medicineApiClient.getJson(pageNo,PAGE_SIZE);
             JsonNode pageJson= objectMapper.readTree(forJson);
@@ -61,7 +61,7 @@ public class MedicineApiService {
         }
 
 
-        log.info("medicines size: {}",medicines.size());
+
 
 
 
@@ -87,12 +87,11 @@ public class MedicineApiService {
             String packUnit = item.path("PACK_UNIT").asString(null);
             String narcoticKindCode = item.path("NARCOTIC_KIND_CODE").asString(null);
             String storageMethod = item.path("STORAGE_METHOD").asString(null);
-            String ingredientContent = item.path("MATERIAL_NAME").asString(null);
 
 
             List<String> units  = parsingPackageUnit(packUnit);
 
-            MedicineResponse response = new MedicineResponse(itemCode,productName,companyName,storageMethod,validityPeriod,units,ingredientContent,narcoticKindCode);
+            MedicineResponse response = new MedicineResponse(itemCode,productName,companyName,storageMethod,validityPeriod,units,narcoticKindCode);
             result.add(response);
 
         }

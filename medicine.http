@@ -1,0 +1,2 @@
+
+POST http://localhost:10411/api/core/admin/medicines/import

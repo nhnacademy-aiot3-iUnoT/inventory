@@ -1,6 +1,6 @@
 package com.nhnacademy.inventory.medicines.medicine.domain;
 
-import com.nhnacademy.inventory.global.error.ErrorCode;
+
 import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
 import com.nhnacademy.inventory.medicines.medicine.exception.CompanyNameRequiredException;
 import com.nhnacademy.inventory.medicines.medicine.exception.ItemCodeRequiredException;
@@ -27,23 +27,19 @@ public class Medicine {
     @Column(name = "item_code", length = 30, nullable = false, unique = true)
     private String itemCode;
 
-    @Column(name = "product_name", length = 50, nullable = false)
+    @Column(name = "product_name", length = 500, nullable = false)
     private String productName;
 
-    @Column(name = "storage_method", length = 500, nullable = false)
+    @Column(name = "storage_method", length = 900)
     private String storageMethod;
 
     @Column(name = "validity_period", length = 100)
     private String validityPeriod;
 
-    @Column(name = "ingredient_content", length = 50)
-    private String ingredientContent;
-
-
     @Column(name = "narcotic_kind_code", length = 50)
     private String narcoticKindCode;
 
-    @Column(name = "company_name", length = 50, nullable = false)
+    @Column(name = "company_name", length = 200, nullable = false)
     private String companyName;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -51,6 +47,7 @@ public class Medicine {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
 
     @Builder
     private Medicine(String itemCode, String productName, String storageMethod, String validityPeriod,
@@ -72,7 +69,6 @@ public class Medicine {
         this.productName = productName;
         this.storageMethod = storageMethod;
         this.validityPeriod = validityPeriod;
-        this.ingredientContent = ingredientContent;
         this.narcoticKindCode = narcoticKindCode;
         this.companyName = companyName;
     }
@@ -87,21 +83,19 @@ public class Medicine {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @Builder(builderMethodName="createBuilder")
-    public static Medicine create(String itemCode, String productName, String storageMethod, String validityPeriod,
-                         String ingredientContent, String narcoticKindCode,
-                         String companyName){
-
-
-        return new Medicine(
-                itemCode,
-                productName,
-                storageMethod,
-                validityPeriod,
-                ingredientContent,
-                narcoticKindCode,
-                companyName);
-    }
+//    public static Medicine create(String itemCode, String productName, String storageMethod, String validityPeriod,
+//                         String ingredientContent, String narcoticKindCode,
+//                         String companyName){
+//
+//        return new Medicine(
+//                itemCode,
+//                productName,
+//                storageMethod,
+//                validityPeriod,
+//                ingredientContent,
+//                narcoticKindCode,
+//                companyName);
+//    }
 
 
 }

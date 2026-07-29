@@ -3,7 +3,7 @@ package com.nhnacademy.inventory.medicines.medicine.service;
 
 import com.nhnacademy.inventory.medicines.medicine.client.MedicineApiClient;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicineResponse;
-import net.bytebuddy.asm.Advice;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,7 +58,6 @@ class MedicineApiServiceTest {
                                     "STORAGE_METHOD": "실온보관",
                                     "VALID_TERM": "24개월",
                                     "PACK_UNIT": "500mL/병, 1000mL/병",
-                                    "MATERIAL_NAME": "성분A",
                                     "NARCOTIC_KIND_CODE": null
                                   }
                                 ]
@@ -89,7 +88,6 @@ class MedicineApiServiceTest {
                 () -> assertEquals("실온보관",medicineResponse.storageMethod()),
                 () -> assertEquals("24개월",medicineResponse.validityPeriod()),
                 () -> assertEquals(List.of("500mL/병", "1000mL/병"), medicineResponse.packageUnits()),
-                () -> assertEquals("성분A",medicineResponse.ingredientContent()),
                 () -> assertNull(medicineResponse.narcoticKindCode())
 
         );
@@ -159,7 +157,7 @@ class MedicineApiServiceTest {
                 }
                 
 
-                """
+                """;
 
 
 
