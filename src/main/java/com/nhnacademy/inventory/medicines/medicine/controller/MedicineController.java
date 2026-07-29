@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/core")
+@RequestMapping("/api/core")
 public class MedicineController {
 
     private final MedicineApiService medicineApiService;
 
-    @PostMapping("/api/admin/medicines/import")
+    @PostMapping("/admin/medicines/import")
     public ResponseEntity<String> importMedicines(){
 
-        //medicineApiService.getAllMedicines();
+        medicineApiService.savedAllMedicines();
         return ResponseEntity.ok("의약품 저장 완료");
 
     }

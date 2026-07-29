@@ -25,10 +25,10 @@ public class MedicinePackageUnit {
     @JoinColumn(name = "medicine_id", nullable = false)
     private Medicine medicine;
 
-    @Column(name = "pack_unit", length = 50, nullable = false)
+    @Column(name = "pack_unit", length = 200, nullable = false)
     private String packUnit;
 
-    @Builder
+
     private MedicinePackageUnit(Medicine medicine, String packUnit) {
 
         if(medicine == null){
