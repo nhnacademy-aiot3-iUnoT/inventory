@@ -21,7 +21,12 @@ public enum OrganizationErrorCode implements ErrorCode {
 
     //임계값 에러코드
     THRESHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "존재하지 않는 임계설정 입니다."),
-    THRESHOLD_INVALID_RANGE(HttpStatus.BAD_REQUEST, "T003", "잘못된 범위의 임계값 입니다.");
+    THRESHOLD_INVALID_RANGE(HttpStatus.BAD_REQUEST, "T003", "잘못된 범위의 임계값 입니다."),
+    // 조직 에러코드
+    ORG_ALREADY_EXISTS(HttpStatus.CONFLICT, "O001", "이미 존재하는 조직입니다."),
+    ORG_NOT_FOUND(HttpStatus.NOT_FOUND, "O002", "존재하지 않는 조직입니다."),
+    USER_ORG_NOT_FOUND(HttpStatus.NOT_FOUND, "O003", "소속된 조직이 없습니다."),
+    ORG_STATUS_INVALID(HttpStatus.BAD_REQUEST, "O004", "허용되지 않는 조직 상태 변경 요청입니다.");
 
     private final HttpStatus status;
     private final String code;
