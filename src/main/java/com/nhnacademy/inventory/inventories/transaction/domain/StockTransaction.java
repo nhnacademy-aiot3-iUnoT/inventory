@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "stock_transactions")
@@ -44,7 +45,7 @@ public class StockTransaction {
     private String memo;
 
     @Column(name = "processed_by", columnDefinition = "BINARY(16)", nullable = false)
-    private byte[] processedBy;
+    private UUID processedBy;
 
     @Column(name = "processed_at", nullable = false)
     private LocalDateTime processedAt;
@@ -52,7 +53,7 @@ public class StockTransaction {
     @Builder
     private StockTransaction(MedicinePackageUnit medicinePackageUnit, Zone zone,
                              TransactionType transactionType, Integer quantity,
-                             String reason, String memo, byte[] processedBy) {
+                             String reason, String memo, UUID processedBy) {
         this.medicinePackageUnit = medicinePackageUnit;
         this.zone = zone;
         this.transactionType = transactionType;

@@ -62,4 +62,21 @@ public class Zone {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void close() {
+        status = ZoneStatus.CLOSED;
+    }
+
+    public void updateInfo(String name, String description){
+        this.name = name;
+        this.description = description;
+    }
+
+    public void changeStatus(ZoneStatus status){
+        this.status = status;
+    }
+
+    public void changeEnvStatus(EnvStatus envStatus){
+        this.envStatus = envStatus;
+    }
 }

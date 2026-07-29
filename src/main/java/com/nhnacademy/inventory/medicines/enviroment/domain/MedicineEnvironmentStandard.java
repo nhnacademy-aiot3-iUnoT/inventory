@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "medicine_environment_standards")
@@ -30,10 +31,10 @@ public class MedicineEnvironmentStandard {
     private Organization organization;
 
     @Column(name = "create_account_id", columnDefinition = "BINARY(16)", nullable = false)
-    private byte[] createAccountId;
+    private UUID createAccountId;
 
     @Column(name = "update_account_id", columnDefinition = "BINARY(16)")
-    private byte[] updateAccountId;
+    private UUID updateAccountId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -43,7 +44,7 @@ public class MedicineEnvironmentStandard {
 
     @Builder
     private MedicineEnvironmentStandard(MedicinePackageUnit medicinePackageUnit, Organization organization,
-                                        byte[] createAccountId) {
+                                        UUID createAccountId) {
         this.medicinePackageUnit = medicinePackageUnit;
         this.organization = organization;
         this.createAccountId = createAccountId;

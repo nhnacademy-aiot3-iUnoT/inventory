@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.inventories.transaction.dto;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record StockTransactionSearchResponse (
         Long stockTransactionId,
@@ -12,7 +13,7 @@ public record StockTransactionSearchResponse (
         Integer quantity,
         String reason,
         String memo,
-        byte[] processedBy,
+        UUID processedBy,
         LocalDateTime processedAt
 ){
 }

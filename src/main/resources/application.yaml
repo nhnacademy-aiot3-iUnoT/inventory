@@ -48,3 +48,10 @@ management:
   endpoint:
     health:
       show-details: never
+
+# medicine API
+medicine:
+  api:
+    base-url: https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07
+    detail-path: /getDrugPrdtPrmsnDtlInq06
+    service-key: d9149176405bff9304536370ec6a5d7278891b544707a426bfb79fac8f87e586

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "organization_members")
@@ -24,8 +25,8 @@ public class OrganizationMember {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
-    @Column(name = "account_uuid", columnDefinition = "BINARY(16)", nullable = false)
-    private byte[] accountUuid;
+    @Column(name = "account_uuid", columnDefinition = "BINARY(16)", nullable = false, unique = true)
+    private UUID accountUuid;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "organization_role", nullable = false)
@@ -38,7 +39,7 @@ public class OrganizationMember {
     private LocalDateTime joinedAt;
 
     @Builder
-    private OrganizationMember(Organization organization, byte[] accountUuid,
+    private OrganizationMember(Organization organization, UUID accountUuid,
                                OrganizationRole organizationRole, Boolean isApproved) {
         this.organization = organization;
         this.accountUuid = accountUuid;
