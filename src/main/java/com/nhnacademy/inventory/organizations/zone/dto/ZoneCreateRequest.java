@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record ZoneCreateRequest(
-        @NotBlank @Size(max = 50)
+        @NotBlank @Size(max = 30)
         String name,
 
         @Size(max = 255)

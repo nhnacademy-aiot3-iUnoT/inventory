@@ -91,6 +91,6 @@ public class ZoneController {
 
         zoneService.closeZone(storageId, zoneId, uuid);
 
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.noContent().build();
     }
 }

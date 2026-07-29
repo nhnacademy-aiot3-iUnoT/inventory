@@ -37,3 +37,6 @@ build/
 
 ### env파일 ###
 .env
+
+### http파일 ###
+.http
