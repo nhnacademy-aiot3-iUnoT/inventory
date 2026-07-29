@@ -12,10 +12,9 @@ import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
-import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
-import com.nhnacademy.inventory.organizations.zone.domain.Zone;
-import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
+import com.nhnacademy.inventory.organizations.zone.domain.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -69,6 +68,29 @@ public class TestFixtures {
                 .build();
     }
 
+    public static SensorType createSensorType(String name){
+        return createSensorType(name, "테스트 설명");
+    }
+
+    public static SensorType createSensorType(String name, String description){
+        return SensorType.builder()
+                .name(name)
+                .description(description)
+                .build();
+    }
+
+    public static ZoneThreshold createThreshold(Zone zone, SensorType sensorType,
+                                                 BigDecimal minvalue, BigDecimal maxvalue,
+                                                 Integer alertDuration){
+        return ZoneThreshold.builder()
+                .zone(zone)
+                .sensorType(sensorType)
+                .minValue(minvalue)
+                .maxValue(maxvalue)
+                .alertDuration(alertDuration)
+                .build();
+    }
+
     public static Medicine createMedicine() {
         return createMedicine("123456789", "타이레놀");
     }
@@ -87,10 +109,7 @@ public class TestFixtures {
     }
 
     public static MedicinePackageUnit createPackageUnit(Medicine medicine, String packUnit) {
-        return MedicinePackageUnit.builder()
-                .medicine(medicine)
-                .packUnit(packUnit)
-                .build();
+        return MedicinePackageUnit.create(medicine, packUnit);
     }
 
     public static MedicineInventory createInventory(MedicinePackageUnit packageUnit, Zone zone) {

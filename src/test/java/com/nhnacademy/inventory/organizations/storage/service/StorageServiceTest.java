@@ -34,7 +34,6 @@ class StorageServiceTest {
 
     @Mock
     private StorageRepository storageRepository;
-
     @Mock
     private OrganizationMemberRepository memberRepository;
 
