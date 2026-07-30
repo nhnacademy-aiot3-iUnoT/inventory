@@ -1,0 +1,5 @@
+services:
+  inventory-1:
+    build: .
+  inventory-2:
+    build: .
