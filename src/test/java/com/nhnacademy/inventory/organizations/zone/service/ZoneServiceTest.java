@@ -17,6 +17,7 @@ import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -76,509 +77,538 @@ class ZoneServiceTest {
         setId(zone, 1111L);
     }
 
-    @Test
-    @DisplayName("구역 생성 성공 테스트")
-    void createZone_Success() {
-        ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
+    @Nested
+    @DisplayName("구역 생성 테스트")
+    class createZone{
 
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.existsByStorageAndNameAndStatusNot(storage, request.name(), ZoneStatus.CLOSED))
-                .willReturn(false);
-        given(zoneRepository.save(any(Zone.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        @Test
+        @DisplayName("성공 테스트")
+        void success() {
+            ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
 
-        ZoneInfoResponse response = zoneService.createZone(
-                storage.getId(),
-                approvedMember.getAccountUuid(),
-                request
-        );
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.existsByStorageAndNameAndStatusNot(storage, request.name(), ZoneStatus.CLOSED))
+                    .willReturn(false);
+            given(zoneRepository.save(any(Zone.class)))
+                    .willAnswer(invocation -> invocation.getArgument(0));
 
-        assertAll(
-                () -> assertEquals(111L, response.storageId()),
-                () -> assertEquals("테스트 구역2", response.name()),
-                () -> assertEquals("테스트 설명", response.description()),
-                () -> assertEquals(ZoneStatus.ACTIVE, response.status()),
-                () -> assertEquals(EnvStatus.NORMAL, response.envStatus())
-        );
-
-        verify(memberRepository).findByAccountUuid(any());
-        verify(storageRepository).findById(anyLong());
-        verify(zoneRepository).existsByStorageAndNameAndStatusNot(any(), anyString(), any());
-        verify(zoneRepository).save(any());
-    }
-
-    @Test
-    @DisplayName("구역 생성 실패 - 권한없음(멤버 아님)")
-    void createZone_Fail_NotMember() {
-        ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
-
-        given(memberRepository.findByAccountUuid(any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-            zoneService.createZone(
+            ZoneInfoResponse response = zoneService.createZone(
                     storage.getId(),
-                    UUID.randomUUID(),
+                    approvedMember.getAccountUuid(),
                     request
-            )
-        );
+            );
 
-        verify(zoneRepository, never()).save(any());
+            assertAll(
+                    () -> assertEquals(111L, response.storageId()),
+                    () -> assertEquals("테스트 구역2", response.name()),
+                    () -> assertEquals("테스트 설명", response.description()),
+                    () -> assertEquals(ZoneStatus.ACTIVE, response.status()),
+                    () -> assertEquals(EnvStatus.NORMAL, response.envStatus())
+            );
+
+            verify(memberRepository).findByAccountUuid(any());
+            verify(storageRepository).findById(anyLong());
+            verify(zoneRepository).existsByStorageAndNameAndStatusNot(any(), anyString(), any());
+            verify(zoneRepository).save(any());
+        }
+
+        @Test
+        @DisplayName("실패 - 권한없음(멤버 아님)")
+        void fail_Forbidden_NotMember() {
+            ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
+
+            given(memberRepository.findByAccountUuid(any()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.createZone(
+                            storage.getId(),
+                            UUID.randomUUID(),
+                            request
+                    )
+            );
+
+            verify(zoneRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("실패 - 권한없음(조직 아이디 불일치)")
+        void fail_Forbidden_IdMismatch() {
+            ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
+
+            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
+                    .willReturn(Optional.of(otherMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.createZone(
+                            storage.getId(),
+                            otherMember.getAccountUuid(),
+                            request
+                    )
+            );
+
+            verify(zoneRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 저장소")
+        void fail_NotFoundStorage() {
+            ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
+
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(anyLong()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(StorageNotFoundException.class, () ->
+                    zoneService.createZone(
+                            333L,
+                            approvedMember.getAccountUuid(),
+                            request
+                    )
+            );
+
+            verify(zoneRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("실패 - 중복 이름")
+        void fail_DuplicateName() {
+            ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
+
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.existsByStorageAndNameAndStatusNot(storage, request.name(), ZoneStatus.CLOSED))
+                    .willReturn(true);
+
+            assertThrowsExactly(ZoneNameAlreadyExistsException.class, () ->
+                    zoneService.createZone(
+                            storage.getId(),
+                            approvedMember.getAccountUuid(),
+                            request
+                    )
+            );
+
+            verify(zoneRepository, never()).save(any());
+        }
     }
 
-    @Test
-    @DisplayName("구역 생성 실패 - 권한없음(조직 아이디 불일치)")
-    void createZone_Fail_IdMismatch() {
-        ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
+    @Nested
+    @DisplayName("구역 조회 테스트")
+    class getZones{
 
-        given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                .willReturn(Optional.of(otherMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
+        @Test
+        @DisplayName("성공 테스트")
+        void success() {
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED))
+                    .willReturn(List.of(zone));
 
-        assertThrowsExactly(ForbiddenException.class, () ->
-            zoneService.createZone(
+            List<ZoneInfoResponse> responses = zoneService.getZones(
                     storage.getId(),
-                    otherMember.getAccountUuid(),
-                    request
-            )
-        );
+                    approvedMember.getAccountUuid()
+            );
 
-        verify(zoneRepository, never()).save(any());
+            assertAll(
+                    () -> assertEquals(1, responses.size()),
+                    () -> assertEquals(111L, responses.getFirst().storageId()),
+                    () -> assertEquals("테스트 구역1", responses.getFirst().name())
+            );
+
+            verify(memberRepository).findByAccountUuid(any());
+            verify(storageRepository).findById(anyLong());
+            verify(zoneRepository).findAllByStorageAndStatusNot(any(), any());
+        }
+
+        @Test
+        @DisplayName("성공 테스트 (빈 리스트)")
+        void success_empty() {
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED))
+                    .willReturn(List.of());
+
+            List<ZoneInfoResponse> responses = zoneService.getZones(
+                    storage.getId(),
+                    approvedMember.getAccountUuid()
+            );
+
+            assertAll(
+                    () -> assertEquals(0, responses.size())
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 권한없음(멤버 아님)")
+        void fail_Forbidden_NotMember() {
+            given(memberRepository.findByAccountUuid(any()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.getZones(
+                            storage.getId(),
+                            UUID.randomUUID()
+                    )
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 권한없음(조직아이디 불일치)")
+        void fail_Forbidden_IdMismatch() {
+            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
+                    .willReturn(Optional.of(otherMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.getZones(
+                            storage.getId(),
+                            otherMember.getAccountUuid()
+                    )
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 저장소")
+        void fail_NotFoundStorage() {
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(anyLong()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(StorageNotFoundException.class, () ->
+                    zoneService.getZones(
+                            333L,
+                            approvedMember.getAccountUuid()
+                    )
+            );
+        }
     }
 
-    @Test
-    @DisplayName("구역 생성 실패 - 존재하지 않는 저장소")
-    void createZone_Fail_NotStorage() {
-        ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
+    @Nested
+    @DisplayName("구역 정보 업데이트 테스트")
+    class updateZone{
 
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(anyLong()))
-                .willReturn(Optional.empty());
+        @Test
+        @DisplayName("성공 테스트")
+        void success() {
+            ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
 
-        assertThrowsExactly(StorageNotFoundException.class, () ->
-                zoneService.createZone(
-                        333L,
-                        approvedMember.getAccountUuid(),
-                        request
-                )
-        );
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
+                    .willReturn(Optional.of(zone));
+            given(zoneRepository.existsByStorageAndNameAndStatusNotAndIdNot(storage, request.name(), ZoneStatus.CLOSED, zone.getId()))
+                    .willReturn(false);
 
-        verify(zoneRepository, never()).save(any());
+            ZoneInfoResponse response = zoneService.updateZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
+
+            assertAll(
+                    () -> assertEquals(1111L, response.zoneId()),
+                    () -> assertEquals(111L, response.storageId()),
+                    () -> assertEquals("업데이트 구역", response.name()),
+                    () -> assertEquals("업데이트 설명", response.description())
+            );
+
+            verify(memberRepository).findByAccountUuid(any());
+            verify(storageRepository).findById(anyLong());
+            verify(zoneRepository).findByIdAndStorage(anyLong(), any());
+            verify(zoneRepository).existsByStorageAndNameAndStatusNotAndIdNot(any(), anyString(), any(), anyLong());
+        }
+
+        @Test
+        @DisplayName("실패 - 권한 없음(멤버 아님)")
+        void fail_Forbidden_NotMember() {
+            ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
+
+            given(memberRepository.findByAccountUuid(any()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.updateZone(storage.getId(), zone.getId(), UUID.randomUUID(), request)
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 권한 없음(조직아이디 불일치)")
+        void fail_Forbidden_IdMismatch() {
+            ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
+
+            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
+                    .willReturn(Optional.of(otherMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.updateZone(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 존 없음")
+        void fail_NotFoundZone() {
+            ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
+
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(anyLong(), any()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ZoneNotFoundException.class, () ->
+                    zoneService.updateZone(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 이름 중복")
+        void fail_DuplicateName() {
+            ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
+
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
+                    .willReturn(Optional.of(zone));
+            given(zoneRepository.existsByStorageAndNameAndStatusNotAndIdNot(storage, request.name(), ZoneStatus.CLOSED, zone.getId()))
+                    .willReturn(true);
+
+            assertThrowsExactly(ZoneNameAlreadyExistsException.class, () ->
+                    zoneService.updateZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request)
+            );
+        }
     }
 
-    @Test
-    @DisplayName("구역 생성 실패 - 중복 이름")
-    void createZone_Fail_DuplicateName() {
-        ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역2", "테스트 설명");
+    @Nested
+    @DisplayName("구역 상태 업데이트 테스트")
+    class updateZoneStatus{
 
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.existsByStorageAndNameAndStatusNot(storage, request.name(), ZoneStatus.CLOSED))
-                .willReturn(true);
+        @Test
+        @DisplayName("성공 테스트")
+        void success() {
+            ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
 
-        assertThrowsExactly(ZoneNameAlreadyExistsException.class, () ->
-                zoneService.createZone(
-                        storage.getId(),
-                        approvedMember.getAccountUuid(),
-                        request
-                )
-        );
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
+                    .willReturn(Optional.of(zone));
 
-        verify(zoneRepository, never()).save(any());
+            ZoneInfoResponse response = zoneService.updateZoneStatus(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
+
+            assertAll(
+                    () -> assertEquals(1111L, response.zoneId()),
+                    () -> assertEquals(111L, response.storageId()),
+                    () -> assertEquals("테스트 구역1", response.name()),
+                    () -> assertEquals(ZoneStatus.INACTIVE, response.status())
+            );
+
+            verify(memberRepository).findByAccountUuid(any());
+            verify(storageRepository).findById(anyLong());
+            verify(zoneRepository).findByIdAndStorage(anyLong(), any());
+        }
+
+        @Test
+        @DisplayName("실패 - 권한없음(멤버 아님)")
+        void fail_Forbidden_NotMember() {
+            ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
+
+            given(memberRepository.findByAccountUuid(any()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.updateZoneStatus(storage.getId(), zone.getId(), UUID.randomUUID(), request)
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 권한없음(아이디 불일치)")
+        void fail_Forbidden_IdMismatch() {
+            ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
+
+            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
+                    .willReturn(Optional.of(otherMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.updateZoneStatus(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 존 없음")
+        void fail_NotFoundZone() {
+            ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
+
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(anyLong(), any()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ZoneNotFoundException.class, () ->
+                    zoneService.updateZoneStatus(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
+            );
+        }
     }
 
-    @Test
-    @DisplayName("구역 조회 성공 테스트")
-    void getZones_Success() {
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED))
-                .willReturn(List.of(zone));
+    @Nested
+    @DisplayName("구역 환경상태 업데이트 테스트")
+    class updateZoneEnvStatus{
 
-        List<ZoneInfoResponse> responses = zoneService.getZones(
-                storage.getId(),
-                approvedMember.getAccountUuid()
-        );
+        @Test
+        @DisplayName("성공 테스트")
+        void Success() {
+            ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
 
-        assertAll(
-                () -> assertEquals(1, responses.size()),
-                () -> assertEquals(111L, responses.getFirst().storageId()),
-                () -> assertEquals("테스트 구역1", responses.getFirst().name())
-        );
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
+                    .willReturn(Optional.of(zone));
 
-        verify(memberRepository).findByAccountUuid(any());
-        verify(storageRepository).findById(anyLong());
-        verify(zoneRepository).findAllByStorageAndStatusNot(any(), any());
+            ZoneInfoResponse response = zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
+
+            assertAll(
+                    () -> assertEquals(1111L, response.zoneId()),
+                    () -> assertEquals(111L, response.storageId()),
+                    () -> assertEquals("테스트 구역1", response.name()),
+                    () -> assertEquals(EnvStatus.CRITICAL, response.envStatus())
+            );
+
+            verify(memberRepository).findByAccountUuid(any());
+            verify(storageRepository).findById(anyLong());
+            verify(zoneRepository).findByIdAndStorage(anyLong(), any());
+        }
+
+        @Test
+        @DisplayName("실패 - 권한없음(멤버 아님)")
+        void fail_Forbidden_NotMember() {
+            ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
+
+            given(memberRepository.findByAccountUuid(any()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), UUID.randomUUID(), request)
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 권한없음(조직 아이디 불일치)")
+        void fail_Forbidden_IdMismatch() {
+            ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
+
+            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
+                    .willReturn(Optional.of(otherMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
+            );
+        }
+
+        @Test
+        @DisplayName("실패 - 존 없음")
+        void fail_NotFoundZone() {
+            ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
+
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(anyLong(), any()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ZoneNotFoundException.class, () ->
+                    zoneService.updateZoneEnvStatus(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
+            );
+        }
     }
 
-    @Test
-    @DisplayName("구역 조회 성공 테스트 (빈 리스트)")
-    void getZones_Success_empty() {
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED))
-                .willReturn(List.of());
+    @Nested
+    @DisplayName("구역 삭제 테스트")
+    class deleteZone{
+        @Test
+        @DisplayName("성공 테스트")
+        void Success() {
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
+                    .willReturn(Optional.of(zone));
 
-        List<ZoneInfoResponse> responses = zoneService.getZones(
-                storage.getId(),
-                approvedMember.getAccountUuid()
-        );
+            assertDoesNotThrow(() ->
+                    zoneService.closeZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid())
+            );
 
-        assertAll(
-                () -> assertEquals(0, responses.size())
-        );
-    }
+            assertEquals(ZoneStatus.CLOSED, zone.getStatus());
 
-    @Test
-    @DisplayName("구역 조회 실패 - 권한없음(멤버 아님)")
-    void getZones_Fail_NotMember() {
-        given(memberRepository.findByAccountUuid(any()))
-                .willReturn(Optional.empty());
+            verify(memberRepository).findByAccountUuid(any());
+            verify(storageRepository).findById(anyLong());
+            verify(zoneRepository).findByIdAndStorage(anyLong(), any());
+        }
 
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.getZones(
-                        storage.getId(),
-                        UUID.randomUUID()
-                )
-        );
-    }
+        @Test
+        @DisplayName("실패 - 권한없음(멤버 아님)")
+        void fail_Forbidden_NotMember() {
+            given(memberRepository.findByAccountUuid(any()))
+                    .willReturn(Optional.empty());
 
-    @Test
-    @DisplayName("구역 조회 실패 - 권한없음(조직아이디 불일치)")
-    void getZones_Fail_IdMismatch() {
-        given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                .willReturn(Optional.of(otherMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.closeZone(storage.getId(), zone.getId(), UUID.randomUUID())
+            );
+        }
 
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.getZones(
-                        storage.getId(),
-                        otherMember.getAccountUuid()
-                )
-        );
-    }
+        @Test
+        @DisplayName("실패 - 권한없음(조직 아이디 불일치)")
+        void fail_Forbidden_IdMismatch() {
+            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
+                    .willReturn(Optional.of(otherMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
 
-    @Test
-    @DisplayName("구역 조회 실패 - 존재하지 않는 저장소")
-    void getZones_Fail_NotStorage() {
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(anyLong()))
-                .willReturn(Optional.empty());
+            assertThrowsExactly(ForbiddenException.class, () ->
+                    zoneService.closeZone(storage.getId(), zone.getId(), otherMember.getAccountUuid())
+            );
+        }
 
-        assertThrowsExactly(StorageNotFoundException.class, () ->
-                zoneService.getZones(
-                        333L,
-                        approvedMember.getAccountUuid()
-                )
-        );
-    }
+        @Test
+        @DisplayName("실패 - 존 없음")
+        void fail_NotFoundZone() {
+            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
+                    .willReturn(Optional.of(approvedMember));
+            given(storageRepository.findById(storage.getId()))
+                    .willReturn(Optional.of(storage));
+            given(zoneRepository.findByIdAndStorage(anyLong(), any()))
+                    .willReturn(Optional.empty());
 
-    @Test
-    @DisplayName("구역 정보 업데이트 성공 테스트")
-    void updateZone_Success() {
-        ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
-
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
-                .willReturn(Optional.of(zone));
-        given(zoneRepository.existsByStorageAndNameAndStatusNotAndIdNot(storage, request.name(), ZoneStatus.CLOSED, zone.getId()))
-                .willReturn(false);
-
-        ZoneInfoResponse response = zoneService.updateZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
-
-        assertAll(
-                () -> assertEquals(1111L, response.zoneId()),
-                () -> assertEquals(111L, response.storageId()),
-                () -> assertEquals("업데이트 구역", response.name()),
-                () -> assertEquals("업데이트 설명", response.description())
-        );
-
-        verify(memberRepository).findByAccountUuid(any());
-        verify(storageRepository).findById(anyLong());
-        verify(zoneRepository).findByIdAndStorage(anyLong(), any());
-        verify(zoneRepository).existsByStorageAndNameAndStatusNotAndIdNot(any(), anyString(), any(), anyLong());
-    }
-
-    @Test
-    @DisplayName("구역 정보 업데이트 실패 - 권한 없음(멤버 아님)")
-    void updateZone_Fail_NotMember() {
-        ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
-
-        given(memberRepository.findByAccountUuid(any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.updateZone(storage.getId(), zone.getId(), UUID.randomUUID(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 정보 업데이트 실패 - 권한 없음(조직아이디 불일치)")
-    void updateZone_Fail_IdMismatch() {
-        ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
-
-        given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                .willReturn(Optional.of(otherMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.updateZone(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 정보 업데이트 실패 - 존 없음")
-    void updateZone_Fail_NotFoundZone() {
-        ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
-
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(anyLong(), any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ZoneNotFoundException.class, () ->
-                zoneService.updateZone(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 정보 업데이트 실패 - 이름 중복")
-    void updateZone_Fail_DuplicateName() {
-        ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
-
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
-                .willReturn(Optional.of(zone));
-        given(zoneRepository.existsByStorageAndNameAndStatusNotAndIdNot(storage, request.name(), ZoneStatus.CLOSED, zone.getId()))
-                .willReturn(true);
-
-        assertThrowsExactly(ZoneNameAlreadyExistsException.class, () ->
-                zoneService.updateZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 상태 업데이트 성공 테스트")
-    void updateZoneStatus_Success() {
-        ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
-
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
-                .willReturn(Optional.of(zone));
-
-        ZoneInfoResponse response = zoneService.updateZoneStatus(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
-
-        assertAll(
-                () -> assertEquals(1111L, response.zoneId()),
-                () -> assertEquals(111L, response.storageId()),
-                () -> assertEquals("테스트 구역1", response.name()),
-                () -> assertEquals(ZoneStatus.INACTIVE, response.status())
-        );
-
-        verify(memberRepository).findByAccountUuid(any());
-        verify(storageRepository).findById(anyLong());
-        verify(zoneRepository).findByIdAndStorage(anyLong(), any());
-    }
-
-    @Test
-    @DisplayName("구역 상태 업데이트 실패 - 권한없음(멤버 아님)")
-    void updateZoneStatus_Fail_NotMember() {
-        ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
-
-        given(memberRepository.findByAccountUuid(any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.updateZoneStatus(storage.getId(), zone.getId(), UUID.randomUUID(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 상태 업데이트 실패 - 권한없음(아이디 불일치)")
-    void updateZoneStatus_Fail_IdMismatch() {
-        ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
-
-        given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                .willReturn(Optional.of(otherMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.updateZoneStatus(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 상태 업데이트 실패 - 존 없음")
-    void updateZoneStatus_Fail_NotFoundZone() {
-        ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
-
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(anyLong(), any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ZoneNotFoundException.class, () ->
-                zoneService.updateZoneStatus(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 환경상태 업데이트 성공 테스트")
-    void updateZoneEnvStatus() {
-        ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
-
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
-                .willReturn(Optional.of(zone));
-
-        ZoneInfoResponse response = zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
-
-        assertAll(
-                () -> assertEquals(1111L, response.zoneId()),
-                () -> assertEquals(111L, response.storageId()),
-                () -> assertEquals("테스트 구역1", response.name()),
-                () -> assertEquals(EnvStatus.CRITICAL, response.envStatus())
-        );
-
-        verify(memberRepository).findByAccountUuid(any());
-        verify(storageRepository).findById(anyLong());
-        verify(zoneRepository).findByIdAndStorage(anyLong(), any());
-    }
-
-    @Test
-    @DisplayName("구역 환경상태 업데이트 실패 - 권한없음(멤버 아님)")
-    void updateZoneEnvStatus_Fail_NotMember() {
-        ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
-
-        given(memberRepository.findByAccountUuid(any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), UUID.randomUUID(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 환경상태 업데이트 실패 - 권한없음(조직 아이디 불일치)")
-    void updateZoneEnvStatus_Fail_IdMismatch() {
-        ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
-
-        given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                .willReturn(Optional.of(otherMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 환경상태 업데이트 실패 - 존 없음")
-    void updateZoneEnvStatus_Fail_NotFoundZone() {
-        ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
-
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(anyLong(), any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ZoneNotFoundException.class, () ->
-                zoneService.updateZoneEnvStatus(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
-        );
-    }
-
-    @Test
-    @DisplayName("구역 삭제 성공 테스트")
-    void closeZone() {
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
-                .willReturn(Optional.of(zone));
-
-        assertDoesNotThrow(() ->
-                zoneService.closeZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid())
-        );
-
-        assertEquals(ZoneStatus.CLOSED, zone.getStatus());
-
-        verify(memberRepository).findByAccountUuid(any());
-        verify(storageRepository).findById(anyLong());
-        verify(zoneRepository).findByIdAndStorage(anyLong(), any());
-    }
-
-    @Test
-    @DisplayName("구역 삭제 실패 - 권한없음(멤버 아님)")
-    void closeZone_Fail_NotMember() {
-        given(memberRepository.findByAccountUuid(any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.closeZone(storage.getId(), zone.getId(), UUID.randomUUID())
-        );
-    }
-
-    @Test
-    @DisplayName("구역 삭제 실패 - 권한없음(조직 아이디 불일치)")
-    void closeZone_Fail_IdMismatch() {
-        given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                .willReturn(Optional.of(otherMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-
-        assertThrowsExactly(ForbiddenException.class, () ->
-                zoneService.closeZone(storage.getId(), zone.getId(), otherMember.getAccountUuid())
-        );
-    }
-
-    @Test
-    @DisplayName("구역 삭제 실패 - 존 없음")
-    void closeZone_Fail_NotFoundZone() {
-        given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                .willReturn(Optional.of(approvedMember));
-        given(storageRepository.findById(storage.getId()))
-                .willReturn(Optional.of(storage));
-        given(zoneRepository.findByIdAndStorage(anyLong(), any()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(ZoneNotFoundException.class, () ->
-                zoneService.closeZone(storage.getId(), 3333L, approvedMember.getAccountUuid())
-        );
+            assertThrowsExactly(ZoneNotFoundException.class, () ->
+                    zoneService.closeZone(storage.getId(), 3333L, approvedMember.getAccountUuid())
+            );
+        }
     }
 
     private void setId(Object entity, Long id) throws Exception {

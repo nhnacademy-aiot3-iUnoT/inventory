@@ -21,22 +21,20 @@ public class ThresholdController {
     @PutMapping("/zones/{zoneId}/zone-threshold")
     public ResponseEntity<ApiResponse<ThresholdInfoResponse>> saveZoneThreshold(
             @PathVariable Long zoneId,
+            @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ThresholdSaveRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        ThresholdInfoResponse response = thresholdService.saveThreshold(zoneId, uuid, request);
+        ThresholdInfoResponse response = thresholdService.saveThreshold(zoneId, accountUuid, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/zones/{zoneId}/zone-threshold")
     public ResponseEntity<ApiResponse<List<ThresholdInfoResponse>>> getZoneThreshold(
-            @PathVariable Long zoneId
+            @PathVariable Long zoneId,
+            @RequestHeader("X-User-Id") UUID accountUuid
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        List<ThresholdInfoResponse> responses = thresholdService.getThresholds(zoneId, uuid);
+        List<ThresholdInfoResponse> responses = thresholdService.getThresholds(zoneId, accountUuid);
 
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
@@ -44,11 +42,10 @@ public class ThresholdController {
     @DeleteMapping("/zones/{zoneId}/zone-threshold/{zoneThresholdId}")
     public ResponseEntity<Void> deleteZoneThreshold(
             @PathVariable Long zoneId,
-            @PathVariable Long zoneThresholdId
+            @PathVariable Long zoneThresholdId,
+            @RequestHeader("X-User-Id") UUID accountUuid
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        thresholdService.deleteThreshold(zoneId, zoneThresholdId, uuid);
+        thresholdService.deleteThreshold(zoneId, zoneThresholdId, accountUuid);
 
         return ResponseEntity.noContent().build();
     }

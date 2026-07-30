@@ -8,6 +8,7 @@ import com.nhnacademy.inventory.organizations.zone.exception.SensorTypeNotFoundE
 import com.nhnacademy.inventory.organizations.zone.repository.SensorTypeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,96 +45,111 @@ class SensorTypeServiceTest {
         setId(sensorType, 1L);
     }
 
-    @Test
-    @DisplayName("센서타입 생성 성공 테스트")
-    void createSensorType_Success() {
-        SensorTypeCreateRequest request = new SensorTypeCreateRequest("테스트 센서2", "테스트 설명2");
+    @Nested
+    @DisplayName("센서타입 생성 테스트")
+    class createSensorType{
 
-        given(sensorTypeRepository.findByName(request.name()))
-                .willReturn(Optional.empty());
-        given(sensorTypeRepository.save(any(SensorType.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        @Test
+        @DisplayName("성공 테스트")
+        void success() {
+            SensorTypeCreateRequest request = new SensorTypeCreateRequest("테스트 센서2", "테스트 설명2");
 
-        SensorTypeInfoResponse response = sensorTypeService.createSensorType(request);
+            given(sensorTypeRepository.findByName(request.name()))
+                    .willReturn(Optional.empty());
+            given(sensorTypeRepository.save(any(SensorType.class)))
+                    .willAnswer(invocation -> invocation.getArgument(0));
 
-        assertAll(
-                () -> assertEquals("테스트 센서2", response.name()),
-                () -> assertEquals("테스트 설명2", response.description())
-        );
+            SensorTypeInfoResponse response = sensorTypeService.createSensorType(request);
 
-        verify(sensorTypeRepository).findByName(anyString());
-        verify(sensorTypeRepository).save(any());
+            assertAll(
+                    () -> assertEquals("테스트 센서2", response.name()),
+                    () -> assertEquals("테스트 설명2", response.description())
+            );
+
+            verify(sensorTypeRepository).findByName(anyString());
+            verify(sensorTypeRepository).save(any());
+        }
+
+        @Test
+        @DisplayName("실패 이름 중복")
+        void fail_DuplicateName() {
+            SensorTypeCreateRequest request = new SensorTypeCreateRequest("테스트 센서1", "테스트 설명2");
+
+            given(sensorTypeRepository.findByName(sensorType.getName()))
+                    .willReturn(Optional.of(sensorType));
+
+            assertThrowsExactly(SensorTypeNameAlreadyExistsException.class, () ->
+                    sensorTypeService.createSensorType(request)
+            );
+
+            verify(sensorTypeRepository, never()).save(any());
+        }
     }
 
-    @Test
-    @DisplayName("센서타입 생성 실패 이름 중복")
-    void createSensorType_Fail_DuplicateName() {
-        SensorTypeCreateRequest request = new SensorTypeCreateRequest("테스트 센서1", "테스트 설명2");
+    @Nested
+    @DisplayName("센서탕비 조회 테스트")
+    class getSensorTypes{
 
-        given(sensorTypeRepository.findByName(sensorType.getName()))
-                .willReturn(Optional.of(sensorType));
+        @Test
+        @DisplayName("성공 테스트")
+        void success() {
+            given(sensorTypeRepository.findAll()).willReturn(List.of(sensorType));
 
-        assertThrowsExactly(SensorTypeNameAlreadyExistsException.class, () ->
-                sensorTypeService.createSensorType(request)
-        );
+            List<SensorTypeInfoResponse> responses = sensorTypeService.getSensorTypes();
 
-        verify(sensorTypeRepository, never()).save(any());
+            assertAll(
+                    () -> assertEquals(1, responses.size()),
+                    () -> assertEquals(1L, responses.getFirst().sensorTypeId()),
+                    () -> assertEquals("테스트 센서1", responses.getFirst().name()),
+                    () -> assertEquals("테스트 설명1", responses.getFirst().description())
+            );
+
+            verify(sensorTypeRepository).findAll();
+        }
+
+        @Test
+        @DisplayName("성공 테스트 (빈 리스트)")
+        void success_empty() {
+            given(sensorTypeRepository.findAll()).willReturn(List.of());
+
+            List<SensorTypeInfoResponse> responses = sensorTypeService.getSensorTypes();
+
+            assertEquals(0, responses.size());
+
+            verify(sensorTypeRepository).findAll();
+        }
     }
 
-    @Test
-    @DisplayName("센서타입 조회 성공 테스트")
-    void getSensorTypes_Success() {
-        given(sensorTypeRepository.findAll()).willReturn(List.of(sensorType));
+    @Nested
+    @DisplayName("센서타입 삭제 테스트")
+    class deleteSensorType{
 
-        List<SensorTypeInfoResponse> responses = sensorTypeService.getSensorTypes();
+        @Test
+        @DisplayName("성공 테스트")
+        void success() {
+            given(sensorTypeRepository.findById(sensorType.getSensorTypeId()))
+                    .willReturn(Optional.of(sensorType));
 
-        assertAll(
-                () -> assertEquals(1, responses.size()),
-                () -> assertEquals(1L, responses.getFirst().sensorTypeId()),
-                () -> assertEquals("테스트 센서1", responses.getFirst().name()),
-                () -> assertEquals("테스트 설명1", responses.getFirst().description())
-        );
+            assertDoesNotThrow(() ->
+                    sensorTypeService.deleteSensorType(sensorType.getSensorTypeId())
+            );
 
-        verify(sensorTypeRepository).findAll();
-    }
+            verify(sensorTypeRepository).findById(anyLong());
+            verify(sensorTypeRepository).delete(any());
+        }
 
-    @Test
-    @DisplayName("센서타입 조회 성공 테스트 (빈 리스트)")
-    void getSensorTypes_Success_empty() {
-        given(sensorTypeRepository.findAll()).willReturn(List.of());
+        @Test
+        @DisplayName("실패 - 존재하지 않는 센서타입")
+        void fail_NotFoundSensorType() {
+            given(sensorTypeRepository.findById(anyLong()))
+                    .willReturn(Optional.empty());
 
-        List<SensorTypeInfoResponse> responses = sensorTypeService.getSensorTypes();
+            assertThrowsExactly(SensorTypeNotFoundException.class, () ->
+                    sensorTypeService.deleteSensorType(333L)
+            );
 
-        assertEquals(0, responses.size());
-
-        verify(sensorTypeRepository).findAll();
-    }
-
-    @Test
-    @DisplayName("센서타입 삭제 성공 테스트")
-    void deleteSensorType_Success() {
-        given(sensorTypeRepository.findById(sensorType.getSensorTypeId()))
-                .willReturn(Optional.of(sensorType));
-
-        assertDoesNotThrow(() ->
-            sensorTypeService.deleteSensorType(sensorType.getSensorTypeId())
-        );
-
-        verify(sensorTypeRepository).findById(anyLong());
-        verify(sensorTypeRepository).delete(any());
-    }
-
-    @Test
-    @DisplayName("센서타입 삭제 실패 - 존재하지 않는 센서타입")
-    void deleteSensorType_Fail_NotFound() {
-        given(sensorTypeRepository.findById(anyLong()))
-                .willReturn(Optional.empty());
-
-        assertThrowsExactly(SensorTypeNotFoundException.class, () ->
-                sensorTypeService.deleteSensorType(333L)
-        );
-
-        verify(sensorTypeRepository, never()).delete(any());
+            verify(sensorTypeRepository, never()).delete(any());
+        }
     }
 
     private void setId(Object entity, Long id) throws Exception {

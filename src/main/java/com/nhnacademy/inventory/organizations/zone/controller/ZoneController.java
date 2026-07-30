@@ -21,11 +21,10 @@ public class ZoneController {
     @PostMapping("/storages/{storageId}/zones")
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> createZone(
             @PathVariable Long storageId,
+            @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ZoneCreateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        ZoneInfoResponse response = zoneService.createZone(storageId, uuid, request);
+        ZoneInfoResponse response = zoneService.createZone(storageId, accountUuid, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -34,11 +33,10 @@ public class ZoneController {
 
     @GetMapping("/storages/{storageId}/zones")
     public ResponseEntity<ApiResponse<List<ZoneInfoResponse>>> getZones(
-            @PathVariable Long storageId
+            @PathVariable Long storageId,
+            @RequestHeader("X-User-Id") UUID accountUuid
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        List<ZoneInfoResponse> responses = zoneService.getZones(storageId, uuid);
+        List<ZoneInfoResponse> responses = zoneService.getZones(storageId, accountUuid);
 
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
@@ -47,11 +45,10 @@ public class ZoneController {
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneInfo(
             @PathVariable Long storageId,
             @PathVariable Long zoneId,
+            @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ZoneUpdateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        ZoneInfoResponse response = zoneService.updateZone(storageId, zoneId, uuid, request);
+        ZoneInfoResponse response = zoneService.updateZone(storageId, zoneId, accountUuid, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -60,11 +57,10 @@ public class ZoneController {
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneStatus(
             @PathVariable Long storageId,
             @PathVariable Long zoneId,
+            @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ZoneStatusUpdateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        ZoneInfoResponse response = zoneService.updateZoneStatus(storageId, zoneId, uuid, request);
+        ZoneInfoResponse response = zoneService.updateZoneStatus(storageId, zoneId, accountUuid, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -73,11 +69,10 @@ public class ZoneController {
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneEnvStatus(
             @PathVariable Long storageId,
             @PathVariable Long zoneId,
+            @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ZoneEnvStatusUpdateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        ZoneInfoResponse response = zoneService.updateZoneEnvStatus(storageId, zoneId, uuid, request);
+        ZoneInfoResponse response = zoneService.updateZoneEnvStatus(storageId, zoneId, accountUuid, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -85,11 +80,10 @@ public class ZoneController {
     @DeleteMapping("/storages/{storageId}/zones/{zoneId}")
     public ResponseEntity<Void> deleteZone(
             @PathVariable Long storageId,
-            @PathVariable Long zoneId
+            @PathVariable Long zoneId,
+            @RequestHeader("X-User-Id") UUID accountUuid
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
-
-        zoneService.closeZone(storageId, zoneId, uuid);
+        zoneService.closeZone(storageId, zoneId, accountUuid);
 
         return ResponseEntity.noContent().build();
     }
