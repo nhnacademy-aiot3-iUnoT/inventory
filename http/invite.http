@@ -1,0 +1,9 @@
+### admin 조직 생성 + 메일 전송 확인
+POST http://localhost:10411/api/core/admin/organizations
+Content-Type: application/json
+
+{
+  "businessNumber": "1234567890",
+  "name": "테스트 조직",
+  "email": "owner@test.com"
+}

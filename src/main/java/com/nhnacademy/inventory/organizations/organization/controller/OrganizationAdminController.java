@@ -40,8 +40,8 @@ public class OrganizationAdminController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<OrgSearchResponse>>> getOrganizationList(
-            @RequestBody @Valid OrgSearchRequest request,
-            @PageableDefault(size=15, sort = "createdAt") Pageable pageable
+            @ModelAttribute OrgSearchRequest request,
+            @PageableDefault(sort = "createdAt") Pageable pageable
     ) {
         Page<OrgSearchResponse> organizationList = organizationService.getOrganizationList(request, pageable);
 

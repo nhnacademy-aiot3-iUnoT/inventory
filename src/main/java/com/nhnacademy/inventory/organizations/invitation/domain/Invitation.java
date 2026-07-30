@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -47,19 +46,32 @@ public class Invitation {
     @Column(name = "used_at")
     private LocalDateTime usedAt;
 
-    @Builder
+    @Builder(access = AccessLevel.PRIVATE)
     private Invitation(Organization organization, String email, UUID token,
-                       InvitationStatus invitationStatus, LocalDateTime emailSentAt, LocalDateTime expiredAt) {
+                       InvitationStatus invitationStatus) {
         this.organization = organization;
         this.email = email;
         this.token = token;
         this.invitationStatus = invitationStatus;
-        this.emailSentAt = emailSentAt;
-        this.expiredAt = expiredAt;
     }
+
+    public static Invitation create(Organization organization, String email) {
+        return Invitation.builder()
+                .organization(organization)
+                .email(email)
+                .token(UUID.randomUUID())
+                .invitationStatus(InvitationStatus.ACTIVE)
+                .build();
+    }
+
+    public void markEmailSent() {
+        this.emailSentAt = LocalDateTime.now();
+    }
+
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.expiredAt = createdAt.plusDays(1);
     }
 }

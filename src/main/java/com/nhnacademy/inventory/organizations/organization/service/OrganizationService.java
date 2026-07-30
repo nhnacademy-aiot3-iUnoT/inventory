@@ -1,9 +1,12 @@
 package com.nhnacademy.inventory.organizations.organization.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
+import com.nhnacademy.inventory.organizations.invitation.event.OwnerInvitationCreatedEvent;
+import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
-import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
+import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgCreateRequest;
@@ -16,16 +19,15 @@ import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearc
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgDetailResponse;
 import com.nhnacademy.inventory.organizations.organization.exception.OrgAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.organization.exception.OrgNotFoundException;
-import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -34,7 +36,10 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class OrganizationService {
     private final OrganizationRepository organizationRepository;
-    private final OrganizationMemberRepository orgMemberRepository;
+
+    private final InvitationService invitationService;
+    private final OrganizationMemberService orgMemberService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 조직 생성
@@ -56,7 +61,12 @@ public class OrganizationService {
 
         log.info("조직({}) : {} 생성 완료", createOrg.getBusinessNumber(), createOrg.getName());
 
-        // TODO(na) 메일 전송 추가
+        Invitation ownerInvitation = invitationService.createOwnerInvitation(createOrg, orgCreateRequest.email());
+
+        // 초대 생성 알림
+        applicationEventPublisher.publishEvent(
+                new OwnerInvitationCreatedEvent(ownerInvitation.getEmail(), ownerInvitation.getToken())
+        );
 
         return OrgCreateResponse.from(createOrg);
     }
@@ -77,9 +87,7 @@ public class OrganizationService {
 
     // 유저 아이디 -> 조직 ID -> 조직 정보 출력
     public OrgDetailResponse getOrganizationForUser(UUID userId) {
-        OrganizationMember organizationMember = orgMemberRepository.findByAccountUuid(userId)
-                .orElseThrow(UserOrgNotFoundException::new);
-
+        OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(userId);
         Organization organization = organizationMember.getOrganization();
         log.info("사용자 {}의 조직 ID = {}", userId, organization.getId());
 
@@ -91,8 +99,7 @@ public class OrganizationService {
      */
     @Transactional
     public void updateOrganizationStatus(UUID userId, OrgStatusUpdateRequest request) {
-        OrganizationMember organizationMember = orgMemberRepository.findByAccountUuid(userId)
-                .orElseThrow(UserOrgNotFoundException::new);
+        OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(userId);
 
         if(!organizationMember.getOrganizationRole().equals(OrganizationRole.ORG_OWNER)) {
             log.debug("조직 수정 권한 없음");
@@ -108,8 +115,7 @@ public class OrganizationService {
 
     @Transactional
     public void updateOrganization(UUID userId, OrgUpdateRequest request) {
-        OrganizationMember organizationMember = orgMemberRepository.findByAccountUuid(userId)
-                .orElseThrow(UserOrgNotFoundException::new);
+        OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(userId);
 
         if(!organizationMember.getOrganizationRole().equals(OrganizationRole.ORG_OWNER)) {
             log.debug("조직 수정 권한 없음");
