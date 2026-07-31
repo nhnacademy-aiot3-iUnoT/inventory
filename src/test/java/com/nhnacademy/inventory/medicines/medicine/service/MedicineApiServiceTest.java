@@ -36,7 +36,7 @@ class MedicineApiServiceTest {
     @BeforeEach
     void setUp(){
 
-        medicineApiService = new MedicineApiService(medicineApiClient,medicineSaveService,objectMapper);
+        medicineApiService = new MedicineApiService(medicineApiClient, medicineSaveService,objectMapper);
 
     }
 

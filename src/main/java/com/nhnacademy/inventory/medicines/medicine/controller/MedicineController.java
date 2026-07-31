@@ -1,10 +1,12 @@
 package com.nhnacademy.inventory.medicines.medicine.controller;
 
 
+import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.medicines.medicine.service.MedicineApiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -16,12 +18,14 @@ public class MedicineController {
     private final MedicineApiService medicineApiService;
 
     @PostMapping("/admin/medicines/import")
-    public ResponseEntity<String> importMedicines(){
+    public ResponseEntity<ApiResponse<Void>> savedMedicines(){
 
         medicineApiService.savedAllMedicines();
-        return ResponseEntity.ok("의약품 저장 완료");
+        return ResponseEntity.ok(ApiResponse.ok());
 
     }
+
+
 
 
 

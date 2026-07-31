@@ -51,7 +51,7 @@ public class Medicine {
 
     @Builder
     private Medicine(String itemCode, String productName, String storageMethod, String validityPeriod,
-                     String ingredientContent, String narcoticKindCode,
+                     String narcoticKindCode,
                      String companyName) {
 
         if(itemCode == null || itemCode.isBlank()){
