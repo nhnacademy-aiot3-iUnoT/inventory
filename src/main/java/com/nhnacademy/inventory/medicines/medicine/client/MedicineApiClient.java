@@ -24,10 +24,14 @@ public class MedicineApiClient {
     public String getJson(int pageNo, int numOfRows){
 
 
-        return restClient.get()
+       String json =  restClient.get()
                 .uri(medicineProperties.detailPath() + "?serviceKey=" + medicineProperties.serviceKey() + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&type=json")
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve().body(String.class);
+
+       log.info("json: {}",json);
+
+       return json;
     }
 
 

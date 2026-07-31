@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.medicines.medicine.service;
 
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageSearchResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicineResponse;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
@@ -20,20 +21,23 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Optional;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class MedicineSearchServiceTest {
 
     @Mock
@@ -74,19 +78,17 @@ class MedicineSearchServiceTest {
                 () -> assertEquals("product-test",searchResponse.productName()),
                 () -> assertEquals("company-test",searchResponse.companyName()),
                 () -> assertEquals("unit-test",searchResponse.packUnit()),
-                () -> assertEquals("")
 
 
-
+                () -> assertEquals(1,pageResponse.getContent().size()),
+                () -> assertEquals(1,pageResponse.getTotalElements()),
+                () -> assertEquals(1,pageResponse.getTotalPages())
 
 
         );
 
 
-
-
-
-
+        verify(packageUnitRepository,times(1)).findAllWithMedicineByProductName("1234",pageable);
 
 
     }
@@ -105,6 +107,23 @@ class MedicineSearchServiceTest {
                 .validityPeriod("validity-test")
                 .narcoticKindCode(null)
                 .build();
+
+        MedicinePackageUnit medicinePackageUnit = MedicinePackageUnit.create(medicine,"pack-test");
+
+
+        ReflectionTestUtils.setField(medicine,"id",1L);
+        ReflectionTestUtils.setField(medicinePackageUnit,"id",1L);
+        log.info("medicine : {}",medicine.getId());
+        log.info("medicinePackageUnit: {}",medicinePackageUnit.getId());
+
+        given(packageUnitRepository.findWithMedicineByPackUnitId(1L)).willReturn(Optional.of(medicinePackageUnit));
+
+        MedicinePackageDetailResponse result = medicineSearchService.searchDetailMedicine(1L);
+
+        assertEquals("1234",medicine.getItemCode());
+        assertEquals("product-test",medicine.getProductName());
+        assertEquals("company-test",medicine.getCompanyName());
+        assertEquals("storage-test",medicine.getStorageMethod());
 
 
 
