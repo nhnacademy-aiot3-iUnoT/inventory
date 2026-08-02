@@ -36,7 +36,7 @@ public class MedicineApiService {
 
         medicineSaveService.saveMedicines(firstPageResponse);
 
-
+        //test
 
         int totalCount = jsonBody.path("totalCount").asInt();
         //int totalCount = 100;
