@@ -1,0 +1,150 @@
+== ZoneThreshold API
+
+
+=== 구역 임계값 저장
+
+
+구역 임계값 저장 요청을 통해 구역 임계값을 저장합니다.
+
+동일한 구역아이디와 센서타입에 대한 임계값이 없다면 생성합니다.
+
+동일한 구역아이디와 센서타입에 대한 임계값 저장요청이 들어올 시 해당 임계값을 업데이트합니다.
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/threshold-save/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/threshold-save/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/threshold-save/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/threshold-save/request-body.adoc[]
+
+
+===== Request Fields
+
+include::{snippets}/threshold-save/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/threshold-save/http-response.adoc[]
+
+
+===== Response Fields
+
+include::{snippets}/threshold-save/response-fields.adoc[]
+
+
+
+=== 센서타입 목록 조회
+
+
+구역 임계값 목록 조회 요청을 통해 구역 임계값 목록을 조회합니다.
+
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/threshold-get-list/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/threshold-get-list/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/threshold-get-list/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/threshold-get-list/request-body.adoc[]
+
+
+// ===== Request Fields
+//
+// include::{snippets}/threshold-get-list/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/threshold-get-list/http-response.adoc[]
+
+
+===== Response Fields
+
+include::{snippets}/threshold-get-list/response-fields.adoc[]
+
+
+
+=== 센서타입 삭제
+
+
+구역 임계값 삭제 요청을 통해 구역임계값을 삭제합니다.
+
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/threshold-delete/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/threshold-delete/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/threshold-delete/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/threshold-delete/request-body.adoc[]
+
+
+// ===== Request Fields
+//
+// include::{snippets}/threshold-delete/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/threshold-delete/http-response.adoc[]
+
+
+// ===== Response Fields
+//
+// include::{snippets}/threshold-delete/response-fields.adoc[]

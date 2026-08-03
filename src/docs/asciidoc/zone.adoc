@@ -1,0 +1,308 @@
+== Zone API
+
+
+=== 구역 생성
+
+
+구역 생성 요청을 통해 조직 아래에 새로운 구역을 생성합니다.
+
+생성시 기본적으로 상태는 ACTIVE상태이며 환경상태는 NORMAL입니다.
+
+구역이름은 같은 저장소 내에서 중복될 수 없습니다.
+
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/zone-create/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/zone-create/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/zone-create/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/zone-create/request-body.adoc[]
+
+
+===== Request Fields
+
+include::{snippets}/zone-create/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/zone-create/http-response.adoc[]
+
+
+===== Response Fields
+
+include::{snippets}/zone-create/response-fields.adoc[]
+
+
+
+=== 구역 목록 조회
+
+
+구역 목록 조회 요청을 통해 해당 저장소 아래의 구역 목록을 조회합니다.
+
+삭제(CLOSED)된 구역은 조회목록에 포함되지 않습니다.
+
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/zone-get-list/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/zone-get-list/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/zone-get-list/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/zone-get-list/request-body.adoc[]
+
+
+// ===== Request Fields
+//
+// include::{snippets}/zone-get-list/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/zone-get-list/http-response.adoc[]
+
+
+===== Response Fields
+
+include::{snippets}/zone-get-list/response-fields.adoc[]
+
+
+
+=== 구역 정보 수정
+
+
+구역 수정 요청을 통해 구역의 정보(이름, 설명)을 수정합니다.
+
+이름은 필수이며 같은 저장소 내에서 이름이 중복될 수 없습니다.
+
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/zone-update/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/zone-update/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/zone-update/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/zone-update/request-body.adoc[]
+
+
+===== Request Fields
+
+include::{snippets}/zone-update/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/zone-update/http-response.adoc[]
+
+
+===== Response Fields
+
+include::{snippets}/zone-update/response-fields.adoc[]
+
+
+
+=== 구역 상태 수정
+
+
+구역 수정 요청을 통해 구역의 상태를 수정합니다.
+
+상태는 ACTIVE 또는 INACTIVE 상태로 수정이 가능합니다.
+
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/zone-update-status/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/zone-update-status/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/zone-update-status/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/zone-update-status/request-body.adoc[]
+
+
+===== Request Fields
+
+include::{snippets}/zone-update-status/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/zone-update-status/http-response.adoc[]
+
+
+===== Response Fields
+
+include::{snippets}/zone-update-status/response-fields.adoc[]
+
+
+
+=== 구역 환경 상태 수정
+
+
+구역 수정 요청을 통해 구역의 환경 상태를 수정합니다.
+
+환경 상태는 NORMAL, WARNING, CRITICAL 상태로 수정이 가능합니다.
+
+
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/zone-update-env/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/zone-update-env/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/zone-update-env/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/zone-update-env/request-body.adoc[]
+
+
+===== Request Fields
+
+include::{snippets}/zone-update-env/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/zone-update-env/http-response.adoc[]
+
+
+===== Response Fields
+
+include::{snippets}/zone-update-env/response-fields.adoc[]
+
+
+
+=== 구역 삭제
+
+
+구역 삭제 요청을 통해 해당 구역의 상태를 삭제(CLOSED)상태로 변경합니다.
+
+
+
+==== Request
+
+
+===== HTTP Request
+
+include::{snippets}/zone-delete/http-request.adoc[]
+
+
+===== Request Headers
+
+include::{snippets}/zone-delete/request-headers.adoc[]
+
+
+// ===== Request Parameters
+//
+// include::{snippets}/zone-delete/query-parameters.adoc[]
+
+
+===== Request Body
+
+include::{snippets}/zone-delete/request-body.adoc[]
+
+
+// ===== Request Fields
+//
+// include::{snippets}/zone-delete/request-fields.adoc[]
+
+
+
+==== Response
+
+
+===== HTTP Response
+
+include::{snippets}/zone-delete/http-response.adoc[]
+
+
+// ===== Response Fields
+//
+// include::{snippets}/zone-delete/response-fields.adoc[]
