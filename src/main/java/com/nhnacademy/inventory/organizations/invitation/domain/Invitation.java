@@ -68,6 +68,9 @@ public class Invitation {
         this.emailSentAt = LocalDateTime.now();
     }
 
+    public void cancel() {
+        this.invitationStatus = InvitationStatus.CANCELED;
+    }
 
     @PrePersist
     protected void onCreate() {

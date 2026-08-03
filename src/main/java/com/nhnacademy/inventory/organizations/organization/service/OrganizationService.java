@@ -2,21 +2,21 @@ package com.nhnacademy.inventory.organizations.organization.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
+import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
 import com.nhnacademy.inventory.organizations.invitation.event.OwnerInvitationCreatedEvent;
+import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
-import com.nhnacademy.inventory.organizations.organization.dto.request.OrgCreateRequest;
-import com.nhnacademy.inventory.organizations.organization.dto.request.OrgSearchRequest;
-import com.nhnacademy.inventory.organizations.organization.dto.request.OrgStatusUpdateRequest;
-import com.nhnacademy.inventory.organizations.organization.dto.request.OrgUpdateRequest;
+import com.nhnacademy.inventory.organizations.organization.dto.request.*;
 import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrgDetailResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgDetailResponse;
+import com.nhnacademy.inventory.organizations.organization.exception.OrgAlreadyCompletedException;
 import com.nhnacademy.inventory.organizations.organization.exception.OrgAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.organization.exception.OrgNotFoundException;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
@@ -28,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -36,13 +37,15 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class OrganizationService {
     private final OrganizationRepository organizationRepository;
+    private final InvitationRepository invitationRepository;
 
     private final InvitationService invitationService;
     private final OrganizationMemberService orgMemberService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
-     * 조직 생성
+     * (Admin) 조직 생성
+     * - OrgStatus = Pending
      */
     @Transactional
     public OrgCreateResponse createOrganization(OrgCreateRequest orgCreateRequest) {
@@ -72,6 +75,28 @@ public class OrganizationService {
     }
 
     /**
+     * (Owner) 조직 생성
+     * 주소, 상세 설명 입력 -> OrgStatus = Active
+     */
+    @Transactional
+    public void completeOrganization(UUID memberId, OrganizationCompleteRequest request) {
+
+        OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(memberId);
+
+        if (!organizationMember.getOrganizationRole().equals(OrganizationRole.ORG_OWNER)) {
+            throw new ForbiddenException();
+        }
+
+        Organization organization = organizationMember.getOrganization();
+
+        if (!organization.getStatus().equals(OrganizationStatus.PENDING)) {
+            throw new OrgAlreadyCompletedException();
+        }
+
+        organization.complete(request.zipCode(), request.roadAddress(), request.addressDetail());
+    }
+
+    /**
      * 조직 조회
      */
     public Page<OrgSearchResponse> getOrganizationList(OrgSearchRequest request, Pageable pageable) {
@@ -85,7 +110,6 @@ public class OrganizationService {
         return AdminOrgDetailResponse.from(organization);
     }
 
-    // 유저 아이디 -> 조직 ID -> 조직 정보 출력
     public OrgDetailResponse getOrganizationForUser(UUID userId) {
         OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(userId);
         Organization organization = organizationMember.getOrganization();
@@ -101,7 +125,7 @@ public class OrganizationService {
     public void updateOrganizationStatus(UUID userId, OrgStatusUpdateRequest request) {
         OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(userId);
 
-        if(!organizationMember.getOrganizationRole().equals(OrganizationRole.ORG_OWNER)) {
+        if(organizationMember.getOrganizationRole() != OrganizationRole.ORG_OWNER) {
             log.debug("조직 수정 권한 없음");
             throw new ForbiddenException();
         }
@@ -141,11 +165,15 @@ public class OrganizationService {
                 .orElseThrow(OrgNotFoundException::new);
 
         // Owner 조직 생성 전 : hard delete
-        if(organization.getStatus().equals(OrganizationStatus.PENDING)) {
+        if(organization.getStatus() == OrganizationStatus.PENDING) {
+            invitationRepository.deleteByOrganizationId(organizationId);
             organizationRepository.delete(organization);
+            return;
         }
 
         // 생성 후 : soft delete
         organization.suspend();
+        List<Invitation> invitations = invitationRepository.findByOrganizationIdAndInvitationStatus(organizationId, InvitationStatus.ACTIVE);
+        invitations.forEach(Invitation::cancel);
     }
 }

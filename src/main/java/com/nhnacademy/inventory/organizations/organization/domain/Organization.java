@@ -79,6 +79,13 @@ public class Organization {
         this.status = OrganizationStatus.SUSPENDED;
     }
 
+    public void complete(String zipCode, String roadAddress, String addressDetail){
+        this.zipCode = zipCode;
+        this.roadAddress = roadAddress;
+        this.addressDetail = addressDetail;
+        this.status = OrganizationStatus.ACTIVE;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

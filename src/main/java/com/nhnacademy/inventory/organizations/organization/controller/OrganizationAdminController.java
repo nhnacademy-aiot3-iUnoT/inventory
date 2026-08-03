@@ -9,8 +9,10 @@ import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrg
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -18,9 +20,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 시스템 관리자 (admin) 조직 관리
+ */
+@Slf4j
 @RestController
-@RequestMapping("/api/core/admin/organizations")
 @RequiredArgsConstructor
+@RequestMapping("/api/core/admin/organizations")
 public class OrganizationAdminController {
     private final OrganizationService organizationService;
 
@@ -64,6 +70,6 @@ public class OrganizationAdminController {
     @DeleteMapping("/{organizationId}")
     public ResponseEntity<Void> deleteOrganization(@PathVariable Long organizationId) {
         organizationService.deleteOrganization(organizationId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.noContent().build();
     }
 }

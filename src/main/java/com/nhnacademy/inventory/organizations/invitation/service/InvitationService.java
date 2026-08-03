@@ -5,9 +5,11 @@ import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus
 import com.nhnacademy.inventory.organizations.invitation.exception.InvitationNotFoundException;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -28,7 +30,6 @@ public class InvitationService {
      */
     @Transactional
     public Invitation createOwnerInvitation(Organization organization, String email) {
-        // TODO(na) 중복 초대 검증 추가
         Invitation invitation = Invitation.create(organization, email);
 
         return invitationRepository.save(invitation);
@@ -38,7 +39,7 @@ public class InvitationService {
         return invitationUrl + "?token=" + invitationToken;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markEmailSent(UUID invitationToken) {
         getInvitation(invitationToken).markEmailSent();
     }
@@ -50,9 +51,4 @@ public class InvitationService {
         return invitationRepository.findByToken(token)
                 .orElseThrow(InvitationNotFoundException::new);
     }
-
-    /**
-     * 초대 토큰 검증
-     */
-
 }

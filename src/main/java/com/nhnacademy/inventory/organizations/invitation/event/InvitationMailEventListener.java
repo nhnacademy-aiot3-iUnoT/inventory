@@ -17,7 +17,6 @@ public class InvitationMailEventListener {
     private final MailService mailService;
     private final InvitationService invitationService;
 
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(OwnerInvitationCreatedEvent event) {
         String link = invitationService.createInvitationLink(event.token());
