@@ -15,20 +15,30 @@ import com.nhnacademy.inventory.organizations.zone.exception.ZoneNameAlreadyExis
 import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.service.ThresholdService;
 import com.nhnacademy.inventory.organizations.zone.service.ZoneService;
+import com.nhnacademy.inventory.support.RestDocsUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,6 +46,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,6 +61,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ThresholdController.class)
 @Import(GlobalExceptionHandler.class)
+@ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 class ThresholdControllerTest {
 
     @Autowired
@@ -58,7 +76,12 @@ class ThresholdControllerTest {
     private UUID accountUuid;
 
     @BeforeEach
-    void setUp() {
+    void setUp(WebApplicationContext webApplicationContext,
+               RestDocumentationContextProvider restDocumentation) {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(documentationConfiguration(restDocumentation))
+                .build();
+
         accountUuid = UUID.randomUUID();
     }
 
@@ -75,6 +98,9 @@ class ThresholdControllerTest {
                     BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5
             );
 
+            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
+            responseFields.addAll(thresholdInfoResponseFields("data."));
+
             given(thresholdService.saveThreshold(11L, accountUuid, request)).willReturn(response);
 
             mockMvc.perform(put("/api/core/zones/{zoneId}/zone-threshold", 11L)
@@ -84,7 +110,22 @@ class ThresholdControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.minValue").value(20))
-                    .andExpect(jsonPath("$.data.maxValue").value(30));
+                    .andExpect(jsonPath("$.data.maxValue").value(30))
+                    .andDo(document("threshold-save",
+                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
+                            pathParameters(
+                                    parameterWithName("zoneId").description("구역 ID")
+                            ),
+                            requestFields(
+                                    fieldWithPath("sensorTypeId").type(JsonFieldType.NUMBER).description("센서 타입 ID"),
+                                    fieldWithPath("minValue").type(JsonFieldType.NUMBER).description("최소 임계값").optional(),
+                                    fieldWithPath("maxValue").type(JsonFieldType.NUMBER).description("최대 임계값").optional(),
+                                    fieldWithPath("alertDuration").type(JsonFieldType.NUMBER).description("경고 지속 시간 (초)").optional()
+                            ),
+                            responseFields(
+                                    responseFields
+                            )
+                    ));
         }
 
         @Test
@@ -169,13 +210,25 @@ class ThresholdControllerTest {
             given(thresholdService.getThresholds(11L, accountUuid))
                     .willReturn(responseList);
 
+            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
+            responseFields.addAll(thresholdInfoResponseFields("data[]."));
+
             mockMvc.perform(get("/api/core/zones/{zoneId}/zone-threshold", 11L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(1))
                     .andExpect(jsonPath("$.data[0].minValue").value(20))
-                    .andExpect(jsonPath("$.data[0].maxValue").value(30));
+                    .andExpect(jsonPath("$.data[0].maxValue").value(30))
+                    .andDo(document("threshold-get-list",
+                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
+                            pathParameters(
+                                    parameterWithName("zoneId").description("구역 ID")
+                            ),
+                            responseFields(
+                                    responseFields
+                            )
+                    ));
         }
 
         @Test
@@ -226,7 +279,14 @@ class ThresholdControllerTest {
         void success() throws Exception {
             mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}", 11L, 1L)
                             .header("X-USER-ID", accountUuid.toString()))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isNoContent())
+                    .andDo(document("threshold-delete",
+                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
+                            pathParameters(
+                                    parameterWithName("zoneId").description("구역 ID"),
+                                    parameterWithName("zoneThresholdId").description("구역 임계값 ID")
+                            )
+                    ));
 
             verify(thresholdService).deleteThreshold(11L, 1L, accountUuid);
         }
@@ -266,5 +326,16 @@ class ThresholdControllerTest {
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
+    }
+
+    private List<FieldDescriptor> thresholdInfoResponseFields(String prefix){
+        return List.of(
+                fieldWithPath(prefix + "zoneThresholdId").type(JsonFieldType.NUMBER).description("임계값 ID"),
+                fieldWithPath(prefix + "zoneId").type(JsonFieldType.NUMBER).description("구역 ID"),
+                fieldWithPath(prefix + "sensorTypeId").type(JsonFieldType.NUMBER).description("센서 타입 ID"),
+                fieldWithPath(prefix + "minValue").type(JsonFieldType.NUMBER).description("최소 임계값").optional(),
+                fieldWithPath(prefix + "maxValue").type(JsonFieldType.NUMBER).description("최대 임계값").optional(),
+                fieldWithPath(prefix + "alertDuration").type(JsonFieldType.NUMBER).description("경고 지속 시간 (초)").optional()
+        );
     }
 }
