@@ -55,13 +55,13 @@ public class Medicine {
                      String companyName) {
 
         if(itemCode == null || itemCode.isBlank()){
-            throw new ItemCodeRequiredException(MedicineErrorCode.ITEM_CODE_REQUIRED);
+            throw new ItemCodeRequiredException();
         }
         if(productName == null || productName.isBlank()){
-            throw new ProductNameRequiredException(MedicineErrorCode.PRODUCT_NAME_REQUIRED);
+            throw new ProductNameRequiredException();
         }
         if(companyName == null || companyName.isBlank()){
-            throw new CompanyNameRequiredException(MedicineErrorCode.COMPANY_NAME_REQUIRED);
+            throw new CompanyNameRequiredException();
         }
 
 

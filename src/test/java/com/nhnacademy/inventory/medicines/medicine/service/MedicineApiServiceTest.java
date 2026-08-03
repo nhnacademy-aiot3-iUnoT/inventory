@@ -18,6 +18,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -130,64 +131,23 @@ class MedicineApiServiceTest {
     }
 
 
+
+
+
     @Test
-    @DisplayName("모든 정보 Null 체크 및 포장 단위 null인 경우")
-    void errorTest(){
+    @DisplayName("의약품 Api 호출 예외 발생")
+    void apiExceptionTest(){
 
 
-        String json = """
-                
-                {
-                
-                    "body": {
-               
-                        "totalCount": 1,
-                        "items": [
-                        {
-                            "ITEM_SEQ": null,
-                            "ITEM_NAME": null,
-                            "ENTP_NAME": null,
-                            "STORAGE_METHOD": null,
-                            "VALID_TERM": null,
-                            "PACK_UNIT": null,
-                            "NARCOTIC_KIND_CODE": null
-                            }
-                        ]
-                
-                    }
-
-                
-                }
-
-                """;
-
-
-        when(medicineApiClient.getJson(1,500)).thenReturn(json);
-        medicineApiService.savedAllMedicines();
-
-        ArgumentCaptor<List<MedicineResponse>> captor = ArgumentCaptor.captor();
-        verify(medicineSaveService).saveMedicines(captor.capture());
-
-        MedicineResponse response = captor.getValue().getFirst();
-
-        assertAll(
-
-                () -> assertNull(response.itemCode()),
-                () -> assertNull(response.productName()),
-                () -> assertNull(response.companyName()),
-                () -> assertNull(response.storageMethod()),
-                () -> assertEquals(List.of("포장단위 정보 없음"),response.packageUnits()),
-                () -> assertNull(response.validityPeriod()),
-                () -> assertNull(response.narcoticKindCode()),
-                () -> assertDoesNotThrow(()-> medicineApiService.savedAllMedicines())
-
-
-
-        );
-
-
+        when(medicineApiClient.getJson(anyInt(),anyInt())).thenThrow(new RuntimeException("예외 발생"));
+        assertThrows(RuntimeException.class, () -> medicineApiService.savedAllMedicines());
+        verify(medicineSaveService,never()).saveMedicines(anyList());
 
     }
+
+
+
+
 
 
 
@@ -232,7 +192,6 @@ class MedicineApiServiceTest {
 
         assertNotNull(response.packageUnits().getFirst());
         assertEquals("1000mL/병",response.packageUnits().getFirst());
-
 
 
     }

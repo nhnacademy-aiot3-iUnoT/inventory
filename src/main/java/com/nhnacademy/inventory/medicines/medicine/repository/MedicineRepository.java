@@ -9,7 +9,6 @@ public interface MedicineRepository extends JpaRepository<Medicine, Long> {
 
     boolean existsByItemCode(String itemCode);
 
-    List<Medicine> findAllByProductNameContainingIgnoreCase(String productName);
 
 
 

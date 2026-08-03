@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.medicines.medicine.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
+
 public record MedicinePackageDetailResponse(
 
         Long medicineId,
@@ -9,8 +11,13 @@ public record MedicinePackageDetailResponse(
         String companyName,
         String storageMethod,
         String validityPeriod,
+        String packUnit,
         String narcoticKindCode
 
 
 ) {
+
+    @QueryProjection
+    public MedicinePackageDetailResponse {
+    }
 }

@@ -4,7 +4,7 @@ import com.nhnacademy.inventory.global.error.BaseException;
 import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
 
 public class PackUnitIdInvalidException extends BaseException {
-    public PackUnitIdInvalidException(MedicineErrorCode errorCode) {
-        super(errorCode);
+    public PackUnitIdInvalidException() {
+        super(MedicineErrorCode.PACK_UNIT_INVALID);
     }
 }
