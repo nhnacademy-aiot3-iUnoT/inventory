@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.inventories.inventory.service;
 
 import com.nhnacademy.inventory.inventories.inventory.dto.MedicineInboundCreateRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
@@ -20,7 +21,6 @@ public class MedicineInventoryService {
     //입고
     @Transactional
     public void inbound(MedicineInboundCreateRequest request){
-
 
 
 
