@@ -51,17 +51,17 @@ public class Medicine {
 
     @Builder
     private Medicine(String itemCode, String productName, String storageMethod, String validityPeriod,
-                     String ingredientContent, String narcoticKindCode,
+                     String narcoticKindCode,
                      String companyName) {
 
         if(itemCode == null || itemCode.isBlank()){
-            throw new ItemCodeRequiredException(MedicineErrorCode.ITEM_CODE_REQUIRED);
+            throw new ItemCodeRequiredException();
         }
         if(productName == null || productName.isBlank()){
-            throw new ProductNameRequiredException(MedicineErrorCode.PRODUCT_NAME_REQUIRED);
+            throw new ProductNameRequiredException();
         }
         if(companyName == null || companyName.isBlank()){
-            throw new CompanyNameRequiredException(MedicineErrorCode.COMPANY_NAME_REQUIRED);
+            throw new CompanyNameRequiredException();
         }
 
 

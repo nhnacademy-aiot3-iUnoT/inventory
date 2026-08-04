@@ -1,8 +1,10 @@
 package com.nhnacademy.inventory.medicines.medicine.service;
 
+import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicineResponse;
+import com.nhnacademy.inventory.medicines.medicine.exception.MedicineNotFoundException;
 import com.nhnacademy.inventory.medicines.medicine.mapper.MedicineMapper;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicineRepository;
@@ -24,13 +26,15 @@ public class MedicineSaveService {
     private final MedicineMapper medicineMapper;
 
 
+    // 데이터 저장
     @Transactional
     public void saveMedicines(List<MedicineResponse> responses){
 
         int savedCount = 0;
-        int failedCount= 0;
+        int failedCount = 0;
 
-        log.info("======의약품 저장 시작 =========");
+
+        log.info("====== 의약품 저장 시작 =========");
         for(MedicineResponse medicineResponse : responses){
 
             String itemCode = medicineResponse.itemCode();
@@ -57,7 +61,12 @@ public class MedicineSaveService {
 
         }
 
+
+
+
         log.info("의약품 페이지 저장 완료 요청= {}, 저장= {}, 건너뜀= {}",responses.size(),savedCount,failedCount);
+
+
 
     }
 

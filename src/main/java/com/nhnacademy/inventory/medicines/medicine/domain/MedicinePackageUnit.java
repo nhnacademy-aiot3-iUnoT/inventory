@@ -32,10 +32,10 @@ public class MedicinePackageUnit {
     private MedicinePackageUnit(Medicine medicine, String packUnit) {
 
         if(medicine == null){
-            throw new MedicineRequiredException(MedicineErrorCode.MEDICINE_REQUIRED);
+            throw new MedicineRequiredException();
         }
         if(packUnit == null || packUnit.isBlank()){
-            throw new PackUnitRequiredException(MedicineErrorCode.PACK_UNIT_REQUIRED);
+            throw new PackUnitRequiredException();
         }
 
 

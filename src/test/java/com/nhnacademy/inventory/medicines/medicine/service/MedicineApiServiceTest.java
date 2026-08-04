@@ -18,6 +18,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,7 +37,7 @@ class MedicineApiServiceTest {
     @BeforeEach
     void setUp(){
 
-        medicineApiService = new MedicineApiService(medicineApiClient,medicineSaveService,objectMapper);
+        medicineApiService = new MedicineApiService(medicineApiClient, medicineSaveService,objectMapper);
 
     }
 
@@ -130,39 +131,71 @@ class MedicineApiServiceTest {
     }
 
 
+
+
+
     @Test
-    @DisplayName("포장단위가 없는 경우")
-    void packUnitTest(){
+    @DisplayName("의약품 Api 호출 예외 발생")
+    void apiExceptionTest(){
+
+
+        when(medicineApiClient.getJson(anyInt(),anyInt())).thenThrow(new RuntimeException("예외 발생"));
+        assertThrows(RuntimeException.class, () -> medicineApiService.savedAllMedicines());
+        verify(medicineSaveService,never()).saveMedicines(anyList());
+
+    }
+
+
+
+
+
+
+
+    @Test
+    @DisplayName("포장단위 수출용 무시 및 파싱 체크")
+    void packOutput(){
 
         String json = """
                 
                 {
+                
                     "body": {
+               
                         "totalCount": 1,
-                        "items": [  
+                        "items": [
                         {
-                            
-                            
-                        
-                        
+                            "ITEM_SEQ": "12345",
+                            "ITEM_NAME": "테스트약",
+                            "ENTP_NAME": "테스트제약",
+                            "STORAGE_METHOD": "실온보관",
+                            "VALID_TERM": "24개월",
+                            "PACK_UNIT": "수출용 500mL/병, 1000mL/병",
+                            "NARCOTIC_KIND_CODE": null
                             }
                         ]
-                       
-                    
-                    
+                
                     }
-                  
 
                 
                 }
-                
 
                 """;
 
 
+        when(medicineApiClient.getJson(1,500)).thenReturn(json);
+        medicineApiService.savedAllMedicines();
+
+        ArgumentCaptor<List<MedicineResponse>> captor = ArgumentCaptor.captor();
+        verify(medicineSaveService).saveMedicines(captor.capture());
+
+        MedicineResponse response = captor.getValue().getFirst();
+
+        assertNotNull(response.packageUnits().getFirst());
+        assertEquals("1000mL/병",response.packageUnits().getFirst());
 
 
     }
+
 
 
 
