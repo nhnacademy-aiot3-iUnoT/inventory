@@ -109,7 +109,7 @@ public class TestFixtures {
     }
 
     public static MedicinePackageUnit createPackageUnit(Medicine medicine, String packUnit) {
-        return MedicinePackageUnit.create(medicine, packUnit);
+        return MedicinePackageUnit.create(medicine,packUnit);
     }
 
     public static MedicineInventory createInventory(MedicinePackageUnit packageUnit, Zone zone) {

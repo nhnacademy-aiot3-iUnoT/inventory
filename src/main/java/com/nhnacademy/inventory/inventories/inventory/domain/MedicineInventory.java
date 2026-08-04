@@ -12,7 +12,22 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "medicine_inventorys")
+@Table(
+    name = "medicine_inventorys",
+    uniqueConstraints = {@UniqueConstraint(
+            name = "uk_medicine_inventory",
+            columnNames = {
+                    "medicine_package_unit_id",
+                    "zone_id",
+                    "lot_number",
+                    "expiration_date"
+            }
+
+        )
+
+    }
+
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MedicineInventory {
@@ -75,4 +90,26 @@ public class MedicineInventory {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+
+    public static MedicineInventory create(MedicinePackageUnit medicinePackageUnit, Zone zone, String lotNumber, LocalDate expirationDate, int quantity){
+
+        return MedicineInventory.builder()
+                .medicinePackageUnit(medicinePackageUnit)
+                .zone(zone)
+                .lotNumber(lotNumber.trim())
+                .expirationDate(expirationDate)
+                .currentQuantity(quantity)
+                .managementStatus(ManagementStatus.NORMAL)
+                .build();
+
+    }
+
+    public void increaseQuantity(int quantity){
+
+        this.currentQuantity += quantity;
+    }
+
+
+
 }
