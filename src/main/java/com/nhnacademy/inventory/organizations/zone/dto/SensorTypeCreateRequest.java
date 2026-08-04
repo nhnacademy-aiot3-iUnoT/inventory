@@ -4,10 +4,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record SensorTypeCreateRequest(
-        @NotBlank @Size(max = 30)
+        @NotBlank(message = "센서타입 이름을 입력해야 합니다.")
+        @Size(max = 30, message = "센서타입 이름은 최대 30자 입니다.")
         String name,
 
-        @Size(max = 255)
+        @Size(max = 255, message = "센서타입 설명은 최대 255자 입니다.")
         String description
 ) {
 }
