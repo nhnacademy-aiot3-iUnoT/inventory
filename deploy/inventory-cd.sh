@@ -2,10 +2,11 @@
 # 에러 발생 시 스크립트 실행을 즉시 중단
 set -e
 
-git pull origin main
 cd ~/inventory
 
-export GHCR_OWNER="nhnacademy-aiot3-iunot"
+set -a
+source ~/infra/common.env
+set +a
 NEW_TAG="${IMAGE_TAG:-latest}"
 LAST_GOOD_FILE=".last-good-tag"
 OLD_TAG=$(cat "$LAST_GOOD_FILE" 2>/dev/null || echo "latest")
@@ -17,7 +18,7 @@ PORTS=("10411" "10412")
 deploy_tag() {
   local tag="$1"
   export IMAGE_TAG="$tag"
-  docker compose pull
+  docker compose -f compose.yaml pull
 
   for i in "${!SERVICES[@]}"; do
     SERVICE="${SERVICES[$i]}"
@@ -33,7 +34,7 @@ deploy_tag() {
     sleep 65;
 
     echo "${SERVICE} 재배포 (tag=${tag})"
-    docker compose up -d --force-recreate "$SERVICE"
+    docker compose -f compose.yaml up -d --force-recreate "$SERVICE"
 
     for attempt in {1..30}; do
       if curl -sf "http://127.0.0.1:${PORT}/actuator/health" 2>/dev/null | grep -q '"status":"UP"'; then

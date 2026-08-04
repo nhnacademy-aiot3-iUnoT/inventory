@@ -87,4 +87,5 @@ jobs:
           script: |
             set -e
             cd ~/inventory
+            git pull origin main
             IMAGE_TAG=${{ github.sha }} ./deploy/inventory-cd.sh
