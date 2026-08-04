@@ -48,7 +48,7 @@ public class MedicineApiService {
         log.info("의약품 저장 완료. page= {}/{} size= {}",1,totalPages,firstPageResponse.size());
 
 
-        for(int pageNo = 54; pageNo <= totalPages; pageNo++){
+        for(int pageNo = 2; pageNo <= totalPages; pageNo++){
 
             String forJson = medicineApiClient.getJson(pageNo,PAGE_SIZE);
             JsonNode pageJson= objectMapper.readTree(forJson);
