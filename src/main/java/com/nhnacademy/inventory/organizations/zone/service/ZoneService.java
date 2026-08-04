@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
@@ -32,8 +33,8 @@ public class ZoneService {
     private final StorageRepository storageRepository;
 
     @Transactional
-    public ZoneInfoResponse createZone(Long storageId, UUID accountUuid, ZoneCreateRequest request){
-        Storage storage = validateOrganizationMember(storageId, accountUuid);
+    public ZoneInfoResponse createZone(Long storageId, ZoneCreateRequest request){
+        Storage storage = validateOrganizationMember(storageId, UserContext.getUserUuid());
 
         validateDuplicateZoneName(storage, request.name());
 
@@ -50,8 +51,8 @@ public class ZoneService {
         return ZoneInfoResponse.from(saved);
     }
 
-    public List<ZoneInfoResponse> getZones(Long storageId, UUID accountUuid){
-        Storage storage = validateOrganizationMember(storageId, accountUuid);
+    public List<ZoneInfoResponse> getZones(Long storageId){
+        Storage storage = validateOrganizationMember(storageId, UserContext.getUserUuid());
 
         List<Zone> zones = zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED);
 
@@ -61,8 +62,8 @@ public class ZoneService {
     }
 
     @Transactional
-    public ZoneInfoResponse updateZone(Long storageId, Long zoneId, UUID accountUuid, ZoneUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId, accountUuid);
+    public ZoneInfoResponse updateZone(Long storageId, Long zoneId, ZoneUpdateRequest request){
+        Zone zone = findByIdAndValidate(storageId, zoneId, UserContext.getUserUuid());
 
         validateDuplicateZoneName(zone.getStorage(), request.name(), zone.getId());
 
@@ -72,8 +73,8 @@ public class ZoneService {
     }
 
     @Transactional
-    public ZoneInfoResponse updateZoneStatus(Long storageId, Long zoneId, UUID accountUuid, ZoneStatusUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId, accountUuid);
+    public ZoneInfoResponse updateZoneStatus(Long storageId, Long zoneId, ZoneStatusUpdateRequest request){
+        Zone zone = findByIdAndValidate(storageId, zoneId, UserContext.getUserUuid());
 
         zone.changeStatus(request.status());
 
@@ -81,8 +82,8 @@ public class ZoneService {
     }
 
     @Transactional
-    public ZoneInfoResponse updateZoneEnvStatus(Long storageId, Long zoneId, UUID accountUuid, ZoneEnvStatusUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId, accountUuid);
+    public ZoneInfoResponse updateZoneEnvStatus(Long storageId, Long zoneId, ZoneEnvStatusUpdateRequest request){
+        Zone zone = findByIdAndValidate(storageId, zoneId, UserContext.getUserUuid());
 
         zone.changeEnvStatus(request.envStatus());
 
@@ -90,8 +91,8 @@ public class ZoneService {
     }
 
     @Transactional
-    public void closeZone(Long storageId, Long zoneId, UUID accountUuid){
-        Zone zone = findByIdAndValidate(storageId, zoneId, accountUuid);
+    public void closeZone(Long storageId, Long zoneId){
+        Zone zone = findByIdAndValidate(storageId, zoneId, UserContext.getUserUuid());
 
         zone.close();
     }

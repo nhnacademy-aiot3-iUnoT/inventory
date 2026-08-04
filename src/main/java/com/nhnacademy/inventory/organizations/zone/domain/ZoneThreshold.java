@@ -48,4 +48,10 @@ public class ZoneThreshold {
         this.maxValue = maxValue;
         this.alertDuration = alertDuration;
     }
+
+    public void updateValues(BigDecimal minValue, BigDecimal maxValue, Integer alertDuration){
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+        this.alertDuration = alertDuration;
+    }
 }

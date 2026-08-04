@@ -13,8 +13,15 @@ public enum OrganizationErrorCode implements ErrorCode {
 
     //구역 에러코드
     ZONE_NOT_FOUND(HttpStatus.NOT_FOUND, "Z001", "존재하지 않는 구역입니다."),
-    ZONE_NAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "Z002", "저장소내의 이미 존재하는 구역 이름입니다.");
+    ZONE_NAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "Z002", "저장소내의 이미 존재하는 구역 이름입니다."),
 
+    //센서타입 에러코드
+    SENSOR_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ST001", "존재하지 않는 센서타입 입니다."),
+    SENSOR_TYPE_NAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "ST002", "이미 존재하는 센서타입 이름입니다."),
+
+    //임계값 에러코드
+    THRESHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "존재하지 않는 임계설정 입니다."),
+    THRESHOLD_INVALID_RANGE(HttpStatus.BAD_REQUEST, "T003", "잘못된 범위의 임계값 입니다.");
 
     private final HttpStatus status;
     private final String code;
