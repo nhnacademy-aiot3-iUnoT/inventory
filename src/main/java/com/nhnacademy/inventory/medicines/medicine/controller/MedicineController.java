@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.medicines.medicine.controller;
 
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
+import com.nhnacademy.inventory.global.dto.PageResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicineDetailRequest;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageSearchResponse;
@@ -35,15 +36,16 @@ public class MedicineController {
 
     // 의약품 정보 조회
     @GetMapping("/medicines")
-    public ResponseEntity<ApiResponse<Page<MedicinePackageSearchResponse>>> getMedicines(@Valid @ModelAttribute MedicineSearchRequest medicineSearchRequest, Pageable pageable){
+    public ResponseEntity<ApiResponse<PageResponse<MedicinePackageSearchResponse>>> getMedicines(@Valid @ModelAttribute MedicineSearchRequest medicineSearchRequest, Pageable pageable){
 
-        return ResponseEntity.ok(ApiResponse.success(medicineSearchService.searchMedicines(medicineSearchRequest,pageable)));
+        Page<MedicinePackageSearchResponse> page = medicineSearchService.searchMedicines(medicineSearchRequest,pageable);
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(page)));
 
     }
 
     // 특정 의약품 조회
-    @GetMapping("/medicines/package-units/{medicinePackageUnitId}")
-    public ResponseEntity<ApiResponse<MedicinePackageDetailResponse>> getDetailMedicine(@PathVariable Long medicinePackageUnitId){
+    @GetMapping("/medicines/package-units/{medicine-package-unit-id}")
+    public ResponseEntity<ApiResponse<MedicinePackageDetailResponse>> getDetailMedicine(@PathVariable(name = "medicine-package-unit-id") Long medicinePackageUnitId){
 
         return ResponseEntity.ok(ApiResponse.success(medicineSearchService.getDetail(medicinePackageUnitId)));
 

@@ -1,6 +1,8 @@
 package com.nhnacademy.inventory.medicines.medicine.controller;
 
 import com.nhnacademy.inventory.medicines.medicine.service.MedicineApiService;
+import com.nhnacademy.inventory.medicines.medicine.service.MedicineSaveService;
+import com.nhnacademy.inventory.medicines.medicine.service.MedicineSearchService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -25,6 +27,8 @@ class MedicineControllerTest {
     @MockitoBean
     MedicineApiService medicineApiService;
 
+    @MockitoBean
+    MedicineSearchService medicineSearchService;
 
     @Test
     void savedMedicines() throws Exception{

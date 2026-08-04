@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class InventoryController {
 
 
-    @PostMapping("/inventory")
-    public ResponseEntity<ApiResponse<>> register(@Valid @RequestBody MedicineInboundCreateRequest medicineInboundCreateRequest){
-
-
-
-
-
-    }
+//    @PostMapping("/inventory")
+//    public ResponseEntity<ApiResponse<>> register(@Valid @RequestBody MedicineInboundCreateRequest medicineInboundCreateRequest){
+//
+//
+//
+//
+//
+//    }
 
 
 }

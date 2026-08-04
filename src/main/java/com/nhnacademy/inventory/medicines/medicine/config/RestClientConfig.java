@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClient;
 @EnableConfigurationProperties(MedicineProperties.class)
 public class RestClientConfig {
 
-    @Bean
+    @Bean("medicineRestClient")
     public RestClient medicineRestClient(MedicineProperties medicineProperties){
 
         return RestClient.builder()

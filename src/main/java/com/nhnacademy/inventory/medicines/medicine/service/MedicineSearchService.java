@@ -3,7 +3,7 @@ package com.nhnacademy.inventory.medicines.medicine.service;
 
 import com.nhnacademy.inventory.medicines.medicine.domain.SearchType;
 
-import com.nhnacademy.inventory.medicines.medicine.dto.MedicineDetailRequest;
+
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageSearchResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicineSearchRequest;
@@ -42,8 +42,8 @@ public class MedicineSearchService {
             searchResponse = packageUnitRepository.findAllWithMedicineByProductName(trimmed,pageable);
             log.info("product name : {} , searchResponse : {}",trimmed,searchResponse);
 
-
         }
+
         else{
 
             if(!trimmed.matches("\\d{9}")){
@@ -55,9 +55,6 @@ public class MedicineSearchService {
 
         }
 
-        if(searchResponse.getTotalElements() == 0){
-            throw new MedicineNotFoundException();
-        }
 
         log.info("searchType : {}, search: {}, totalElements: {}",request.searchType(),trimmed,searchResponse.getTotalElements());
 

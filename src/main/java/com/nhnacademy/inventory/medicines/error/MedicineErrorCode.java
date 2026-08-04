@@ -20,8 +20,8 @@ public enum MedicineErrorCode implements ErrorCode {
     PACK_UNIT_INVALID(HttpStatus.BAD_REQUEST,"M008","잘못된 입력값입니다."),
     ITEM_CODE_INVALID(HttpStatus.BAD_REQUEST,"M009","품목기준코드는 숫자 9자리로 입력해야 합니다."),
 
-    MEDICINE_SEARCH_REQUEST_REQUIRED(HttpStatus.BAD_REQUEST,"M010","의약품 검색 요청 정보는 필수입니다.");
-
+    MEDICINE_SEARCH_REQUEST_REQUIRED(HttpStatus.BAD_REQUEST,"M010","의약품 검색 요청 정보는 필수입니다."),
+    MEDICINE_SEARCH_TYPE_REQUIRED(HttpStatus.BAD_REQUEST,"M11","조건 선택은 필수입니다.");
 
 
     private final HttpStatus status;

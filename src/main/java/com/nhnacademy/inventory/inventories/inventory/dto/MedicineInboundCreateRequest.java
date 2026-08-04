@@ -15,7 +15,7 @@ public record MedicineInboundCreateRequest(
         @Size(max=50, message = "제조번호는 50자 이하여야 합니다.")
         String lotNumber,
         @NotNull(message = "유통기한을 입력해주세요.")
-        @Future(message = "실제 유통기한은 현재 날짜 이후여야 합니다.")
+        @FutureOrPresent(message = "실제 유통기한은 현재 날짜 이후여야 합니다.")
         LocalDate expirationDate,
         @NotNull(message = "입고 수량을 입력해주세요.")
         @Positive(message = "수량은 양수여야 합니다.")
