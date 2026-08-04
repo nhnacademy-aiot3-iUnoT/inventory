@@ -37,9 +37,9 @@ public class SensorTypeController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-    @DeleteMapping("/sensor-types/{sensorTypeId}")
+    @DeleteMapping("/sensor-types/{sensor-type-id}")
     public ResponseEntity<Void> deleteSensorType(
-            @PathVariable Long sensorTypeId
+            @PathVariable(name = "sensor-type-id") Long sensorTypeId
     ){
         sensorTypeService.deleteSensorType(sensorTypeId);
 

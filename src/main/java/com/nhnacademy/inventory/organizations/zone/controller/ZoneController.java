@@ -18,9 +18,9 @@ import java.util.UUID;
 public class ZoneController {
     private final ZoneService zoneService;
 
-    @PostMapping("/storages/{storageId}/zones")
+    @PostMapping("/storages/{storage-id}/zones")
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> createZone(
-            @PathVariable Long storageId,
+            @PathVariable(name = "storage-id") Long storageId,
             @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ZoneCreateRequest request
     ){
@@ -31,9 +31,9 @@ public class ZoneController {
                 .body(ApiResponse.success(response));
     }
 
-    @GetMapping("/storages/{storageId}/zones")
+    @GetMapping("/storages/{storage-id}/zones")
     public ResponseEntity<ApiResponse<List<ZoneInfoResponse>>> getZones(
-            @PathVariable Long storageId,
+            @PathVariable(name = "storage-id") Long storageId,
             @RequestHeader("X-User-Id") UUID accountUuid
     ){
         List<ZoneInfoResponse> responses = zoneService.getZones(storageId, accountUuid);
@@ -41,10 +41,10 @@ public class ZoneController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-    @PutMapping("/storages/{storageId}/zones/{zoneId}")
+    @PutMapping("/storages/{storage-id}/zones/{zone-id}")
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneInfo(
-            @PathVariable Long storageId,
-            @PathVariable Long zoneId,
+            @PathVariable(name = "storage-id") Long storageId,
+            @PathVariable(name = "zone-id") Long zoneId,
             @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ZoneUpdateRequest request
     ){
@@ -53,10 +53,10 @@ public class ZoneController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PutMapping("/storages/{storageId}/zones/{zoneId}/status")
+    @PutMapping("/storages/{storage-id}/zones/{zone-id}/status")
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneStatus(
-            @PathVariable Long storageId,
-            @PathVariable Long zoneId,
+            @PathVariable(name = "storage-id") Long storageId,
+            @PathVariable(name = "zone-id") Long zoneId,
             @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ZoneStatusUpdateRequest request
     ){
@@ -65,10 +65,10 @@ public class ZoneController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PutMapping("/storages/{storageId}/zones/{zoneId}/env-status")
+    @PutMapping("/storages/{storage-id}/zones/{zone-id}/env-status")
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneEnvStatus(
-            @PathVariable Long storageId,
-            @PathVariable Long zoneId,
+            @PathVariable(name = "storage-id") Long storageId,
+            @PathVariable(name = "zone-id") Long zoneId,
             @RequestHeader("X-User-Id") UUID accountUuid,
             @RequestBody @Valid ZoneEnvStatusUpdateRequest request
     ){
@@ -77,10 +77,10 @@ public class ZoneController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @DeleteMapping("/storages/{storageId}/zones/{zoneId}")
+    @DeleteMapping("/storages/{storage-id}/zones/{zone-id}")
     public ResponseEntity<Void> deleteZone(
-            @PathVariable Long storageId,
-            @PathVariable Long zoneId,
+            @PathVariable(name = "storage-id") Long storageId,
+            @PathVariable(name = "zone-id") Long zoneId,
             @RequestHeader("X-User-Id") UUID accountUuid
     ){
         zoneService.closeZone(storageId, zoneId, accountUuid);
