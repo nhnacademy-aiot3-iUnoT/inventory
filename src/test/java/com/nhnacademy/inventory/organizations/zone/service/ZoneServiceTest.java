@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -95,9 +96,10 @@ class ZoneServiceTest {
             given(zoneRepository.save(any(Zone.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             ZoneInfoResponse response = zoneService.createZone(
                     storage.getId(),
-                    approvedMember.getAccountUuid(),
                     request
             );
 
@@ -123,10 +125,11 @@ class ZoneServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
                     zoneService.createZone(
                             storage.getId(),
-                            UUID.randomUUID(),
                             request
                     )
             );
@@ -144,10 +147,11 @@ class ZoneServiceTest {
             given(storageRepository.findById(storage.getId()))
                     .willReturn(Optional.of(storage));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
                     zoneService.createZone(
                             storage.getId(),
-                            otherMember.getAccountUuid(),
                             request
                     )
             );
@@ -165,10 +169,11 @@ class ZoneServiceTest {
             given(storageRepository.findById(anyLong()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(StorageNotFoundException.class, () ->
                     zoneService.createZone(
                             333L,
-                            approvedMember.getAccountUuid(),
                             request
                     )
             );
@@ -188,10 +193,11 @@ class ZoneServiceTest {
             given(zoneRepository.existsByStorageAndNameAndStatusNot(storage, request.name(), ZoneStatus.CLOSED))
                     .willReturn(true);
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(ZoneNameAlreadyExistsException.class, () ->
                     zoneService.createZone(
                             storage.getId(),
-                            approvedMember.getAccountUuid(),
                             request
                     )
             );
@@ -214,9 +220,10 @@ class ZoneServiceTest {
             given(zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED))
                     .willReturn(List.of(zone));
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             List<ZoneInfoResponse> responses = zoneService.getZones(
-                    storage.getId(),
-                    approvedMember.getAccountUuid()
+                    storage.getId()
             );
 
             assertAll(
@@ -240,9 +247,10 @@ class ZoneServiceTest {
             given(zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED))
                     .willReturn(List.of());
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             List<ZoneInfoResponse> responses = zoneService.getZones(
-                    storage.getId(),
-                    approvedMember.getAccountUuid()
+                    storage.getId()
             );
 
             assertAll(
@@ -256,10 +264,11 @@ class ZoneServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
                     zoneService.getZones(
-                            storage.getId(),
-                            UUID.randomUUID()
+                            storage.getId()
                     )
             );
         }
@@ -272,10 +281,11 @@ class ZoneServiceTest {
             given(storageRepository.findById(storage.getId()))
                     .willReturn(Optional.of(storage));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
                     zoneService.getZones(
-                            storage.getId(),
-                            otherMember.getAccountUuid()
+                            storage.getId()
                     )
             );
         }
@@ -288,10 +298,11 @@ class ZoneServiceTest {
             given(storageRepository.findById(anyLong()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(StorageNotFoundException.class, () ->
                     zoneService.getZones(
-                            333L,
-                            approvedMember.getAccountUuid()
+                            333L
                     )
             );
         }
@@ -315,7 +326,9 @@ class ZoneServiceTest {
             given(zoneRepository.existsByStorageAndNameAndStatusNotAndIdNot(storage, request.name(), ZoneStatus.CLOSED, zone.getId()))
                     .willReturn(false);
 
-            ZoneInfoResponse response = zoneService.updateZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
+            ZoneInfoResponse response = zoneService.updateZone(storage.getId(), zone.getId(),  request);
 
             assertAll(
                     () -> assertEquals(1111L, response.zoneId()),
@@ -338,8 +351,10 @@ class ZoneServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    zoneService.updateZone(storage.getId(), zone.getId(), UUID.randomUUID(), request)
+                    zoneService.updateZone(storage.getId(), zone.getId(), request)
             );
         }
 
@@ -353,8 +368,10 @@ class ZoneServiceTest {
             given(storageRepository.findById(storage.getId()))
                     .willReturn(Optional.of(storage));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    zoneService.updateZone(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
+                    zoneService.updateZone(storage.getId(), zone.getId(), request)
             );
         }
 
@@ -370,8 +387,10 @@ class ZoneServiceTest {
             given(zoneRepository.findByIdAndStorage(anyLong(), any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(ZoneNotFoundException.class, () ->
-                    zoneService.updateZone(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
+                    zoneService.updateZone(storage.getId(), 3333L, request)
             );
         }
 
@@ -389,8 +408,10 @@ class ZoneServiceTest {
             given(zoneRepository.existsByStorageAndNameAndStatusNotAndIdNot(storage, request.name(), ZoneStatus.CLOSED, zone.getId()))
                     .willReturn(true);
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(ZoneNameAlreadyExistsException.class, () ->
-                    zoneService.updateZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request)
+                    zoneService.updateZone(storage.getId(), zone.getId(), request)
             );
         }
     }
@@ -411,7 +432,9 @@ class ZoneServiceTest {
             given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
                     .willReturn(Optional.of(zone));
 
-            ZoneInfoResponse response = zoneService.updateZoneStatus(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
+            ZoneInfoResponse response = zoneService.updateZoneStatus(storage.getId(), zone.getId(), request);
 
             assertAll(
                     () -> assertEquals(1111L, response.zoneId()),
@@ -433,8 +456,10 @@ class ZoneServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    zoneService.updateZoneStatus(storage.getId(), zone.getId(), UUID.randomUUID(), request)
+                    zoneService.updateZoneStatus(storage.getId(), zone.getId(), request)
             );
         }
 
@@ -448,8 +473,10 @@ class ZoneServiceTest {
             given(storageRepository.findById(storage.getId()))
                     .willReturn(Optional.of(storage));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    zoneService.updateZoneStatus(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
+                    zoneService.updateZoneStatus(storage.getId(), zone.getId(), request)
             );
         }
 
@@ -465,8 +492,10 @@ class ZoneServiceTest {
             given(zoneRepository.findByIdAndStorage(anyLong(), any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(ZoneNotFoundException.class, () ->
-                    zoneService.updateZoneStatus(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
+                    zoneService.updateZoneStatus(storage.getId(), 3333L, request)
             );
         }
     }
@@ -487,7 +516,9 @@ class ZoneServiceTest {
             given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
                     .willReturn(Optional.of(zone));
 
-            ZoneInfoResponse response = zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), approvedMember.getAccountUuid(), request);
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
+            ZoneInfoResponse response = zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), request);
 
             assertAll(
                     () -> assertEquals(1111L, response.zoneId()),
@@ -509,8 +540,10 @@ class ZoneServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), UUID.randomUUID(), request)
+                    zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), request)
             );
         }
 
@@ -524,8 +557,10 @@ class ZoneServiceTest {
             given(storageRepository.findById(storage.getId()))
                     .willReturn(Optional.of(storage));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), otherMember.getAccountUuid(), request)
+                    zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), request)
             );
         }
 
@@ -541,8 +576,10 @@ class ZoneServiceTest {
             given(zoneRepository.findByIdAndStorage(anyLong(), any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(ZoneNotFoundException.class, () ->
-                    zoneService.updateZoneEnvStatus(storage.getId(), 3333L, approvedMember.getAccountUuid(), request)
+                    zoneService.updateZoneEnvStatus(storage.getId(), 3333L, request)
             );
         }
     }
@@ -560,8 +597,10 @@ class ZoneServiceTest {
             given(zoneRepository.findByIdAndStorage(zone.getId(), storage))
                     .willReturn(Optional.of(zone));
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertDoesNotThrow(() ->
-                    zoneService.closeZone(storage.getId(), zone.getId(), approvedMember.getAccountUuid())
+                    zoneService.closeZone(storage.getId(), zone.getId())
             );
 
             assertEquals(ZoneStatus.CLOSED, zone.getStatus());
@@ -577,8 +616,10 @@ class ZoneServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    zoneService.closeZone(storage.getId(), zone.getId(), UUID.randomUUID())
+                    zoneService.closeZone(storage.getId(), zone.getId())
             );
         }
 
@@ -590,8 +631,10 @@ class ZoneServiceTest {
             given(storageRepository.findById(storage.getId()))
                     .willReturn(Optional.of(storage));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    zoneService.closeZone(storage.getId(), zone.getId(), otherMember.getAccountUuid())
+                    zoneService.closeZone(storage.getId(), zone.getId())
             );
         }
 
@@ -605,8 +648,10 @@ class ZoneServiceTest {
             given(zoneRepository.findByIdAndStorage(anyLong(), any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(ZoneNotFoundException.class, () ->
-                    zoneService.closeZone(storage.getId(), 3333L, approvedMember.getAccountUuid())
+                    zoneService.closeZone(storage.getId(), 3333L)
             );
         }
     }

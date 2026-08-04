@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.SensorType;
@@ -38,13 +39,13 @@ public class ThresholdService {
     private static final BigDecimal MIN_RANGE_GAP = BigDecimal.valueOf(5);
 
     @Transactional
-    public ThresholdInfoResponse saveThreshold(Long zoneId, UUID accountUuid, ThresholdSaveRequest request){
-        Zone zone = validateOrganizationMember(zoneId, accountUuid);
+    public ThresholdInfoResponse saveThreshold(Long zoneId, ThresholdSaveRequest request){
+        validateRange(request.minValue(), request.maxValue());
+
+        Zone zone = validateOrganizationMember(zoneId, UserContext.getUserUuid());
 
         SensorType sensorType = sensorTypeRepository.findById(request.sensorTypeId())
                 .orElseThrow(SensorTypeNotFoundException::new);
-
-        validateRange(request.minValue(), request.maxValue());
 
         ZoneThreshold threshold = thresholdRepository.findByZoneAndSensorType(zone, sensorType)
                 .map(existing -> {
@@ -64,8 +65,8 @@ public class ThresholdService {
         return ThresholdInfoResponse.from(threshold);
     }
 
-    public List<ThresholdInfoResponse> getThresholds(Long zoneId, UUID accountUuid){
-        Zone zone = validateOrganizationMember(zoneId, accountUuid);
+    public List<ThresholdInfoResponse> getThresholds(Long zoneId){
+        Zone zone = validateOrganizationMember(zoneId, UserContext.getUserUuid());
 
         List<ZoneThreshold> thresholds = thresholdRepository.findAllByZone(zone);
 
@@ -75,8 +76,8 @@ public class ThresholdService {
     }
 
     @Transactional
-    public void deleteThreshold(Long zoneId, Long thresholdId, UUID accountUuid){
-        ZoneThreshold threshold = findByIdAndValidate(zoneId, thresholdId, accountUuid);
+    public void deleteThreshold(Long zoneId, Long thresholdId){
+        ZoneThreshold threshold = findByIdAndValidate(zoneId, thresholdId, UserContext.getUserUuid());
 
         thresholdRepository.delete(threshold);
     }

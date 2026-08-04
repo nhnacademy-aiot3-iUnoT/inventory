@@ -61,7 +61,7 @@ class MedicineApiServiceTest {
                                     "NARCOTIC_KIND_CODE": null
                                   }
                                 ]
-                
+
                     }
 
                 }
@@ -103,7 +103,7 @@ class MedicineApiServiceTest {
     void pagesCount(){
 
         String json = """
-                
+
                 {
                 "body": {
                      "totalCount": 1200,
@@ -135,27 +135,27 @@ class MedicineApiServiceTest {
     void packUnitTest(){
 
         String json = """
-                
+
                 {
                     "body": {
                         "totalCount": 1,
-                        "items": [  
+                        "items": [
                         {
-                            
-                            
-                        
-                        
+
+
+
+
                             }
                         ]
-                       
-                    
-                    
-                    }
-                  
 
-                
+
+
+                    }
+
+
+
                 }
-                
+
 
                 """;
 

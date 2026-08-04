@@ -71,7 +71,7 @@ class ZoneControllerTest extends SupportControllerTest {
                     LocalDateTime.now(), null
             );
 
-            given(zoneService.createZone(111L, accountUuid, request)).willReturn(response);
+            given(zoneService.createZone(111L, request)).willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(zoneInfoResponseFields("data."));
@@ -117,7 +117,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_Forbidden() throws Exception {
             ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역", "설명");
 
-            given(zoneService.createZone(111L, accountUuid, request))
+            given(zoneService.createZone(111L, request))
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
@@ -133,7 +133,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_NotFoundStorage() throws Exception {
             ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역", "설명");
 
-            given(zoneService.createZone(111L, accountUuid, request))
+            given(zoneService.createZone(111L, request))
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
@@ -149,7 +149,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_DuplicationName() throws Exception {
             ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역", "설명");
 
-            given(zoneService.createZone(111L, accountUuid, request))
+            given(zoneService.createZone(111L, request))
                     .willThrow(new ZoneNameAlreadyExistsException());
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
@@ -176,7 +176,7 @@ class ZoneControllerTest extends SupportControllerTest {
             );
             List<ZoneInfoResponse> responseList = List.of(response);
 
-            given(zoneService.getZones(111L, accountUuid))
+            given(zoneService.getZones(111L))
                     .willReturn(responseList);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
@@ -203,7 +203,7 @@ class ZoneControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트(빈 배열)")
         void success_empty() throws Exception {
-            given(zoneService.getZones(111L, accountUuid))
+            given(zoneService.getZones(111L))
                     .willReturn(List.of());
 
             mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L)
@@ -216,7 +216,7 @@ class ZoneControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
-            given(zoneService.getZones(111L, accountUuid))
+            given(zoneService.getZones(111L))
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L)
@@ -229,7 +229,7 @@ class ZoneControllerTest extends SupportControllerTest {
         @DisplayName("실패 - 저장소 없음")
         void fail_NotFoundStorage() throws Exception {
 
-            given(zoneService.getZones(111L, accountUuid))
+            given(zoneService.getZones(111L))
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L)
@@ -254,7 +254,7 @@ class ZoneControllerTest extends SupportControllerTest {
                     LocalDateTime.now(), LocalDateTime.now()
             );
 
-            given(zoneService.updateZone(111L, 1111L, accountUuid, request)).willReturn(response);
+            given(zoneService.updateZone(111L, 1111L, request)).willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(zoneInfoResponseFields("data."));
@@ -301,7 +301,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_Forbidden() throws Exception {
             ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
 
-            given(zoneService.updateZone(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZone(111L, 1111L, request))
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
@@ -317,7 +317,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_NotFoundStorage() throws Exception {
             ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
 
-            given(zoneService.updateZone(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZone(111L, 1111L, request))
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
@@ -333,7 +333,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_NotFoundZone() throws Exception {
             ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
 
-            given(zoneService.updateZone(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZone(111L, 1111L, request))
                     .willThrow(new ZoneNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
@@ -349,7 +349,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_DuplicationName() throws Exception {
             ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
 
-            given(zoneService.updateZone(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZone(111L, 1111L, request))
                     .willThrow(new ZoneNameAlreadyExistsException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
@@ -376,7 +376,7 @@ class ZoneControllerTest extends SupportControllerTest {
                     LocalDateTime.now(), LocalDateTime.now()
             );
 
-            given(zoneService.updateZoneStatus(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZoneStatus(111L, 1111L, request))
                     .willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
@@ -423,7 +423,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_Forbidden() throws Exception {
             ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
 
-            given(zoneService.updateZoneStatus(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZoneStatus(111L, 1111L, request))
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/status", 111L, 1111L)
@@ -439,7 +439,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_NotFoundStorage() throws Exception {
             ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
 
-            given(zoneService.updateZoneStatus(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZoneStatus(111L, 1111L, request))
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/status", 111L, 1111L)
@@ -455,7 +455,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_NotFoundZone() throws Exception {
             ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
 
-            given(zoneService.updateZoneStatus(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZoneStatus(111L, 1111L, request))
                     .willThrow(new ZoneNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/status", 111L, 1111L)
@@ -482,7 +482,7 @@ class ZoneControllerTest extends SupportControllerTest {
                     LocalDateTime.now(), LocalDateTime.now()
             );
 
-            given(zoneService.updateZoneEnvStatus(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZoneEnvStatus(111L, 1111L, request))
                     .willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
@@ -529,7 +529,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_Forbidden() throws Exception {
             ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
 
-            given(zoneService.updateZoneEnvStatus(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZoneEnvStatus(111L, 1111L, request))
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
@@ -545,7 +545,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_NotFoundStorage() throws Exception {
             ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
 
-            given(zoneService.updateZoneEnvStatus(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZoneEnvStatus(111L, 1111L, request))
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
@@ -561,7 +561,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void fail_NotFoundZone() throws Exception {
             ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
 
-            given(zoneService.updateZoneEnvStatus(111L, 1111L, accountUuid, request))
+            given(zoneService.updateZoneEnvStatus(111L, 1111L, request))
                     .willThrow(new ZoneNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
@@ -591,14 +591,14 @@ class ZoneControllerTest extends SupportControllerTest {
                             )
                     ));
 
-            verify(zoneService).closeZone(111L, 1111L, accountUuid);
+            verify(zoneService).closeZone(111L, 1111L);
         }
 
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
             willThrow(new ForbiddenException()).given(zoneService)
-                    .closeZone(111L, 1111L, accountUuid);
+                    .closeZone(111L, 1111L);
 
             mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
                             .header("X-USER-ID", accountUuid.toString()))
@@ -610,7 +610,7 @@ class ZoneControllerTest extends SupportControllerTest {
         @DisplayName("실패 - 저장소 없음")
         void fail_NotFoundStorage() throws Exception {
             willThrow(new StorageNotFoundException()).given(zoneService)
-                    .closeZone(111L, 1111L, accountUuid);
+                    .closeZone(111L, 1111L);
 
             mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
                             .header("X-USER-ID", accountUuid.toString()))
@@ -622,7 +622,7 @@ class ZoneControllerTest extends SupportControllerTest {
         @DisplayName("실패 - 구역 없음")
         void fail_NotFoundZone() throws Exception {
             willThrow(new ZoneNotFoundException()).given(zoneService)
-                    .closeZone(111L, 1111L, accountUuid);
+                    .closeZone(111L, 1111L);
 
             mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
                             .header("X-USER-ID", accountUuid.toString()))

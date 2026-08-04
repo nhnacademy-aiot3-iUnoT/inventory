@@ -59,7 +59,7 @@ class ThresholdControllerTest extends SupportControllerTest {
     }
 
     @Nested
-    @DisplayName("임계값 저장 PUT /api/core/zones/{zoneId}/zone-threshold")
+    @DisplayName("임계값 저장 POST /api/core/zones/{zoneId}/zone-threshold")
     class saveZoneThreshold {
         @Test
         @DisplayName("정상 처리 테스트")
@@ -74,13 +74,13 @@ class ThresholdControllerTest extends SupportControllerTest {
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(thresholdInfoResponseFields("data."));
 
-            given(thresholdService.saveThreshold(11L, accountUuid, request)).willReturn(response);
+            given(thresholdService.saveThreshold(11L, request)).willReturn(response);
 
-            mockMvc.perform(put("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.minValue").value(20))
                     .andExpect(jsonPath("$.data.maxValue").value(30))
@@ -107,7 +107,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             ThresholdSaveRequest request = new ThresholdSaveRequest(
                     null, BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5);
 
-            mockMvc.perform(put("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -121,10 +121,10 @@ class ThresholdControllerTest extends SupportControllerTest {
             ThresholdSaveRequest request = new ThresholdSaveRequest(
                     111L, BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5);
 
-            given(thresholdService.saveThreshold(11L, accountUuid, request))
+            given(thresholdService.saveThreshold(11L, request))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(put("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -138,10 +138,10 @@ class ThresholdControllerTest extends SupportControllerTest {
             ThresholdSaveRequest request = new ThresholdSaveRequest(
                     111L, BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5);
 
-            given(thresholdService.saveThreshold(11L, accountUuid, request))
+            given(thresholdService.saveThreshold(11L, request))
                     .willThrow(new ZoneNotFoundException());
 
-            mockMvc.perform(put("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -155,10 +155,10 @@ class ThresholdControllerTest extends SupportControllerTest {
             ThresholdSaveRequest request = new ThresholdSaveRequest(
                     111L, BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5);
 
-            given(thresholdService.saveThreshold(11L, accountUuid, request))
+            given(thresholdService.saveThreshold(11L, request))
                     .willThrow(new ThresholdInvalidRangeException());
 
-            mockMvc.perform(put("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -180,7 +180,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             );
             List<ThresholdInfoResponse> responseList = List.of(response);
 
-            given(thresholdService.getThresholds(11L, accountUuid))
+            given(thresholdService.getThresholds(11L))
                     .willReturn(responseList);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
@@ -207,7 +207,7 @@ class ThresholdControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트(빈 배열)")
         void success_empty() throws Exception {
-            given(thresholdService.getThresholds(11L, accountUuid))
+            given(thresholdService.getThresholds(11L))
                     .willReturn(List.of());
 
             mockMvc.perform(get("/api/core/zones/{zoneId}/zone-threshold", 11L)
@@ -220,7 +220,7 @@ class ThresholdControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
-            given(thresholdService.getThresholds(11L, accountUuid))
+            given(thresholdService.getThresholds(11L))
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(get("/api/core/zones/{zoneId}/zone-threshold", 11L)
@@ -233,7 +233,7 @@ class ThresholdControllerTest extends SupportControllerTest {
         @DisplayName("실패 - 구역 없음")
         void fail_NotFoundZone() throws Exception {
 
-            given(thresholdService.getThresholds(11L, accountUuid))
+            given(thresholdService.getThresholds(11L))
                     .willThrow(new ZoneNotFoundException());
 
             mockMvc.perform(get("/api/core/zones/{zoneId}/zone-threshold", 11L)
@@ -261,14 +261,14 @@ class ThresholdControllerTest extends SupportControllerTest {
                             )
                     ));
 
-            verify(thresholdService).deleteThreshold(11L, 1L, accountUuid);
+            verify(thresholdService).deleteThreshold(11L, 1L);
         }
 
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
             willThrow(new ForbiddenException()).given(thresholdService)
-                    .deleteThreshold(11L, 1L, accountUuid);
+                    .deleteThreshold(11L, 1L);
 
             mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}", 11L, 1L)
                             .header("X-USER-ID", accountUuid.toString()))
@@ -280,7 +280,7 @@ class ThresholdControllerTest extends SupportControllerTest {
         @DisplayName("실패 - 구역 없음")
         void fail_NotFoundStorage() throws Exception {
             willThrow(new ZoneNotFoundException()).given(thresholdService)
-                    .deleteThreshold(11L, 1L, accountUuid);
+                    .deleteThreshold(11L, 1L);
 
             mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}", 11L, 1L)
                             .header("X-USER-ID", accountUuid.toString()))
@@ -292,7 +292,7 @@ class ThresholdControllerTest extends SupportControllerTest {
         @DisplayName("실패 - 구역 없음")
         void fail_NotFoundZone() throws Exception {
             willThrow(new ThresholdNotFoundException()).given(thresholdService)
-                    .deleteThreshold(11L, 1L, accountUuid);
+                    .deleteThreshold(11L, 1L);
 
             mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}", 11L, 1L)
                             .header("X-USER-ID", accountUuid.toString()))

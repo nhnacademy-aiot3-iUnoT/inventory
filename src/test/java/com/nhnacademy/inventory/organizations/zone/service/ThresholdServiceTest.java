@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -117,7 +118,9 @@ class ThresholdServiceTest {
             given(thresholdRepository.save(any(ZoneThreshold.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
-            ThresholdInfoResponse response = thresholdService.saveThreshold(zone.getId(), approvedMember.getAccountUuid(), request);
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
+            ThresholdInfoResponse response = thresholdService.saveThreshold(zone.getId(), request);
 
             assertAll(
                     () -> assertNotEquals(1L, response.zoneThresholdId()),
@@ -150,7 +153,9 @@ class ThresholdServiceTest {
             given(thresholdRepository.findByZoneAndSensorType(zone, sensorType))
                     .willReturn(Optional.of(threshold));
 
-            ThresholdInfoResponse response = thresholdService.saveThreshold(zone.getId(), approvedMember.getAccountUuid(), request);
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
+            ThresholdInfoResponse response = thresholdService.saveThreshold(zone.getId(), request);
 
             assertAll(
                     () -> assertEquals(1L, response.zoneThresholdId()),
@@ -177,8 +182,10 @@ class ThresholdServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.saveThreshold(zone.getId(), UUID.randomUUID(), request)
+                    thresholdService.saveThreshold(zone.getId(), request)
             );
         }
 
@@ -197,8 +204,10 @@ class ThresholdServiceTest {
             given(zoneRepository.findById(zone.getId()))
                     .willReturn(Optional.of(zone));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.saveThreshold(zone.getId(), otherMember.getAccountUuid(), request)
+                    thresholdService.saveThreshold(zone.getId(), request)
             );
         }
 
@@ -211,16 +220,10 @@ class ThresholdServiceTest {
                     BigDecimal.valueOf(23),
                     5
             );
-
-            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                    .willReturn(Optional.of(approvedMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
-            given(sensorTypeRepository.findById(sensorType.getSensorTypeId()))
-                    .willReturn(Optional.of(sensorType));
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
 
             assertThrowsExactly(ThresholdInvalidRangeException.class, () ->
-                    thresholdService.saveThreshold(zone.getId(), approvedMember.getAccountUuid(), request)
+                    thresholdService.saveThreshold(zone.getId(), request)
             );
 
             verify(thresholdRepository, never()).save(any());
@@ -241,7 +244,9 @@ class ThresholdServiceTest {
             given(thresholdRepository.findAllByZone(zone))
                     .willReturn(List.of(threshold));
 
-            List<ThresholdInfoResponse> responses = thresholdService.getThresholds(zone.getId(), approvedMember.getAccountUuid());
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
+            List<ThresholdInfoResponse> responses = thresholdService.getThresholds(zone.getId());
 
             assertAll(
                     () -> assertEquals(1, responses.size()),
@@ -262,7 +267,9 @@ class ThresholdServiceTest {
             given(thresholdRepository.findAllByZone(zone))
                     .willReturn(List.of());
 
-            List<ThresholdInfoResponse> responses = thresholdService.getThresholds(zone.getId(), approvedMember.getAccountUuid());
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
+            List<ThresholdInfoResponse> responses = thresholdService.getThresholds(zone.getId());
 
             assertEquals(0, responses.size());
         }
@@ -273,8 +280,10 @@ class ThresholdServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.getThresholds(zone.getId(), UUID.randomUUID())
+                    thresholdService.getThresholds(zone.getId())
             );
         }
 
@@ -286,8 +295,10 @@ class ThresholdServiceTest {
             given(zoneRepository.findById(zone.getId()))
                     .willReturn(Optional.of(zone));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.getThresholds(zone.getId(), otherMember.getAccountUuid())
+                    thresholdService.getThresholds(zone.getId())
             );
         }
     }
@@ -306,8 +317,10 @@ class ThresholdServiceTest {
             given(thresholdRepository.findByZoneThresholdIdAndZone(threshold.getZoneThresholdId(), zone))
                     .willReturn(Optional.of(threshold));
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertDoesNotThrow(() ->
-                    thresholdService.deleteThreshold(zone.getId(), threshold.getZoneThresholdId(), approvedMember.getAccountUuid())
+                    thresholdService.deleteThreshold(zone.getId(), threshold.getZoneThresholdId())
             );
 
             verify(thresholdRepository).delete(threshold);
@@ -319,8 +332,10 @@ class ThresholdServiceTest {
             given(memberRepository.findByAccountUuid(any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(UUID.randomUUID());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.deleteThreshold(zone.getId(), threshold.getZoneThresholdId(), UUID.randomUUID())
+                    thresholdService.deleteThreshold(zone.getId(), threshold.getZoneThresholdId())
             );
         }
 
@@ -332,8 +347,10 @@ class ThresholdServiceTest {
             given(zoneRepository.findById(zone.getId()))
                     .willReturn(Optional.of(zone));
 
+            UserContext.setUserUuid(otherMember.getAccountUuid());
+
             assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.deleteThreshold(zone.getId(), threshold.getZoneThresholdId(), otherMember.getAccountUuid())
+                    thresholdService.deleteThreshold(zone.getId(), threshold.getZoneThresholdId())
             );
         }
 
@@ -347,8 +364,10 @@ class ThresholdServiceTest {
             given(thresholdRepository.findByZoneThresholdIdAndZone(anyLong(), any()))
                     .willReturn(Optional.empty());
 
+            UserContext.setUserUuid(approvedMember.getAccountUuid());
+
             assertThrowsExactly(ThresholdNotFoundException.class, () ->
-                    thresholdService.deleteThreshold(zone.getId(), 3333L, approvedMember.getAccountUuid())
+                    thresholdService.deleteThreshold(zone.getId(), 3333L)
             );
 
             verify(thresholdRepository, never()).delete(threshold);
