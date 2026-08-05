@@ -34,7 +34,7 @@ public class ZoneService {
 
     @Transactional
     public ZoneInfoResponse createZone(Long storageId, ZoneCreateRequest request){
-        Storage storage = validateOrganizationMember(storageId, UserContext.getUserUuid());
+        Storage storage = validateOrganizationMember(storageId);
 
         validateDuplicateZoneName(storage, request.name());
 
@@ -52,7 +52,7 @@ public class ZoneService {
     }
 
     public List<ZoneInfoResponse> getZones(Long storageId){
-        Storage storage = validateOrganizationMember(storageId, UserContext.getUserUuid());
+        Storage storage = validateOrganizationMember(storageId);
 
         List<Zone> zones = zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED);
 
@@ -63,7 +63,7 @@ public class ZoneService {
 
     @Transactional
     public ZoneInfoResponse updateZone(Long storageId, Long zoneId, ZoneUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId, UserContext.getUserUuid());
+        Zone zone = findByIdAndValidate(storageId, zoneId);
 
         validateDuplicateZoneName(zone.getStorage(), request.name(), zone.getId());
 
@@ -74,7 +74,7 @@ public class ZoneService {
 
     @Transactional
     public ZoneInfoResponse updateZoneStatus(Long storageId, Long zoneId, ZoneStatusUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId, UserContext.getUserUuid());
+        Zone zone = findByIdAndValidate(storageId, zoneId);
 
         zone.changeStatus(request.status());
 
@@ -83,7 +83,7 @@ public class ZoneService {
 
     @Transactional
     public ZoneInfoResponse updateZoneEnvStatus(Long storageId, Long zoneId, ZoneEnvStatusUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId, UserContext.getUserUuid());
+        Zone zone = findByIdAndValidate(storageId, zoneId);
 
         zone.changeEnvStatus(request.envStatus());
 
@@ -92,13 +92,13 @@ public class ZoneService {
 
     @Transactional
     public void closeZone(Long storageId, Long zoneId){
-        Zone zone = findByIdAndValidate(storageId, zoneId, UserContext.getUserUuid());
+        Zone zone = findByIdAndValidate(storageId, zoneId);
 
         zone.close();
     }
 
-    private Storage validateOrganizationMember(Long storageId, UUID accountUUid){
-        OrganizationMember member = memberRepository.findByAccountUuid(accountUUid)
+    private Storage validateOrganizationMember(Long storageId){
+        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
         Storage storage = storageRepository.findById(storageId)
@@ -111,8 +111,8 @@ public class ZoneService {
         return storage;
     }
 
-    private Zone findByIdAndValidate(Long storageId, Long zoneId, UUID accountUuid){
-        Storage storage = validateOrganizationMember(storageId, accountUuid);
+    private Zone findByIdAndValidate(Long storageId, Long zoneId){
+        Storage storage = validateOrganizationMember(storageId);
 
         return zoneRepository.findByIdAndStorage(zoneId, storage)
                 .orElseThrow(ZoneNotFoundException::new);

@@ -42,7 +42,7 @@ public class ThresholdService {
     public ThresholdInfoResponse saveThreshold(Long zoneId, ThresholdSaveRequest request){
         validateRange(request.minValue(), request.maxValue());
 
-        Zone zone = validateOrganizationMember(zoneId, UserContext.getUserUuid());
+        Zone zone = validateOrganizationMember(zoneId);
 
         SensorType sensorType = sensorTypeRepository.findById(request.sensorTypeId())
                 .orElseThrow(SensorTypeNotFoundException::new);
@@ -66,7 +66,7 @@ public class ThresholdService {
     }
 
     public List<ThresholdInfoResponse> getThresholds(Long zoneId){
-        Zone zone = validateOrganizationMember(zoneId, UserContext.getUserUuid());
+        Zone zone = validateOrganizationMember(zoneId);
 
         List<ZoneThreshold> thresholds = thresholdRepository.findAllByZone(zone);
 
@@ -77,13 +77,13 @@ public class ThresholdService {
 
     @Transactional
     public void deleteThreshold(Long zoneId, Long thresholdId){
-        ZoneThreshold threshold = findByIdAndValidate(zoneId, thresholdId, UserContext.getUserUuid());
+        ZoneThreshold threshold = findByIdAndValidate(zoneId, thresholdId);
 
         thresholdRepository.delete(threshold);
     }
 
-    private Zone validateOrganizationMember(Long zoneId, UUID accountUuid){
-        OrganizationMember member = memberRepository.findByAccountUuid(accountUuid)
+    private Zone validateOrganizationMember(Long zoneId){
+        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
         Zone zone = zoneRepository.findById(zoneId)
@@ -96,8 +96,8 @@ public class ThresholdService {
         return zone;
     }
 
-    private ZoneThreshold findByIdAndValidate(Long zoneId, Long thresholdId, UUID accountUuid){
-        Zone zone = validateOrganizationMember(zoneId, accountUuid);
+    private ZoneThreshold findByIdAndValidate(Long zoneId, Long thresholdId){
+        Zone zone = validateOrganizationMember(zoneId);
 
         return thresholdRepository.findByZoneThresholdIdAndZone(thresholdId, zone)
                 .orElseThrow(ThresholdNotFoundException::new);
