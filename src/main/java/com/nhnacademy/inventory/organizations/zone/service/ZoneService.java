@@ -5,8 +5,7 @@ import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
-import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
-import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
+import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
@@ -21,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -30,11 +28,11 @@ import java.util.UUID;
 public class ZoneService {
     private final ZoneRepository zoneRepository;
     private final OrganizationMemberRepository memberRepository;
-    private final StorageRepository storageRepository;
+    private final StorageService storageService;
 
     @Transactional
     public ZoneInfoResponse createZone(Long storageId, ZoneCreateRequest request){
-        Storage storage = validateOrganizationMember(storageId);
+        Storage storage = storageService.validateMemberAndGetStorage(storageId);
 
         validateDuplicateZoneName(storage, request.name());
 
@@ -52,7 +50,7 @@ public class ZoneService {
     }
 
     public List<ZoneInfoResponse> getZones(Long storageId){
-        Storage storage = validateOrganizationMember(storageId);
+        Storage storage = storageService.validateMemberAndGetStorage(storageId);
 
         List<Zone> zones = zoneRepository.findAllByStorageAndStatusNot(storage, ZoneStatus.CLOSED);
 
@@ -97,22 +95,22 @@ public class ZoneService {
         zone.close();
     }
 
-    private Storage validateOrganizationMember(Long storageId){
+    public Zone validateMemberAndGetZone(Long zoneId){
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        Storage storage = storageRepository.findById(storageId)
-                .orElseThrow(StorageNotFoundException::new);
+        Zone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
 
-        if(!Objects.equals(member.getOrganization().getId(), storage.getOrganization().getId())){
+        if (!Objects.equals(member.getOrganization().getId(), zone.getStorage().getOrganization().getId())){
             throw new ForbiddenException();
         }
 
-        return storage;
+        return zone;
     }
 
     private Zone findByIdAndValidate(Long storageId, Long zoneId){
-        Storage storage = validateOrganizationMember(storageId);
+        Storage storage = storageService.validateMemberAndGetStorage(storageId);
 
         return zoneRepository.findByIdAndStorage(zoneId, storage)
                 .orElseThrow(ZoneNotFoundException::new);

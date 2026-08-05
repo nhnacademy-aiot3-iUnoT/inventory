@@ -1,9 +1,5 @@
 package com.nhnacademy.inventory.organizations.zone.service;
 
-import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.global.util.UserContext;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.SensorType;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneThreshold;
@@ -12,10 +8,8 @@ import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
 import com.nhnacademy.inventory.organizations.zone.exception.SensorTypeNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdInvalidRangeException;
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdNotFoundException;
-import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.repository.SensorTypeRepository;
 import com.nhnacademy.inventory.organizations.zone.repository.ThresholdRepository;
-import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,9 +26,8 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class ThresholdService {
     private final ThresholdRepository thresholdRepository;
-    private final OrganizationMemberRepository memberRepository;
-    private final ZoneRepository zoneRepository;
     private final SensorTypeRepository sensorTypeRepository;
+    private final ZoneService zoneService;
 
     private static final BigDecimal MIN_RANGE_GAP = BigDecimal.valueOf(5);
 
@@ -42,7 +35,7 @@ public class ThresholdService {
     public ThresholdInfoResponse saveThreshold(Long zoneId, ThresholdSaveRequest request){
         validateRange(request.minValue(), request.maxValue());
 
-        Zone zone = validateOrganizationMember(zoneId);
+        Zone zone = zoneService.validateMemberAndGetZone(zoneId);
 
         SensorType sensorType = sensorTypeRepository.findById(request.sensorTypeId())
                 .orElseThrow(SensorTypeNotFoundException::new);
@@ -66,7 +59,7 @@ public class ThresholdService {
     }
 
     public List<ThresholdInfoResponse> getThresholds(Long zoneId){
-        Zone zone = validateOrganizationMember(zoneId);
+        Zone zone = zoneService.validateMemberAndGetZone(zoneId);
 
         List<ZoneThreshold> thresholds = thresholdRepository.findAllByZone(zone);
 
@@ -82,22 +75,8 @@ public class ThresholdService {
         thresholdRepository.delete(threshold);
     }
 
-    private Zone validateOrganizationMember(Long zoneId){
-        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
-                .orElseThrow(ForbiddenException::new);
-
-        Zone zone = zoneRepository.findById(zoneId)
-                .orElseThrow(ZoneNotFoundException::new);
-
-        if (!Objects.equals(member.getOrganization().getId(), zone.getStorage().getOrganization().getId())){
-            throw new ForbiddenException();
-        }
-
-        return zone;
-    }
-
     private ZoneThreshold findByIdAndValidate(Long zoneId, Long thresholdId){
-        Zone zone = validateOrganizationMember(zoneId);
+        Zone zone = zoneService.validateMemberAndGetZone(zoneId);
 
         return thresholdRepository.findByZoneThresholdIdAndZone(thresholdId, zone)
                 .orElseThrow(ThresholdNotFoundException::new);
