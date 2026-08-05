@@ -14,6 +14,7 @@ public enum OrganizationErrorCode implements ErrorCode {
     //구역 에러코드
     ZONE_NOT_FOUND(HttpStatus.NOT_FOUND, "Z001", "존재하지 않는 구역입니다."),
     ZONE_NAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "Z002", "저장소내의 이미 존재하는 구역 이름입니다."),
+    ZONE_NOT_AVAILABLE(HttpStatus.BAD_REQUEST,"Z003","현재 사용할 수 없는 보관 구역입니다."),
 
     //센서타입 에러코드
     SENSOR_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ST001", "존재하지 않는 센서타입 입니다."),
@@ -21,7 +22,13 @@ public enum OrganizationErrorCode implements ErrorCode {
 
     //임계값 에러코드
     THRESHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "존재하지 않는 임계설정 입니다."),
-    THRESHOLD_INVALID_RANGE(HttpStatus.BAD_REQUEST, "T003", "잘못된 범위의 임계값 입니다.");
+    THRESHOLD_INVALID_RANGE(HttpStatus.BAD_REQUEST, "T003", "잘못된 범위의 임계값 입니다."),
+
+
+    // 조직원
+    ORGANIZATION_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"O001","조직 소속 정보를 찾을 수 없습니다.");
+
+
 
     private final HttpStatus status;
     private final String code;

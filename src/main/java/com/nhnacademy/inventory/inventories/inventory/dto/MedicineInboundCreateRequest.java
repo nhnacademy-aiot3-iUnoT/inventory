@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentType
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record MedicineInboundCreateRequest(
 
@@ -21,7 +22,7 @@ public record MedicineInboundCreateRequest(
         @Positive(message = "수량은 양수여야 합니다.")
         Integer quantity,
 
-        MedicineEnvironmentTypeRequest environmentStandardRequest
+        List<MedicineEnvironmentTypeRequest> environmentRequests
 
 ) {
 }
