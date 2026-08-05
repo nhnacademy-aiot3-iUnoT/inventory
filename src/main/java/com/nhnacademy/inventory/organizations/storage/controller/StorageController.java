@@ -26,9 +26,8 @@ public class StorageController {
             @PathVariable Long organizationId,
             @RequestBody @Valid StorageCreateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        StorageInfoResponse response = storageService.createStorage(organizationId, uuid, request);
+        StorageInfoResponse response = storageService.createStorage(organizationId, request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
@@ -38,9 +37,8 @@ public class StorageController {
     public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorages(
             @PathVariable Long organizationId
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        List<StorageInfoResponse> responses = storageService.getStorages(organizationId, uuid);
+        List<StorageInfoResponse> responses = storageService.getStorages(organizationId);
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
@@ -50,9 +48,8 @@ public class StorageController {
             @PathVariable Long storageId,
             @RequestBody @Valid StorageUpdateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        StorageInfoResponse response = storageService.updateStorage(organizationId, storageId, uuid, request);
+        StorageInfoResponse response = storageService.updateStorage(organizationId, storageId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -62,9 +59,8 @@ public class StorageController {
             @PathVariable Long storageId,
             @RequestBody @Valid StorageStatusUpdateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        StorageInfoResponse response = storageService.updateStorageStatus(organizationId, storageId, uuid, request);
+        StorageInfoResponse response = storageService.updateStorageStatus(organizationId, storageId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -73,9 +69,8 @@ public class StorageController {
             @PathVariable Long organizationId,
             @PathVariable Long storageId
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        storageService.closeStorage(organizationId, storageId, uuid);
+        storageService.closeStorage(organizationId, storageId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
