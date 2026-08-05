@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum InventoryErrorCode implements ErrorCode {
 
-    // 회원 관련 에러 예시
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "존재하지 않는 회원입니다.");
-
+    //최소재고 임계값 에러코드
+    STOCK_THRESHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "ST003", "존재하지 않는 최소재고 임계값 입니다."),
+    STOCK_THRESHOLD_ALREADY_EXISTS(HttpStatus.CONFLICT, "ST004", "이미 존재하는 최소재고 임계값입니다.");
 
 
     private final HttpStatus status;
