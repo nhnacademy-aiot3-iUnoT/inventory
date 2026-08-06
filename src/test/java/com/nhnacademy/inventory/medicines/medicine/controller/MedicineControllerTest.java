@@ -35,17 +35,10 @@ class MedicineControllerTest {
 
 
         mockMvc.perform(post("/api/core/admin/medicines/import"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("""
-                {
-                  "success": true,
-                  "data": null,
-                  "error": null
+                .andExpect(status().isNoContent());
 
-                }
     
-    """));
+
 
         verify(medicineApiService).savedAllMedicines();
 

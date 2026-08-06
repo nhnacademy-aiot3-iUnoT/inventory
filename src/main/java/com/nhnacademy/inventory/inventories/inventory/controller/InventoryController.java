@@ -1,11 +1,11 @@
 package com.nhnacademy.inventory.inventories.inventory.controller;
 
-import com.nhnacademy.inventory.global.dto.ApiResponse;
+
 import com.nhnacademy.inventory.inventories.inventory.dto.MedicineInboundCreateRequest;
 import com.nhnacademy.inventory.inventories.inventory.service.MedicineInventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +26,7 @@ public class InventoryController {
 
         medicineInventoryService.inbound(inboundRequest);
         return ResponseEntity.ok().build();
-        // 기존 입고 수량 증가 포함한다는 의미라면 200 ok 
+        // 기존 입고 수량 증가 포함한다는 의미라면 200 ok
     }
 
 
