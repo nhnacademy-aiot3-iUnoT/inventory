@@ -14,7 +14,10 @@ import java.util.UUID;
 public class OrganizationMemberService {
     private final OrganizationMemberRepository orgMemberRepository;
 
-    public OrganizationMember getOrganizationMemberByUuid(UUID userId) {
+    /**
+     *  현재 로그인한 사용자의 조직원 정보
+     */
+    public OrganizationMember getCurrentOrganizationMember(UUID userId) {
         return orgMemberRepository.findByAccountUuid(userId)
                 .orElseThrow(UserOrgNotFoundException::new);
     }

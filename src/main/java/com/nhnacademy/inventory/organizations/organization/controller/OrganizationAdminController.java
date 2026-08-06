@@ -4,15 +4,12 @@ import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.global.dto.PageResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgCreateRequest;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgSearchRequest;
-import com.nhnacademy.inventory.organizations.organization.dto.request.OrgStatusUpdateRequest;
 import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrgDetailResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -23,11 +20,11 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 시스템 관리자 (admin) 조직 관리
  */
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/core/admin/organizations")
 public class OrganizationAdminController {
+    // TODO-Q admin 검증은 어디서 ?
     private final OrganizationService organizationService;
 
     /**
@@ -57,8 +54,8 @@ public class OrganizationAdminController {
     /**
      * 조직 상세 조회
      */
-    @GetMapping("/{organizationId}")
-    public ResponseEntity<ApiResponse<AdminOrgDetailResponse>> getOrganizationInfo(@PathVariable Long organizationId) {
+    @GetMapping("/{organization-id}")
+    public ResponseEntity<ApiResponse<AdminOrgDetailResponse>> getOrganizationInfo(@PathVariable(name = "organization-id") Long organizationId) {
         AdminOrgDetailResponse organizationForAdmin = organizationService.getOrganizationForAdmin(organizationId);
 
         return ResponseEntity.ok(ApiResponse.success(organizationForAdmin));
@@ -67,9 +64,10 @@ public class OrganizationAdminController {
     /**
      * 조직 삭제 처리
      */
-    @DeleteMapping("/{organizationId}")
-    public ResponseEntity<Void> deleteOrganization(@PathVariable Long organizationId) {
+    @DeleteMapping("/{organization-id}")
+    public ResponseEntity<Void> deleteOrganization(@PathVariable(name = "organization-id") Long organizationId) {
         organizationService.deleteOrganization(organizationId);
+
         return ResponseEntity.noContent().build();
     }
 }

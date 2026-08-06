@@ -1,6 +1,14 @@
 package com.nhnacademy.inventory.organizations.invitation.dto.response;
 
-public record InvitationCreateResponse(
+import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 
+public record InvitationCreateResponse(
+        Long id
 ) {
+
+    public static InvitationCreateResponse from(Invitation invitation) {
+        return new InvitationCreateResponse(
+                invitation.getId()
+        );
+    }
 }

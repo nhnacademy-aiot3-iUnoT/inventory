@@ -1,10 +1,8 @@
 package com.nhnacademy.inventory.organizations.organization.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
-import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
-import com.nhnacademy.inventory.organizations.invitation.event.OwnerInvitationCreatedEvent;
-import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
@@ -16,20 +14,16 @@ import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrg
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgDetailResponse;
-import com.nhnacademy.inventory.organizations.organization.exception.OrgAlreadyCompletedException;
+import com.nhnacademy.inventory.organizations.organization.exception.AlreadySetupOrganization;
 import com.nhnacademy.inventory.organizations.organization.exception.OrgAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.organization.exception.OrgNotFoundException;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -37,11 +31,9 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class OrganizationService {
     private final OrganizationRepository organizationRepository;
-    private final InvitationRepository invitationRepository;
-
     private final InvitationService invitationService;
     private final OrganizationMemberService orgMemberService;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final OrganizationDeletionService orgDeletionService;
 
     /**
      * (Admin) 조직 생성
@@ -51,7 +43,6 @@ public class OrganizationService {
     public OrgCreateResponse createOrganization(OrgCreateRequest orgCreateRequest) {
         // 조직 중복 확인
         if(organizationRepository.existsByBusinessNumber(orgCreateRequest.businessNumber())) {
-            log.debug("사업자 번호({}) 중복. 조직 생성 실패", orgCreateRequest.businessNumber());
             throw new OrgAlreadyExistsException();
         }
 
@@ -61,43 +52,32 @@ public class OrganizationService {
         );
 
         organizationRepository.save(createOrg);
-
         log.info("조직({}) : {} 생성 완료", createOrg.getBusinessNumber(), createOrg.getName());
 
-        Invitation ownerInvitation = invitationService.createOwnerInvitation(createOrg, orgCreateRequest.email());
-
-        // 초대 생성 알림
-        applicationEventPublisher.publishEvent(
-                new OwnerInvitationCreatedEvent(ownerInvitation.getEmail(), ownerInvitation.getToken())
-        );
+        Invitation invitation = invitationService.createInvitation(createOrg, orgCreateRequest.email());
+        log.info("조직({}) : owner 초대 생성 완료. invitationId={}", createOrg.getBusinessNumber(), invitation.getId());
 
         return OrgCreateResponse.from(createOrg);
     }
 
     /**
-     * (Owner) 조직 생성
+     * (Owner) 조직 초기화
      * 주소, 상세 설명 입력 -> OrgStatus = Active
      */
     @Transactional
-    public void completeOrganization(UUID memberId, OrganizationCompleteRequest request) {
+    public void setupOrganization(OrganizationSetupRequest request) {
+        Organization organization = getOrgAfterValidateOwner();
 
-        OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(memberId);
-
-        if (!organizationMember.getOrganizationRole().equals(OrganizationRole.ORG_OWNER)) {
-            throw new ForbiddenException();
+        if (organization.getStatus() != OrganizationStatus.PENDING) {
+            throw new AlreadySetupOrganization();
         }
 
-        Organization organization = organizationMember.getOrganization();
-
-        if (!organization.getStatus().equals(OrganizationStatus.PENDING)) {
-            throw new OrgAlreadyCompletedException();
-        }
-
-        organization.complete(request.zipCode(), request.roadAddress(), request.addressDetail());
+        organization.complete(request.zipCode(), request.roadAddress(), request.addressDetail(), request.description());
     }
 
     /**
      * 조직 조회
+     * - 목록, 단건 (관리자, 사용자)
      */
     public Page<OrgSearchResponse> getOrganizationList(OrgSearchRequest request, Pageable pageable) {
         return organizationRepository.search(request, pageable);
@@ -110,43 +90,25 @@ public class OrganizationService {
         return AdminOrgDetailResponse.from(organization);
     }
 
-    public OrgDetailResponse getOrganizationForUser(UUID userId) {
-        OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(userId);
-        Organization organization = organizationMember.getOrganization();
-        log.info("사용자 {}의 조직 ID = {}", userId, organization.getId());
-
-        return OrgDetailResponse.from(organization);
+    public OrgDetailResponse getOrganizationForUser() {
+        return OrgDetailResponse.from(getCurrentOrganization());
     }
 
     /**
      * 조직 수정
      */
     @Transactional
-    public void updateOrganizationStatus(UUID userId, OrgStatusUpdateRequest request) {
-        OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(userId);
-
-        if(organizationMember.getOrganizationRole() != OrganizationRole.ORG_OWNER) {
-            log.debug("조직 수정 권한 없음");
-            throw new ForbiddenException();
-        }
-
-        Organization organization = organizationMember.getOrganization();
-        OrganizationStatus originStatus = organization.getStatus();
+    public void updateOrganizationStatus(OrgStatusUpdateRequest request) {
+        Organization organization = getOrgAfterValidateOwner();
 
         organization.updateStatus(request.status());
-        log.info("조직 상태 변경 {} -> {}", originStatus, request.status());
+
+        log.info("조직 상태 변경 {} -> {}", organization.getStatus(), request.status());
     }
 
     @Transactional
-    public void updateOrganization(UUID userId, OrgUpdateRequest request) {
-        OrganizationMember organizationMember = orgMemberService.getOrganizationMemberByUuid(userId);
-
-        if(!organizationMember.getOrganizationRole().equals(OrganizationRole.ORG_OWNER)) {
-            log.debug("조직 수정 권한 없음");
-            throw new ForbiddenException();
-        }
-
-        Organization organization = organizationMember.getOrganization();
+    public void updateOrganization(OrgUpdateRequest request) {
+        Organization organization = getOrgAfterValidateOwner();
 
         organization.update(
                 request.roadAddress(),
@@ -154,6 +116,8 @@ public class OrganizationService {
                 request.addressDetail(),
                 request.description()
         );
+
+        log.info("조직({}) 정보 수정 완료", organization.getId());
     }
 
     /**
@@ -166,14 +130,31 @@ public class OrganizationService {
 
         // Owner 조직 생성 전 : hard delete
         if(organization.getStatus() == OrganizationStatus.PENDING) {
-            invitationRepository.deleteByOrganizationId(organizationId);
+            invitationService.deleteByOrganizationId(organizationId);
             organizationRepository.delete(organization);
             return;
         }
+        orgDeletionService.softDelete(organization);
+    }
 
-        // 생성 후 : soft delete
-        organization.suspend();
-        List<Invitation> invitations = invitationRepository.findByOrganizationIdAndInvitationStatus(organizationId, InvitationStatus.ACTIVE);
-        invitations.forEach(Invitation::cancel);
+    /**
+     * Role : ORG_OWNER 검증 후 조직 반환
+     */
+    public Organization getOrgAfterValidateOwner() {
+        OrganizationMember organizationMember = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+
+        if(organizationMember.getOrganizationRole() != OrganizationRole.ORG_OWNER) {
+            throw new ForbiddenException();
+        }
+
+        return organizationMember.getOrganization();
+    }
+
+    /**
+     * 현재 로그인한 사용자가 소속된 조직
+     */
+    public Organization getCurrentOrganization() {
+        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+        return member.getOrganization();
     }
 }

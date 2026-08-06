@@ -15,6 +15,7 @@ public class MailService {
 
         SimpleMailMessage message = new SimpleMailMessage();
 
+        message.setFrom("noreply@iunot.cloud");
         message.setTo(email);
         message.setSubject("조직 초대 안내");
         message.setText("아래 링크를 통해 가입해주세요.\n" + link);

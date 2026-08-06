@@ -2,53 +2,189 @@ package com.nhnacademy.inventory.organizations.invitation.service;
 
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
+import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
+import com.nhnacademy.inventory.organizations.invitation.dto.response.*;
+import com.nhnacademy.inventory.organizations.invitation.event.InvitationMailSendEvent;
+import com.nhnacademy.inventory.organizations.invitation.exception.InvalidInvitationException;
+import com.nhnacademy.inventory.organizations.invitation.exception.InvitationEmailMismatchException;
+import com.nhnacademy.inventory.organizations.invitation.exception.InvitationExpiredException;
 import com.nhnacademy.inventory.organizations.invitation.exception.InvitationNotFoundException;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class InvitationService {
+
     private final InvitationRepository invitationRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Value("${app.invitation-url}")
     private String invitationUrl;
 
     /**
-     * 초대 생성
+     * 초대 생성 및 메일 전송 이벤트 발행
      */
     @Transactional
-    public Invitation createOwnerInvitation(Organization organization, String email) {
-        Invitation invitation = Invitation.create(organization, email);
+    public Invitation createInvitation(Organization organization, String email) {
+        Invitation invitation = invitationRepository.save(Invitation.create(organization, email));
 
-        return invitationRepository.save(invitation);
-    }
+        applicationEventPublisher.publishEvent(
+                new InvitationMailSendEvent(
+                        invitation.getEmail(),
+                        invitation.getToken()
+                )
+        );
 
-    public String createInvitationLink(UUID invitationToken) {
-        return invitationUrl + "?token=" + invitationToken;
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markEmailSent(UUID invitationToken) {
-        getInvitation(invitationToken).markEmailSent();
+        return invitation;
     }
 
     /**
-     * 초대 조회
+     * 토큰 검증
      */
-    private Invitation getInvitation(UUID token) {
+    public InvitationVerifyResponse validateInvitationToken(UUID token) {
+        Invitation invitation = findInvitation(token);
+
+        validateToken(invitation);
+
+        return new InvitationVerifyResponse(
+                invitation.getEmail(),
+                invitation.getOrganization().getName()
+        );
+    }
+
+    public void validateInvitationForSignup(UUID token, String email) {
+        Invitation invitation = findInvitation(token);
+
+        validateToken(invitation);
+
+        if(!invitation.getEmail().equals(email)) {
+            throw new InvitationEmailMismatchException();
+        }
+    }
+
+    /**
+     * 초대 목록 조회
+     */
+    public Page<InvitationSearchResponse> getInvitations(InvitationSearchRequest request, Pageable pageable) {
+        return invitationRepository.search(request, pageable);
+    }
+
+    /**
+     * 초대 링크 생성
+     */
+    public String createInvitationUrl(UUID token) {
+        return invitationUrl + "?token=" + token;
+    }
+
+
+    /**
+     * 회원가입 완료 후 사용 처리
+     */
+    @Transactional
+    public void useInvitation(UUID token) {
+        Invitation invitation = findInvitation(token);
+        invitation.use();
+    }
+
+
+    /**
+     * 메일 발송 완료 처리
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markEmailSent(UUID token) {
+        findInvitation(token).markEmailSent();
+    }
+
+
+    /**
+     * 재전송
+     */
+    @Transactional
+    public void resendInvitation(UUID token) {
+        Invitation invitation = findInvitation(token);
+
+        validateActive(invitation);
+
+        // TODO(na) event 따로 처리할지 고민 중
+        applicationEventPublisher.publishEvent(
+            new InvitationMailSendEvent(invitation.getEmail(), invitation.getToken())
+        );
+    }
+
+
+    /**
+     * 취소
+     */
+    @Transactional
+    public void cancelInvitation(UUID token) {
+        Invitation invitation = findInvitation(token);
+
+        validateActive(invitation);
+
+        invitation.cancel();
+    }
+
+
+    /**
+     * 재발급
+     */
+    @Transactional
+    public InvitationCreateResponse reissueInvitation(UUID token) {
+        Invitation oldInvitation = findInvitation(token);
+        validateActive(oldInvitation);
+        oldInvitation.cancel();
+
+        Invitation newInvitation = createInvitation(oldInvitation.getOrganization(), oldInvitation.getEmail());
+
+        return InvitationCreateResponse.from(newInvitation);
+    }
+
+    @Transactional
+    public void deleteByOrganizationId(Long organizationId) {
+        invitationRepository.deleteByOrganizationId(organizationId);
+    }
+
+    /**
+     * 토큰으로 초대 내역 찾기
+     */
+    private Invitation findInvitation(UUID token) {
         return invitationRepository.findByToken(token)
                 .orElseThrow(InvitationNotFoundException::new);
+    }
+
+    /**
+     * 토큰이 유효한지
+     */
+    private void validateToken(Invitation invitation) {
+       // 초대 상태 active인지
+        if(invitation.getInvitationStatus() != InvitationStatus.ACTIVE) {
+            throw new InvalidInvitationException();
+        }
+        // 만료 전
+        if(invitation.getExpiredAt().isBefore(LocalDateTime.now())) {
+            throw new InvitationExpiredException();
+        }
+    }
+
+
+    private void validateActive(Invitation invitation) {
+        if(invitation.getInvitationStatus() != InvitationStatus.ACTIVE) {
+            throw new InvalidInvitationException();
+        }
     }
 }

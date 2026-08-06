@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import static com.nhnacademy.inventory.organizations.organization.domain.QOrganization.organization;
 
-// TODO 정리
 @RequiredArgsConstructor
 public class OrganizationRepositoryImpl implements OrganizationRepositoryCustom {
     private final JPAQueryFactory queryFactory;

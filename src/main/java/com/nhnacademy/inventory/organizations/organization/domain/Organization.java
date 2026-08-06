@@ -48,16 +48,17 @@ public class Organization {
     private LocalDateTime updatedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Organization(String businessNumber, String name) {
+    private Organization(String businessNumber, String name, OrganizationStatus status) {
         this.businessNumber = businessNumber;
         this.name = name;
-        this.status = OrganizationStatus.PENDING;
+        this.status = status;
     }
 
     public static Organization create(String businessNumber, String name) {
         return Organization.builder()
                 .businessNumber(businessNumber)
                 .name(name)
+                .status(OrganizationStatus.PENDING)
                 .build();
     }
 
@@ -75,14 +76,15 @@ public class Organization {
         this.description = description;
     }
 
-    public void suspend() {
+    public void suspended() {
         this.status = OrganizationStatus.SUSPENDED;
     }
 
-    public void complete(String zipCode, String roadAddress, String addressDetail){
+    public void complete(String zipCode, String roadAddress, String addressDetail, String description){
         this.zipCode = zipCode;
         this.roadAddress = roadAddress;
         this.addressDetail = addressDetail;
+        this.description = description;
         this.status = OrganizationStatus.ACTIVE;
     }
 

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record OrganizationCompleteRequest(
+public record OrganizationSetupRequest(
 
         @NotBlank(message = "우편번호는 필수입니다.")
         @Pattern(regexp = "^\\d{5}$", message = "우편번호는 숫자 5자리입니다.")
@@ -15,7 +15,10 @@ public record OrganizationCompleteRequest(
         String roadAddress,
 
         @Size(max = 255, message = "상세 주소는 255자 이내입니다.")
-        String addressDetail
+        String addressDetail,
+
+        @Size(max = 255, message = "조직 소개는 255자 이내입니다.")
+        String description
 
 ) {
 }

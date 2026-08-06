@@ -5,8 +5,6 @@ import com.nhnacademy.inventory.organizations.invitation.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -18,8 +16,8 @@ public class InvitationMailEventListener {
     private final InvitationService invitationService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(OwnerInvitationCreatedEvent event) {
-        String link = invitationService.createInvitationLink(event.token());
+    public void handle(InvitationMailSendEvent event) {
+        String link = invitationService.createInvitationUrl(event.token());
         try {
             mailService.sendInvitation(event.email(), link);
             invitationService.markEmailSent(event.token());

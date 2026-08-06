@@ -47,12 +47,11 @@ public class Invitation {
     private LocalDateTime usedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Invitation(Organization organization, String email, UUID token,
-                       InvitationStatus invitationStatus) {
+    private Invitation(Organization organization, String email, UUID token) {
         this.organization = organization;
         this.email = email;
         this.token = token;
-        this.invitationStatus = invitationStatus;
+        this.invitationStatus = InvitationStatus.ACTIVE;
     }
 
     public static Invitation create(Organization organization, String email) {
@@ -60,7 +59,6 @@ public class Invitation {
                 .organization(organization)
                 .email(email)
                 .token(UUID.randomUUID())
-                .invitationStatus(InvitationStatus.ACTIVE)
                 .build();
     }
 
@@ -72,9 +70,14 @@ public class Invitation {
         this.invitationStatus = InvitationStatus.CANCELED;
     }
 
+    public void use() {
+        this.invitationStatus = InvitationStatus.USED;
+        this.usedAt = LocalDateTime.now();
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        this.expiredAt = createdAt.plusDays(1);
+        this.expiredAt = createdAt.plusDays(2);
     }
 }

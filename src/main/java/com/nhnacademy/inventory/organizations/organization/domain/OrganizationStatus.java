@@ -10,8 +10,8 @@ public enum OrganizationStatus {
     public boolean canChangeTo(OrganizationStatus target) {
         return switch (this) {
             case PENDING, SUSPENDED -> false;
-            case ACTIVE -> target == INACTIVE || target == SUSPENDED;
-            case INACTIVE -> target == ACTIVE || target == SUSPENDED;
+            case ACTIVE -> target == INACTIVE;
+            case INACTIVE -> target == ACTIVE;
         };
     }
 }
