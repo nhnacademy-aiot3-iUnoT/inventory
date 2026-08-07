@@ -30,7 +30,7 @@ public class InvitationController {
      */
     @PostMapping("/organizations/me/invitations")
     public ResponseEntity<ApiResponse<InvitationCreateResponse>> createInvitation(@RequestBody InvitationCreateRequest request) {
-        InvitationCreateResponse response = organizationInvitationService.createInvitation(request);
+        InvitationCreateResponse response = organizationInvitationService.inviteMember(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }

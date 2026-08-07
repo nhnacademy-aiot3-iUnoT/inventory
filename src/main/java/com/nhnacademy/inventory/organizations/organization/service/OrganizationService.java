@@ -54,8 +54,7 @@ public class OrganizationService {
         organizationRepository.save(createOrg);
         log.info("조직({}) : {} 생성 완료", createOrg.getBusinessNumber(), createOrg.getName());
 
-        Invitation invitation = invitationService.createInvitation(createOrg, orgCreateRequest.email());
-        log.info("조직({}) : owner 초대 생성 완료. invitationId={}", createOrg.getBusinessNumber(), invitation.getId());
+        invitationService.createInvitation(createOrg, orgCreateRequest.email());
 
         return OrgCreateResponse.from(createOrg);
     }

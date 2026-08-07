@@ -3,8 +3,8 @@ package com.nhnacademy.inventory.organizations.invitation.repository.impl;
 import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSearchResponse;
+import com.nhnacademy.inventory.organizations.invitation.dto.response.QInvitationSearchResponse;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepositoryCustom;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -21,20 +21,20 @@ public class InvitationRepositoryImpl implements InvitationRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<InvitationSearchResponse> search(InvitationSearchRequest request, Pageable pageable) {
+    public Page<InvitationSearchResponse> search(Long organizationId, InvitationSearchRequest request, Pageable pageable) {
         List<InvitationSearchResponse> content = queryFactory
                 .select(
-                        Projections.constructor(
-                                InvitationSearchResponse.class,
-                                invitation.id,
-                                invitation.email,
-                                invitation.invitationStatus,
-                                invitation.createdAt,
-                                invitation.expiredAt
-                        )
+                    new QInvitationSearchResponse(
+                        invitation.id,
+                        invitation.email,
+                        invitation.invitationStatus,
+                        invitation.createdAt,
+                        invitation.expiredAt
+                    )
                 )
                 .from(invitation)
                 .where(
+                        invitation.organization.id.eq(organizationId),
                         statusEq(request.status()),
                         emailContains(request.email())
                 ).orderBy(invitation.createdAt.desc())

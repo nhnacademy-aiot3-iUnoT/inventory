@@ -3,8 +3,8 @@ package com.nhnacademy.inventory.organizations.organization.repository.impl;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgSearchRequest;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
+import com.nhnacademy.inventory.organizations.organization.dto.response.QOrgSearchResponse;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepositoryCustom;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -22,14 +22,13 @@ public class OrganizationRepositoryImpl implements OrganizationRepositoryCustom 
     public Page<OrgSearchResponse> search(OrgSearchRequest request, Pageable pageable) {
         List<OrgSearchResponse> content = queryFactory
                 .select(
-                        Projections.constructor(
-                                OrgSearchResponse.class,
-                                organization.id,
-                                organization.businessNumber,
-                                organization.name,
-                                organization.status,
-                                organization.createdAt
-                        )
+                    new QOrgSearchResponse(
+                        organization.id,
+                        organization.businessNumber,
+                        organization.name,
+                        organization.status,
+                        organization.createdAt
+                    )
                 )
                 .from(organization)
                 .where(

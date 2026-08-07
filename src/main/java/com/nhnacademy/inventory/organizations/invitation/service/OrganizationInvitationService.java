@@ -16,7 +16,7 @@ public class OrganizationInvitationService {
     private final InvitationService invitationService;
 
     @Transactional
-    public InvitationCreateResponse createInvitation(InvitationCreateRequest request) {
+    public InvitationCreateResponse inviteMember(InvitationCreateRequest request) {
         Organization organization = organizationService.getOrgAfterValidateOwner();
 
         Invitation invitation = invitationService.createInvitation(

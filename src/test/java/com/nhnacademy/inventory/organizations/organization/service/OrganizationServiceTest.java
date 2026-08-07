@@ -83,14 +83,13 @@ class OrganizationServiceTest {
         Invitation invitation = mock(Invitation.class);
 
         given(invitationService.createInvitation(any(), anyString())).willReturn(invitation);
-        given(invitation.getId()).willReturn(1L);
 
         OrgCreateResponse response = organizationService.createOrganization(request);
 
         assertEquals("테스트 조직", response.name());
 
         verify(organizationRepository).save(any(Organization.class));
-        verify(invitationService).createInvitation(any(), eq("test@test.com"));
+        verify(invitationService).createInvitation(any(), eq(request.email()));
     }
 
     @Test

@@ -6,5 +6,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface InvitationRepositoryCustom {
-    Page<InvitationSearchResponse> search(InvitationSearchRequest request, Pageable pageable);
+    Page<InvitationSearchResponse> search(Long organizationId, InvitationSearchRequest request, Pageable pageable);
 }

@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.invitation.dto.response;
 
 import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
+import com.querydsl.core.annotations.QueryProjection;
 
 import java.time.LocalDateTime;
 
@@ -11,4 +12,8 @@ public record InvitationSearchResponse(
         LocalDateTime createdAt,
         LocalDateTime expiredAt
 ) {
+    @QueryProjection
+    public InvitationSearchResponse {
+
+    }
 }

@@ -1,6 +1,8 @@
 package com.nhnacademy.inventory.organizations.organization.dto.response;
 
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
+import com.querydsl.core.annotations.QueryProjection;
+
 import java.time.LocalDateTime;
 
 public record OrgSearchResponse(
@@ -10,4 +12,8 @@ public record OrgSearchResponse(
         OrganizationStatus status,
         LocalDateTime createdAt
 ){
+    @QueryProjection
+    public OrgSearchResponse {
+
+    }
 }

@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.organizations.invitation.service;
 
+import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
@@ -10,7 +12,11 @@ import com.nhnacademy.inventory.organizations.invitation.exception.InvitationEma
 import com.nhnacademy.inventory.organizations.invitation.exception.InvitationExpiredException;
 import com.nhnacademy.inventory.organizations.invitation.exception.InvitationNotFoundException;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
+import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +24,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -32,6 +37,7 @@ public class InvitationService {
 
     private final InvitationRepository invitationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final OrganizationMemberService orgMemberService;
 
     @Value("${app.invitation-url}")
     private String invitationUrl;
@@ -42,6 +48,7 @@ public class InvitationService {
     @Transactional
     public Invitation createInvitation(Organization organization, String email) {
         Invitation invitation = invitationRepository.save(Invitation.create(organization, email));
+        log.info("조직({}) : owner 초대 생성 완료. invitationId={}", organization.getBusinessNumber(), invitation.getId());
 
         applicationEventPublisher.publishEvent(
                 new InvitationMailSendEvent(
@@ -81,7 +88,13 @@ public class InvitationService {
      * 초대 목록 조회
      */
     public Page<InvitationSearchResponse> getInvitations(InvitationSearchRequest request, Pageable pageable) {
-        return invitationRepository.search(request, pageable);
+        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+
+        if(member.getOrganizationRole() != OrganizationRole.ORG_OWNER) {
+            throw new ForbiddenException();
+        }
+
+        return invitationRepository.search(member.getOrganization().getId(), request, pageable);
     }
 
     /**
@@ -105,7 +118,7 @@ public class InvitationService {
     /**
      * 메일 발송 완료 처리
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void markEmailSent(UUID token) {
         findInvitation(token).markEmailSent();
     }
