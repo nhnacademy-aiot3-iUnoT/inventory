@@ -1,6 +1,5 @@
 package com.nhnacademy.inventory.medicines.enviroment.domain;
 
-import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentTypeRequest;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import jakarta.persistence.*;
@@ -47,12 +46,12 @@ public class MedicineEnvironmentStandard {
     private Organization organization;
 
 
-    @OneToMany(
-            mappedBy = "medicineEnvironmentStandard",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private final List<MedicineEnvironmentType> environmentTypes = new ArrayList<>();
+//    @OneToMany(
+//            mappedBy = "medicineEnvironmentStandard",
+//            cascade = CascadeType.ALL,
+//            orphanRemoval = true
+//    )
+//    private final List<MedicineEnvironmentType> environmentTypes = new ArrayList<>();
 
 
     @Column(name = "create_account_id", columnDefinition = "BINARY(16)", nullable = false)
@@ -94,29 +93,29 @@ public class MedicineEnvironmentStandard {
 
     }
 
-    public void updateAccount(UUID updateAccountId){
+    public void updateIdAndAt(UUID updateAccountId){
         this.updateAccountId = updateAccountId;
+        this.updatedAt = LocalDateTime.now();
     }
 
 
-    public void addEnvironmentType(EnvironmentType environmentType, BigDecimal min, BigDecimal max){
-
-        MedicineEnvironmentType type = MedicineEnvironmentType.create(this,environmentType,min,max);
-        environmentTypes.add(type);
-
-
-    }
-
-
-    public void updateEnvironmentTypes(List<MedicineEnvironmentTypeRequest> requests){
-
-        environmentTypes.clear();
-        for(MedicineEnvironmentTypeRequest request : requests){
-            addEnvironmentType(request.environmentType(),request.min(),request.max());
-
-        }
-
-    }
+//    public void addEnvironmentType(EnvironmentType environmentType, BigDecimal min, BigDecimal max){
+//
+//        MedicineEnvironmentType type = MedicineEnvironmentType.create(this,environmentType,min,max);
+//        environmentTypes.add(type);
+//
+//    }
+//
+//
+//    public void updateEnvironmentTypes(List<MedicineEnvironmentTypeRequest> requests){
+//
+//        environmentTypes.clear();
+//        for(MedicineEnvironmentTypeRequest request : requests){
+//            addEnvironmentType(request.environmentType(),request.min(),request.max());
+//
+//        }
+//
+//    }
 
 
 

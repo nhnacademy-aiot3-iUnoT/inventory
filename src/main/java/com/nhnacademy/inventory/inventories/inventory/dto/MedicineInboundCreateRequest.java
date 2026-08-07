@@ -1,6 +1,5 @@
 package com.nhnacademy.inventory.inventories.inventory.dto;
 
-import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentTypeRequest;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;

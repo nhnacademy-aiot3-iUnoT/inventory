@@ -6,7 +6,8 @@ import java.util.Optional;
 
 public interface MedicineEnvironmentStandardRepositoryCustom {
 
-    Optional<MedicineEnvironmentStandard> findWithEnvironmentTypes(Long organizationId, Long medicinePackageId);
+    Optional<MedicineEnvironmentStandard> findByOrganizationIdAndPackageUnitIdForUpdate(Long organizationId, Long medicinePackageUnitId);
+    Optional<MedicineEnvironmentStandard> findByOrganizationIdAndPackageUnitId(Long organizationId, Long medicinePackageUnitId);
 
 
 }

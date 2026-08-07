@@ -60,29 +60,29 @@ public class MedicineInventoryService {
         validationAvailableZone(zone);
 
 
-        Optional<MedicineInventory> existInventory =  medicineInventoryRepository.findByMedicinePackageUnitIdAndZoneIdAndLotNumberAndExpirationDate(
+        MedicineInventory existInventory =  medicineInventoryRepository.findByMedicinePackageUnitIdAndZoneIdAndLotNumberAndExpirationDate(
                 request.medicinePackageUnitId(),
                 request.zoneId(),
                 lotNumber,
                 request.expirationDate()
-        );
+        ).orElse(null);
 
-        if(existInventory.isPresent()){
-            existInventory.get().increaseQuantity(request.quantity());
-
-        }
-        else{
-
-            MedicineInventory newInventory = MedicineInventory.create(
-                    medicinePackageUnit,
-                    zone,
-                    lotNumber,
-                    request.expirationDate(),
-                    request.quantity()
-            );
-            medicineInventoryRepository.save(newInventory);
-
-        }
+//        if(existInventory.isPresent()){
+//            existInventory.get().increaseQuantity(request.quantity());
+//
+//        }
+//        else{
+//
+//            MedicineInventory newInventory = MedicineInventory.create(
+//                    medicinePackageUnit,
+//                    zone,
+//                    lotNumber,
+//                    request.expirationDate(),
+//                    request.quantity()
+//            );
+//            medicineInventoryRepository.save(newInventory);
+//
+//        }
 
         // 재고 변동 내역 등록 - 입고
         StockTransactionCommand command = new StockTransactionCommand(
