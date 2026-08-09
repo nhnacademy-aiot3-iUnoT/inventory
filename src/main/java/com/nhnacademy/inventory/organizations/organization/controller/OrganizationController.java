@@ -20,7 +20,7 @@ public class OrganizationController {
     /**
      * 조직 정보 조회
      */
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<ApiResponse<OrgDetailResponse>> getOrganizationInfo(){
         OrgDetailResponse organizationForUser = organizationService.getOrganizationForUser();
         return ResponseEntity.ok(ApiResponse.success(organizationForUser));
@@ -38,7 +38,7 @@ public class OrganizationController {
     /**
      * 조직 정보 수정 (주소, 상세설명)
      */
-    @PutMapping()
+    @PutMapping
     public ResponseEntity<Void> updateOrganization(@RequestBody @Valid OrgUpdateRequest request) {
         organizationService.updateOrganization(request);
         return ResponseEntity.noContent().build();
@@ -52,5 +52,4 @@ public class OrganizationController {
         organizationService.setupOrganization(request);
         return ResponseEntity.noContent().build();
     }
-
 }
