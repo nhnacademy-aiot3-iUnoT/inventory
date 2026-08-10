@@ -60,6 +60,17 @@ medicine:
     detail-path: /getDrugPrdtPrmsnDtlInq06
     service-key: d9149176405bff9304536370ec6a5d7278891b544707a426bfb79fac8f87e586
 
+security:
+  jwt:
+    access-token-ttl: 30m
+    allowed-algorithms:
+      - RS256
+    issuer: inventory-api
+    key-id: account-key-001
+    jwk-set-uri: http://localhost:10413/.well-known/jwks.json
+    audiences:
+      - inventory-api
+
 # 초대 base url
 app:
   invitation-url: https://iunot.cloud/signup
