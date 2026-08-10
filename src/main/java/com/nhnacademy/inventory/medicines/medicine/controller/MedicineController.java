@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
@@ -26,11 +27,12 @@ public class MedicineController {
     private final MedicineSearchService medicineSearchService;
 
 
+    // 공공 데이터 저장
     @PostMapping("/admin/medicines/import")
-    public ResponseEntity<ApiResponse<Void>> savedMedicines(){
+    public ResponseEntity<Void> savedMedicines(){
 
         medicineApiService.savedAllMedicines();
-        return ResponseEntity.ok(ApiResponse.ok());
+        return ResponseEntity.noContent().build();
 
     }
 
