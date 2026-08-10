@@ -52,6 +52,10 @@ management:
   endpoint:
     health:
       show-details: never
+  # 메일 연동 후 제거
+  health:
+    mail:
+      enabled: false
 
 # medicine API
 medicine:
