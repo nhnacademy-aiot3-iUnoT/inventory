@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/core/admin/organizations")
 public class OrganizationAdminController {
-    // TODO-Q admin 검증은 어디서 ?
     private final OrganizationService organizationService;
 
     /**
