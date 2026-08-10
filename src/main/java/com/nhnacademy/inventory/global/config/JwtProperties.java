@@ -22,6 +22,7 @@ public class JwtProperties {
     @NotBlank
     private String issuer;
 
+    @Setter
     private Set<String> audiences;
 
     @Setter
