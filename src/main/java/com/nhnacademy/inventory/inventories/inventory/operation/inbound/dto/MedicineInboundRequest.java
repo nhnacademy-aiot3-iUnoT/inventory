@@ -1,11 +1,10 @@
-package com.nhnacademy.inventory.inventories.inventory.dto;
+package com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto;
 
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
-public record MedicineInboundCreateRequest(
+public record MedicineInboundRequest(
 
         @NotNull(message = "의약품을 선택해주세요.")
         Long medicinePackageUnitId,
@@ -19,9 +18,8 @@ public record MedicineInboundCreateRequest(
         LocalDate expirationDate,
         @NotNull(message = "입고 수량을 입력해주세요.")
         @Positive(message = "수량은 양수여야 합니다.")
-        Integer quantity,
+        Integer quantity
 
-        List<MedicineEnvironmentTypeRequest> environmentRequests
 
 ) {
 }

@@ -1,7 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.controller;
 
 
-import com.nhnacademy.inventory.inventories.inventory.dto.MedicineInboundCreateRequest;
+import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.service.MedicineInventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class InventoryController {
 
     // 입고 등록
     @PostMapping("/medicine-inventories")
-    public ResponseEntity<Void> register(@Valid @RequestBody MedicineInboundCreateRequest inboundRequest){
+    public ResponseEntity<Void> register(@Valid @RequestBody MedicineInboundRequest inboundRequest){
 
         medicineInventoryService.inbound(inboundRequest);
         return ResponseEntity.ok().build();

@@ -1,18 +1,15 @@
 package com.nhnacademy.inventory.inventories.inventory.service;
 
 import com.nhnacademy.inventory.global.util.UserContext;
-import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
-import com.nhnacademy.inventory.inventories.inventory.dto.MedicineInboundCreateRequest;
+import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.exception.ZoneNotAvailableException;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
-import com.nhnacademy.inventory.medicines.enviroment.domain.MedicineEnvironmentStandard;
 import com.nhnacademy.inventory.medicines.enviroment.service.MedicineEnvironmentService;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
-import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitNotFoundException;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
@@ -23,8 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +35,7 @@ public class MedicineInventoryService {
 
     //입고
     @Transactional
-    public void inbound(MedicineInboundCreateRequest request){
+    public void inbound(MedicineInboundRequest request){
 
 
         log.info("입고 요청: medicinePackageUnitId = {}, zoneId = {}, lotNumber = {}, quantity = {}",

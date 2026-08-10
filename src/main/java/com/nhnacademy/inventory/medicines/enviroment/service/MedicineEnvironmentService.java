@@ -63,8 +63,9 @@ public class MedicineEnvironmentService {
 
 
 
+    // 환경유형 저장
     @Transactional
-    public void saveTypes(MedicineEnvironmentRequest request){
+    public void createTypes(MedicineEnvironmentRequest request){
 
 
         OrganizationMember organizationMember = memberRepository.findByAccountUuid(UserContext.getUserUuid())
@@ -88,7 +89,7 @@ public class MedicineEnvironmentService {
                     UserContext.getUserUuid()
             );
 
-            List<MedicineEnvironmentType> types = createTypes(newStandard,request);
+            List<MedicineEnvironmentType> types = makeTypes(newStandard,request);
 
             typeRepository.saveAll(types);
 
@@ -97,6 +98,7 @@ public class MedicineEnvironmentService {
 
     }
 
+    // 환경 유형 수정
     @Transactional
     public void updateTypes(MedicineEnvironmentRequest request){
 
@@ -110,7 +112,7 @@ public class MedicineEnvironmentService {
                 .orElseThrow(EnvironmentStandardNotFoundException::new);
 
         typeRepository.deleteAllByMedicineEnvironmentStandardId(standard.getId());
-        List<MedicineEnvironmentType> types = createTypes(standard,request);
+        List<MedicineEnvironmentType> types = makeTypes(standard,request);
 
         typeRepository.saveAll(types);
         standard.updateIdAndAt(UserContext.getUserUuid());
@@ -120,6 +122,7 @@ public class MedicineEnvironmentService {
 
 
 
+    // 환경 유형 삭제
     @Transactional
     public void deleteTypes(Long standardId){
 
@@ -132,7 +135,8 @@ public class MedicineEnvironmentService {
 
 
 
-    private List<MedicineEnvironmentType> createTypes(MedicineEnvironmentStandard standard,MedicineEnvironmentRequest request){
+    // 환경 유형 생성
+    private List<MedicineEnvironmentType> makeTypes(MedicineEnvironmentStandard standard,MedicineEnvironmentRequest request){
 
         List<MedicineEnvironmentType> types = new ArrayList<>();
 
