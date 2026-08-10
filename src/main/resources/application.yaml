@@ -1,6 +1,10 @@
 spring:
   application:
     name: inventory
+  # email 전송 테스트용
+  mail:
+    host: localhost
+    port: 1025
 
   config:
     import: optional:file:.env[.properties]
@@ -63,3 +67,7 @@ security:
     issuer: inventory-api
     key-id: account-key-001
     jwk-set-uri: localhost:10413/.well-known/jwks.json
+    
+# 초대 base url
+app:
+  invitation-url: https://iunot.cloud/signup
