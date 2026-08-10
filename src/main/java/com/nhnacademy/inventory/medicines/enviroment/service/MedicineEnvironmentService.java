@@ -16,13 +16,15 @@ import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitNotFoundException;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.exception.OrganizationMemberNotFoundException;
+
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 
 import java.util.*;
 
+import com.nhnacademy.inventory.organizations.organization.exception.OrgNotFoundException;
+import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +48,7 @@ public class MedicineEnvironmentService {
     public List<MedicineEnvironmentType> getType(Long packageUnitId){
 
         OrganizationMember organizationMember = memberRepository.findByAccountUuid(UserContext.getUserUuid())
-                .orElseThrow(OrganizationMemberNotFoundException::new);
+                .orElseThrow(UserOrgNotFoundException::new);
 
         Organization organization = organizationMember.getOrganization();
 
@@ -69,7 +71,7 @@ public class MedicineEnvironmentService {
 
 
         OrganizationMember organizationMember = memberRepository.findByAccountUuid(UserContext.getUserUuid())
-                .orElseThrow(OrganizationMemberNotFoundException::new);
+                .orElseThrow(UserOrgNotFoundException::new);
 
         Organization organization = organizationMember.getOrganization();
 
@@ -104,7 +106,7 @@ public class MedicineEnvironmentService {
 
 
         OrganizationMember organizationMember = memberRepository.findByAccountUuid(UserContext.getUserUuid())
-                .orElseThrow(OrganizationMemberNotFoundException::new);
+                .orElseThrow(UserOrgNotFoundException::new);
 
         Organization organization = organizationMember.getOrganization();
 
