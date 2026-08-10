@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.organization.domain;
 
+import com.nhnacademy.inventory.organizations.organization.exception.AlreadySuspendedException;
 import com.nhnacademy.inventory.organizations.organization.exception.InvalidOrgStatusException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -77,6 +78,9 @@ public class Organization {
     }
 
     public void suspended() {
+        if(this.status == OrganizationStatus.SUSPENDED) {
+            throw new AlreadySuspendedException();
+        }
         this.status = OrganizationStatus.SUSPENDED;
     }
 

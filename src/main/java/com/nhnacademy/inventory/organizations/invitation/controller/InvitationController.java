@@ -67,6 +67,7 @@ public class InvitationController {
             @PathVariable UUID token,
             @RequestParam(name = "email") String email
     ) {
+        // TODO 어떤 값을 넘겨줘야할지
         invitationService.validateInvitationForSignup(token, email);
         return ResponseEntity.noContent().build();
     }
