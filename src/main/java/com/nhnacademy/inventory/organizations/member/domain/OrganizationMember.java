@@ -51,4 +51,8 @@ public class OrganizationMember {
     protected void onCreate() {
         this.joinedAt = LocalDateTime.now();
     }
+
+    public void changeRole(OrganizationRole role) {
+        this.organizationRole = role;
+    }
 }

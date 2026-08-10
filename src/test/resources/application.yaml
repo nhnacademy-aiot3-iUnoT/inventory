@@ -11,6 +11,9 @@ spring:
       port: 6379
       password: ""
       database: 0
+  mail:
+    host: localhost
+    port: 1025
 
 eureka:
   client:
@@ -31,3 +34,6 @@ security:
     issuer: inventory-api
     key-id: account-key-001
     jwk-set-uri: http://localhost:10413/.well-known/jwks.json
+
+app:
+  invitation-url: https://iunot.cloud/signup
