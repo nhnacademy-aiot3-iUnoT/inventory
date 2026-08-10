@@ -6,7 +6,7 @@ import com.nhnacademy.inventory.inventories.alert.domain.Alert;
 import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertDeleteRequest;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertInfoResponse;
-import com.nhnacademy.inventory.inventories.alert.dto.AlertReadRequest;
+import com.nhnacademy.inventory.inventories.alert.dto.AlertCheckRequest;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertSearchCondition;
 import com.nhnacademy.inventory.inventories.alert.exception.AlertNotFoundException;
 import com.nhnacademy.inventory.inventories.alert.repository.AlertRepository;
@@ -83,14 +83,14 @@ public class AlertService {
         return alertRepository.searchByCondition(organization, condition, pageable);
     }
 
-    public long getUnreadAlertCount(Long organizationId){
+    public long getUncheckedAlertCount(Long organizationId){
         Organization organization = validateOrganizationMember(organizationId);
 
-        return alertRepository.countByOrganizationAndIsRead(organization, false);
+        return alertRepository.countByOrganizationAndIsChecked(organization, false);
     }
 
     @Transactional
-    public void markAsRead(Long organizationId, AlertReadRequest request){
+    public void markAsChecked(Long organizationId, AlertCheckRequest request){
         Organization organization = validateOrganizationMember(organizationId);
 
         List<Long> alertIds = request.alertIds();
@@ -101,7 +101,7 @@ public class AlertService {
             throw new AlertNotFoundException();
         }
 
-        alerts.forEach(Alert::markAsRead);
+        alerts.forEach(Alert::markAsChecked);
     }
 
     @Transactional
@@ -139,7 +139,7 @@ public class AlertService {
                 .organization(organization)
                 .alertType(alertType)
                 .message(message)
-                .isRead(false)
+                .isChecked(false)
                 .build();
 
         alertRepository.save(alert);

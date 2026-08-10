@@ -1,8 +1,6 @@
 package com.nhnacademy.inventory.inventories.alert.domain;
 
-import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -33,18 +31,18 @@ public class Alert {
     @Column(name = "message", length = 255, nullable = false)
     private String message;
 
-    @Column(name = "is_read", nullable = false)
-    private Boolean isRead;
+    @Column(name = "is_checked", nullable = false)
+    private Boolean isChecked;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    private Alert(Organization organization, AlertType alertType, String message, Boolean isRead) {
+    private Alert(Organization organization, AlertType alertType, String message, Boolean isChecked) {
         this.organization = organization;
         this.alertType = alertType;
         this.message = message;
-        this.isRead = isRead;
+        this.isChecked = isChecked;
     }
 
     @PrePersist
@@ -52,8 +50,8 @@ public class Alert {
         this.createdAt = LocalDateTime.now();
     }
 
-    public void markAsRead(){
-        this.isRead = true;
+    public void markAsChecked(){
+        this.isChecked = true;
     }
 }
 

@@ -10,7 +10,7 @@ public record AlertInfoResponse(
         Long organizationId,
         AlertType alertType,
         String message,
-        Boolean isRead,
+        Boolean isChecked,
         LocalDateTime createdAt
 ) {
     public static AlertInfoResponse from(Alert alert){
@@ -19,7 +19,7 @@ public record AlertInfoResponse(
                 alert.getOrganization().getId(),
                 alert.getAlertType(),
                 alert.getMessage(),
-                alert.getIsRead(),
+                alert.getIsChecked(),
                 alert.getCreatedAt()
         );
     }

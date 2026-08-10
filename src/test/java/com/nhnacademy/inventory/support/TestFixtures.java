@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.support;
 
+import com.nhnacademy.inventory.inventories.alert.domain.Alert;
+import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.threshold.domain.StockThreshold;
@@ -147,5 +149,14 @@ public class TestFixtures {
 
     public static Invitation createInvitation(Organization organization, String email) {
         return Invitation.create(organization, email);
+    }
+
+    public static Alert createAlert(Organization organization, AlertType alertType, String message, Boolean isRead){
+        return Alert.builder()
+                .organization(organization)
+                .alertType(alertType)
+                .message(message)
+                .isChecked(isRead)
+                .build();
     }
 }

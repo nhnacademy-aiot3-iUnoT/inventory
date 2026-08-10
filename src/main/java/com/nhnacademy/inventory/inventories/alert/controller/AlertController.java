@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.global.dto.PageResponse;
 import com.nhnacademy.inventory.inventories.alert.dto.*;
 import com.nhnacademy.inventory.inventories.alert.service.AlertService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,20 +32,20 @@ public class AlertController {
     }
 
     @GetMapping("/organizations/{organization-id}/alerts/unread-count")
-    public ResponseEntity<ApiResponse<Long>> getUnreadAlertCount(
+    public ResponseEntity<ApiResponse<Long>> getUncheckedAlertCount(
             @PathVariable(name = "organization-id") Long organizationId
     ){
-        long count = alertService.getUnreadAlertCount(organizationId);
+        long count = alertService.getUncheckedAlertCount(organizationId);
 
         return ResponseEntity.ok(ApiResponse.success(count));
     }
 
-    @PutMapping("/organizations/{organization-id}/alerts/read")
-    public ResponseEntity<Void> markAsRead(
+    @PutMapping("/organizations/{organization-id}/alerts/check")
+    public ResponseEntity<Void> markAsChecked(
             @PathVariable(name = "organization-id") Long organizationId,
-            @RequestBody AlertReadRequest request
+            @RequestBody AlertCheckRequest request
     ){
-        alertService.markAsRead(organizationId, request);
+        alertService.markAsChecked(organizationId, request);
 
         return ResponseEntity.noContent().build();
     }
@@ -68,9 +69,9 @@ public class AlertController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("internal/alerts")                             //내부 서버 전용 api
+    @PostMapping("/internal/alerts")                             //내부 서버 전용 api
     public ResponseEntity<Void> createAlert(
-            @RequestBody AlertCreateRequest request
+            @RequestBody @Valid AlertCreateRequest request
     ){
         alertService.createAlert(request.organizationId(), request.alertType(), request.message());
 

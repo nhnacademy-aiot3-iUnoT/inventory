@@ -1,7 +1,6 @@
 package com.nhnacademy.inventory.inventories.alert.repository;
 
 import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
-import com.nhnacademy.inventory.inventories.alert.domain.QAlert;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertInfoResponse;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertSearchCondition;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -33,13 +32,13 @@ public class AlertRepositoryImpl implements AlertRepositoryCustom{
                         alert.organization.id,
                         alert.alertType,
                         alert.message,
-                        alert.isRead,
+                        alert.isChecked,
                         alert.createdAt))
                 .from(alert)
                 .where(
                         alert.organization.eq(organization),
                         alertTypeEq(condition.alertType()),
-                        isReadEq(condition.isRead())
+                        isCheckedEq(condition.isChecked())
                 )
                 .orderBy(alert.createdAt.desc())
                 .offset(pageable.getOffset())
@@ -52,7 +51,7 @@ public class AlertRepositoryImpl implements AlertRepositoryCustom{
                 .where(
                         alert.organization.eq(organization),
                         alertTypeEq(condition.alertType()),
-                        isReadEq(condition.isRead())
+                        isCheckedEq(condition.isChecked())
                 )
                 .fetchOne();
 
@@ -63,7 +62,7 @@ public class AlertRepositoryImpl implements AlertRepositoryCustom{
         return alertType != null ? alert.alertType.eq(alertType) : null;
     }
 
-    private BooleanExpression isReadEq(Boolean isRead){
-        return isRead != null ? alert.isRead.eq(isRead) : null;
+    private BooleanExpression isCheckedEq(Boolean isChecked){
+        return isChecked != null ? alert.isChecked.eq(isChecked) : null;
     }
 }

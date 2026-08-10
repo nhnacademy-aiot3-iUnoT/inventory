@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.List;
 
 public interface AlertRepository extends JpaRepository<Alert, Long>, AlertRepositoryCustom{
-    long countByOrganizationAndIsRead(Organization organization, Boolean isRead);
+    long countByOrganizationAndIsChecked(Organization organization, Boolean isChecked);
 
     List<Alert> findAllByIdInAndOrganization(Collection<Long> ids, Organization organization);
 
