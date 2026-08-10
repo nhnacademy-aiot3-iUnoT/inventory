@@ -26,7 +26,8 @@ medicine:
 security:
   jwt:
     access-token-ttl: 30m
-    allowed-algorithms: rs256
+    allowed-algorithms:
+      - RS256
     issuer: inventory-api
     key-id: account-key-001
-    jwk-set-uri: localhost:10413/.well-known/jwks.json
+    jwk-set-uri: http://localhost:10413/.well-known/jwks.json
