@@ -16,7 +16,6 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

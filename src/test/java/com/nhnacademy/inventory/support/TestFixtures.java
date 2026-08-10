@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -131,5 +132,9 @@ public class TestFixtures {
                 .quantity(quantity)
                 .processedBy(UUID.randomUUID())
                 .build();
+    }
+
+    public static Invitation createInvitation(Organization organization, String email) {
+        return Invitation.create(organization, email);
     }
 }
