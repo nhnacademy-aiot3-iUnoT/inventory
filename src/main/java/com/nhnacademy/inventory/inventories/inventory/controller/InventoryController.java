@@ -2,7 +2,6 @@ package com.nhnacademy.inventory.inventories.inventory.controller;
 
 
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
-import com.nhnacademy.inventory.inventories.inventory.service.MedicineInventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 

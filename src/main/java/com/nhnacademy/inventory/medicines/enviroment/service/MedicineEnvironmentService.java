@@ -23,7 +23,6 @@ import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 
 import java.util.*;
 
-import com.nhnacademy.inventory.organizations.organization.exception.OrgNotFoundException;
 import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,12 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MedicineEnvironmentService {
 
-
     private final MedicineEnvironmentStandardRepository standardRepository;
     private final MedicineEnvironmentTypeRepository typeRepository;
     private final OrganizationMemberRepository memberRepository;
     private final MedicinePackageUnitRepository packageUnitRepository;
-
 
 
     // 조회용 - 기존데이터 가져오기
@@ -62,7 +59,6 @@ public class MedicineEnvironmentService {
         return typeRepository.findAllByMedicineEnvironmentStandardId(standard.getId());
 
     }
-
 
 
     // 환경유형 저장
@@ -134,7 +130,6 @@ public class MedicineEnvironmentService {
 
 
     }
-
 
 
     // 환경 유형 생성
