@@ -34,6 +34,8 @@ security:
     issuer: inventory-api
     key-id: account-key-001
     jwk-set-uri: http://localhost:10413/.well-known/jwks.json
+    audiences:
+      - inventory-api
 
 app:
   invitation-url: https://iunot.cloud/signup
