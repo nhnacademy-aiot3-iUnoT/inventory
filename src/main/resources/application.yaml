@@ -1,6 +1,10 @@
 spring:
   application:
     name: inventory
+  # email 전송 테스트용
+  mail:
+    host: localhost
+    port: 1025
 
   config:
     import: optional:file:.env[.properties]
@@ -48,6 +52,10 @@ management:
   endpoint:
     health:
       show-details: never
+  # 메일 연동 후 제거
+  health:
+    mail:
+      enabled: false
 
 # medicine API
 medicine:
@@ -55,3 +63,18 @@ medicine:
     base-url: https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07
     detail-path: /getDrugPrdtPrmsnDtlInq06
     service-key: d9149176405bff9304536370ec6a5d7278891b544707a426bfb79fac8f87e586
+
+security:
+  jwt:
+    access-token-ttl: 30m
+    allowed-algorithms:
+      - RS256
+    issuer: inventory-api
+    key-id: account-key-001
+    jwk-set-uri: http://localhost:10413/.well-known/jwks.json
+    audiences:
+      - inventory-api
+
+# 초대 base url
+app:
+  invitation-url: https://iunot.cloud/signup

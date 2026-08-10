@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.medicines.enviroment.domain;
 
+import com.nhnacademy.inventory.medicines.enviroment.exception.EnvironmentRangeInvalidException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -9,7 +10,18 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "medicine_environment_types")
+@Table(name = "medicine_environment_types",
+
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uk_medicine_environment_type",
+                    columnNames = {
+                            "medicine_environment_standard_id",
+                            "environment_type"
+                    }
+            )
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MedicineEnvironmentType {
@@ -36,9 +48,37 @@ public class MedicineEnvironmentType {
     @Builder
     private MedicineEnvironmentType(MedicineEnvironmentStandard medicineEnvironmentStandard,
                                     EnvironmentType environmentType, BigDecimal min, BigDecimal max) {
+
+
+        validateRange(min,max);
+
         this.medicineEnvironmentStandard = medicineEnvironmentStandard;
         this.environmentType = environmentType;
         this.min = min;
         this.max = max;
     }
+
+
+    public static MedicineEnvironmentType create(MedicineEnvironmentStandard medicineEnvironmentStandard,
+                                        EnvironmentType environmentType,
+                                        BigDecimal min,
+                                        BigDecimal max
+                                        ){
+        return new MedicineEnvironmentType(medicineEnvironmentStandard,environmentType,min,max);
+
+    }
+
+    private static void validateRange(BigDecimal min, BigDecimal max){
+
+        if(min.compareTo(max) >= 0){
+            throw new EnvironmentRangeInvalidException();
+
+        }
+
+    }
+
+
+
+
+
 }

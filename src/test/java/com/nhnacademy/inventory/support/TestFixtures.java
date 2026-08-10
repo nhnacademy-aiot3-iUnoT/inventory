@@ -22,13 +22,7 @@ import java.util.UUID;
 public class TestFixtures {
 
     public static Organization createOrganization(String name, String businessNumber) {
-        return Organization.builder()
-                .businessNumber(businessNumber)
-                .name(name)
-                .roadAddress("테스트 주소")
-                .zipCode("12345")
-                .status(OrganizationStatus.ACTIVE)
-                .build();
+        return Organization.create(businessNumber, name);
     }
 
     public static OrganizationMember createOrganizationMember(Organization organization) {

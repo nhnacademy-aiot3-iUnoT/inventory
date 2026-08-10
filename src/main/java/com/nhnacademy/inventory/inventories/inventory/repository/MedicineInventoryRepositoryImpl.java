@@ -28,8 +28,8 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                         inventory.lotNumber.eq(lotNumber),
                         inventory.expirationDate.eq(expiration)
 
-                        )
-                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                )
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE) //비관적 락
                 .fetchOne();
 
 

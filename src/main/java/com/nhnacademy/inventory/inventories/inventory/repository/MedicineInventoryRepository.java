@@ -10,4 +10,5 @@ public interface MedicineInventoryRepository extends JpaRepository<MedicineInven
 
 
 
+
 }
