@@ -48,7 +48,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/health", "/actuator/health/**", "/actuator/serviceregistry"
                         ).permitAll()
-                        .requestMatchers("api/core/internal/**").permitAll()
+                        .requestMatchers("/api/core/internal/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
