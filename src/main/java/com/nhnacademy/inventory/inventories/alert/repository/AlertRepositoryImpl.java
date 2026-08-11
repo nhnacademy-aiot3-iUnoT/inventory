@@ -3,10 +3,12 @@ package com.nhnacademy.inventory.inventories.alert.repository;
 import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertInfoResponse;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertSearchCondition;
+import com.nhnacademy.inventory.inventories.alert.dto.QAlertInfoResponse;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -15,19 +17,16 @@ import java.util.List;
 
 import static com.nhnacademy.inventory.inventories.alert.domain.QAlert.alert;
 
+@RequiredArgsConstructor
 public class AlertRepositoryImpl implements AlertRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
-
-    public AlertRepositoryImpl(JPAQueryFactory queryFactory){
-        this.queryFactory = queryFactory;
-    }
 
     @Override
     public Page<AlertInfoResponse> searchByCondition(Organization organization, AlertSearchCondition condition, Pageable pageable) {
 
         List<AlertInfoResponse> responseList = queryFactory
-                .select(Projections.constructor(AlertInfoResponse.class,
+                .select(new QAlertInfoResponse(
                         alert.id,
                         alert.organization.id,
                         alert.alertType,

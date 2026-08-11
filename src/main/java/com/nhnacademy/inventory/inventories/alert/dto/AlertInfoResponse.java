@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.inventories.alert.dto;
 
 import com.nhnacademy.inventory.inventories.alert.domain.Alert;
 import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
+import com.querydsl.core.annotations.QueryProjection;
 
 import java.time.LocalDateTime;
 
@@ -22,5 +23,10 @@ public record AlertInfoResponse(
                 alert.getIsChecked(),
                 alert.getCreatedAt()
         );
+    }
+
+    @QueryProjection
+    public AlertInfoResponse{
+
     }
 }
