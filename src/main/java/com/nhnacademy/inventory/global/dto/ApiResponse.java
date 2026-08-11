@@ -1,7 +1,5 @@
 package com.nhnacademy.inventory.global.dto;
 
-import com.nhnacademy.inventory.global.error.ErrorCode;
-
 import java.time.LocalDateTime;
 
 public record ApiResponse<T>(

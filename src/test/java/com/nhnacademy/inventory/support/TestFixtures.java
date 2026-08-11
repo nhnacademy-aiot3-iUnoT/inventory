@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -21,13 +22,7 @@ import java.util.UUID;
 public class TestFixtures {
 
     public static Organization createOrganization(String name, String businessNumber) {
-        return Organization.builder()
-                .businessNumber(businessNumber)
-                .name(name)
-                .roadAddress("테스트 주소")
-                .zipCode("12345")
-                .status(OrganizationStatus.ACTIVE)
-                .build();
+        return Organization.create(businessNumber, name);
     }
 
     public static OrganizationMember createOrganizationMember(Organization organization) {
@@ -137,5 +132,9 @@ public class TestFixtures {
                 .quantity(quantity)
                 .processedBy(UUID.randomUUID())
                 .build();
+    }
+
+    public static Invitation createInvitation(Organization organization, String email) {
+        return Invitation.create(organization, email);
     }
 }

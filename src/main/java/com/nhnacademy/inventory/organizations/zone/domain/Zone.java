@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.zone.domain;
 
+import com.nhnacademy.inventory.inventories.inventory.exception.ZoneNotAvailableException;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -79,4 +80,12 @@ public class Zone {
     public void changeEnvStatus(EnvStatus envStatus){
         this.envStatus = envStatus;
     }
+
+    public void validationStatus(){
+        if(this.status != ZoneStatus.ACTIVE){
+            throw new ZoneNotAvailableException();
+        }
+    }
+
+
 }

@@ -1,0 +1,63 @@
+package com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain;
+
+import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
+import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
+import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
+import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
+
+import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.zone.domain.Zone;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+
+
+@Component
+@RequiredArgsConstructor
+public class InboundOperation {
+
+    private final MedicineInventoryRepository medicineInventoryRepository;
+    private final StockTransactionService stockTransactionService;
+
+    // 인벤토리에 저장
+    public void inboundInventory(MedicinePackageUnit medicinePackageUnit, Zone zone,MedicineInventory inventory, MedicineInboundRequest request){
+
+        //zone active 검증
+        zone.validationStatus();
+
+        if(inventory == null){
+
+            MedicineInventory medicineInventory = MedicineInventory.create(
+                    medicinePackageUnit,
+                    zone,
+                    request.lotNumber().trim(),
+                    request.expirationDate(),
+                    request.quantity());
+
+            medicineInventoryRepository.save(medicineInventory);
+
+        }
+        else{
+            inventory.increaseQuantity(request.quantity());
+        }
+
+
+        stockTransactionService.createStockTransaction(new StockTransactionCommand(
+                medicinePackageUnit,
+                zone,
+                TransactionType.INBOUND,
+                request.quantity(),
+                null,
+                null,
+                UserContext.getUserUuid()
+
+        ));
+
+    }
+
+
+}

@@ -7,8 +7,11 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum InventoryErrorCode implements ErrorCode {
 
-    // 회원 관련 에러 예시
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "존재하지 않는 회원입니다.");
+
+    //환경
+    ENVIRONMENT_STANDARD_NOT_FOUND(HttpStatus.NOT_FOUND,"E001","해당하는 환경 기준이 존재하지 않습니다.");
+
+
 
 
 

@@ -1,11 +1,12 @@
 package com.nhnacademy.inventory.organizations.organization.domain;
 
+import com.nhnacademy.inventory.organizations.organization.exception.AlreadySuspendedException;
+import com.nhnacademy.inventory.organizations.organization.exception.InvalidOrgStatusException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -47,16 +48,48 @@ public class Organization {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Builder
-    private Organization(String businessNumber, String name, String roadAddress, String zipCode,
-                         String addressDetail, String description, OrganizationStatus status) {
+    @Builder(access = AccessLevel.PRIVATE)
+    private Organization(String businessNumber, String name, OrganizationStatus status) {
         this.businessNumber = businessNumber;
         this.name = name;
+        this.status = status;
+    }
+
+    public static Organization create(String businessNumber, String name) {
+        return Organization.builder()
+                .businessNumber(businessNumber)
+                .name(name)
+                .status(OrganizationStatus.PENDING)
+                .build();
+    }
+
+    public void updateStatus(OrganizationStatus status) {
+        if(!this.status.canChangeTo(status)) {
+            throw new InvalidOrgStatusException();
+        }
+        this.status = status;
+    }
+
+    public void update(String roadAddress, String zipCode, String addressDetail, String description) {
         this.roadAddress = roadAddress;
         this.zipCode = zipCode;
         this.addressDetail = addressDetail;
         this.description = description;
-        this.status = status;
+    }
+
+    public void suspended() {
+        if(this.status == OrganizationStatus.SUSPENDED) {
+            throw new AlreadySuspendedException();
+        }
+        this.status = OrganizationStatus.SUSPENDED;
+    }
+
+    public void complete(String zipCode, String roadAddress, String addressDetail, String description){
+        this.zipCode = zipCode;
+        this.roadAddress = roadAddress;
+        this.addressDetail = addressDetail;
+        this.description = description;
+        this.status = OrganizationStatus.ACTIVE;
     }
 
     @PrePersist
