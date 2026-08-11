@@ -89,6 +89,14 @@ public class ZoneService {
     }
 
     @Transactional
+    public void internalUpdateEnvStatus(Long zoneId, EnvStatus envStatus){
+        Zone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
+
+        zone.changeEnvStatus(envStatus);
+    }
+
+    @Transactional
     public void closeZone(Long storageId, Long zoneId){
         Zone zone = findByIdAndValidate(storageId, zoneId);
 

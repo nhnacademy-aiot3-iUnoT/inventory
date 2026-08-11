@@ -21,6 +21,10 @@ public enum OrganizationErrorCode implements ErrorCode {
     SENSOR_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ST001", "존재하지 않는 센서타입 입니다."),
     SENSOR_TYPE_NAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "ST002", "이미 존재하는 센서타입 이름입니다."),
 
+    //구역센서 에러코드
+    ZONE_SENSOR_NOT_FOUND(HttpStatus.NOT_FOUND, "ZS001", "존재하지 않는 센서 입니다."),
+    ZONE_SENSOR_ALREADY_EXISTS(HttpStatus.CONFLICT, "ZS002", "이미 등록된 센서입니다."),
+
     //임계값 에러코드
     THRESHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "존재하지 않는 임계설정 입니다."),
     THRESHOLD_INVALID_RANGE(HttpStatus.BAD_REQUEST, "T003", "잘못된 범위의 임계값 입니다."),

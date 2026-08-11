@@ -13,5 +13,7 @@ public interface ThresholdRepository extends JpaRepository<ZoneThreshold, Long> 
 
     List<ZoneThreshold> findAllByZone(Zone zone);
 
+    List<ZoneThreshold> findAllByZoneId(Long zoneId);
+
     Optional<ZoneThreshold> findByZoneThresholdIdAndZone(Long zoneThresholdId, Zone zone);
 }
