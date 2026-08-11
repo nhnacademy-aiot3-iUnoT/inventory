@@ -3,7 +3,6 @@ package com.nhnacademy.inventory.organizations.zone.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.zone.domain.SensorType;
@@ -15,7 +14,6 @@ import com.nhnacademy.inventory.organizations.zone.exception.ThresholdInvalidRan
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.repository.SensorTypeRepository;
 import com.nhnacademy.inventory.organizations.zone.repository.ThresholdRepository;
-import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,11 +41,9 @@ class ThresholdServiceTest {
     @Mock
     private ThresholdRepository thresholdRepository;
     @Mock
-    private OrganizationMemberRepository memberRepository;
-    @Mock
-    private ZoneRepository zoneRepository;
-    @Mock
     private SensorTypeRepository sensorTypeRepository;
+    @Mock
+    private ZoneService zoneService;
 
     @InjectMocks
     private ThresholdService thresholdService;
@@ -107,10 +103,8 @@ class ThresholdServiceTest {
                     5
             );
 
-            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                    .willReturn(Optional.of(approvedMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willReturn(zone);
             given(sensorTypeRepository.findById(sensorType.getSensorTypeId()))
                     .willReturn(Optional.of(sensorType));
             given(thresholdRepository.findByZoneAndSensorType(zone, sensorType))
@@ -144,10 +138,8 @@ class ThresholdServiceTest {
                     5
             );
 
-            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                    .willReturn(Optional.of(approvedMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willReturn(zone);
             given(sensorTypeRepository.findById(sensorType.getSensorTypeId()))
                     .willReturn(Optional.of(sensorType));
             given(thresholdRepository.findByZoneAndSensorType(zone, sensorType))
@@ -170,8 +162,8 @@ class ThresholdServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 권한없음(멤버아님)")
-        void fail_Forbidden_NotMember() {
+        @DisplayName("실패 - 권한없음")
+        void fail_Forbidden() {
             ThresholdSaveRequest request = new ThresholdSaveRequest(
                     sensorType.getSensorTypeId(),
                     BigDecimal.valueOf(20),
@@ -179,8 +171,8 @@ class ThresholdServiceTest {
                     5
             );
 
-            given(memberRepository.findByAccountUuid(any()))
-                    .willReturn(Optional.empty());
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willThrow(new ForbiddenException());
 
             UserContext.setUserUuid(UUID.randomUUID());
 
@@ -189,27 +181,6 @@ class ThresholdServiceTest {
             );
         }
 
-        @Test
-        @DisplayName("실패 - 권한없음(조직 아이디 불일치)")
-        void fail_Forbidden_IdMismatch() {
-            ThresholdSaveRequest request = new ThresholdSaveRequest(
-                    sensorType.getSensorTypeId(),
-                    BigDecimal.valueOf(20),
-                    BigDecimal.valueOf(30),
-                    5
-            );
-
-            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                    .willReturn(Optional.of(otherMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
-
-            UserContext.setUserUuid(otherMember.getAccountUuid());
-
-            assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.saveThreshold(zone.getId(), request)
-            );
-        }
 
         @Test
         @DisplayName("실패 - 임계값 범위 5초 미만")
@@ -237,10 +208,8 @@ class ThresholdServiceTest {
         @Test
         @DisplayName("성공 테스트")
         void success() {
-            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                    .willReturn(Optional.of(approvedMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willReturn(zone);
             given(thresholdRepository.findAllByZone(zone))
                     .willReturn(List.of(threshold));
 
@@ -260,10 +229,8 @@ class ThresholdServiceTest {
         @Test
         @DisplayName("성공 테스트(빈 리스트)")
         void success_empty() {
-            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                    .willReturn(Optional.of(approvedMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willReturn(zone);
             given(thresholdRepository.findAllByZone(zone))
                     .willReturn(List.of());
 
@@ -275,27 +242,12 @@ class ThresholdServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 권한없음(멤버아님)")
-        void fail_Forbidden_NotMember() {
-            given(memberRepository.findByAccountUuid(any()))
-                    .willReturn(Optional.empty());
+        @DisplayName("실패 - 권한없음")
+        void fail_Forbidden() {
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willThrow(new ForbiddenException());
 
             UserContext.setUserUuid(UUID.randomUUID());
-
-            assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.getThresholds(zone.getId())
-            );
-        }
-
-        @Test
-        @DisplayName("실패 - 권한없음(조직 아이디 불일치)")
-        void fail_Forbidden_IdMismatch() {
-            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                    .willReturn(Optional.of(otherMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
-
-            UserContext.setUserUuid(otherMember.getAccountUuid());
 
             assertThrowsExactly(ForbiddenException.class, () ->
                     thresholdService.getThresholds(zone.getId())
@@ -310,10 +262,8 @@ class ThresholdServiceTest {
         @Test
         @DisplayName("성공 테스트")
         void success() {
-            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                    .willReturn(Optional.of(approvedMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willReturn(zone);
             given(thresholdRepository.findByZoneThresholdIdAndZone(threshold.getZoneThresholdId(), zone))
                     .willReturn(Optional.of(threshold));
 
@@ -327,10 +277,10 @@ class ThresholdServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 권한없음(멤버아님)")
-        void fail_Forbidden_NotMember() {
-            given(memberRepository.findByAccountUuid(any()))
-                    .willReturn(Optional.empty());
+        @DisplayName("실패 - 권한없음")
+        void fail_Forbidden() {
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willThrow(new ForbiddenException());
 
             UserContext.setUserUuid(UUID.randomUUID());
 
@@ -340,27 +290,10 @@ class ThresholdServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 권한없음(조직 아이디 불일치)")
-        void fail_Forbidden_IdMismatch() {
-            given(memberRepository.findByAccountUuid(otherMember.getAccountUuid()))
-                    .willReturn(Optional.of(otherMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
-
-            UserContext.setUserUuid(otherMember.getAccountUuid());
-
-            assertThrowsExactly(ForbiddenException.class, () ->
-                    thresholdService.deleteThreshold(zone.getId(), threshold.getZoneThresholdId())
-            );
-        }
-
-        @Test
         @DisplayName("실패 - 존재하지않는 임계값아이디")
         void fail_NotFoundThreshold() {
-            given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
-                    .willReturn(Optional.of(approvedMember));
-            given(zoneRepository.findById(zone.getId()))
-                    .willReturn(Optional.of(zone));
+            given(zoneService.validateMemberAndGetZone(zone.getId()))
+                    .willReturn(zone);
             given(thresholdRepository.findByZoneThresholdIdAndZone(anyLong(), any()))
                     .willReturn(Optional.empty());
 

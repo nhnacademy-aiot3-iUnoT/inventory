@@ -41,4 +41,12 @@ public class StockThreshold {
         this.threshold = threshold;
         this.isActive = isActive;
     }
+
+    public void updateThreshold(Integer updateThreshold){
+        this.threshold = updateThreshold;
+    }
+
+    public void updateIsActive(Boolean updateIsActive){
+        this.isActive = updateIsActive;
+    }
 }
