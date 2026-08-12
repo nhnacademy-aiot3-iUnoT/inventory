@@ -1,7 +1,10 @@
 package com.nhnacademy.inventory.support;
 
+import com.nhnacademy.inventory.inventories.alert.domain.Alert;
+import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.inventories.threshold.domain.StockThreshold;
 import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
@@ -10,7 +13,6 @@ import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.sensor.domain.ZoneSensor;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
@@ -136,6 +138,25 @@ public class TestFixtures {
                 .transactionType(transactionType)
                 .quantity(quantity)
                 .processedBy(UUID.randomUUID())
+                .build();
+    }
+
+    public static StockThreshold createStockThreshold(Storage storage, MedicinePackageUnit medicinePackageUnit,
+                                                      Integer threshold){
+        return StockThreshold.builder()
+                .storage(storage)
+                .medicinePackageUnit(medicinePackageUnit)
+                .threshold(threshold)
+                .isActive(true)
+                .build();
+    }
+
+    public static Alert createAlert(Organization organization, AlertType alertType, String message, Boolean isRead){
+        return Alert.builder()
+                .organization(organization)
+                .alertType(alertType)
+                .message(message)
+                .isChecked(isRead)
                 .build();
     }
 

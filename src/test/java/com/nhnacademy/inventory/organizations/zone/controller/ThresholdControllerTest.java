@@ -170,7 +170,7 @@ class ThresholdControllerTest extends SupportControllerTest {
 
     @Nested
     @DisplayName("임계값 목록 조회 GET /api/core/zones/{zoneId}/zone-threshold")
-    class getZoneThreshold {
+    class getZoneThresholds {
 
         @Test
         @DisplayName("정상 처리 테스트")
@@ -279,7 +279,7 @@ class ThresholdControllerTest extends SupportControllerTest {
 
         @Test
         @DisplayName("실패 - 구역 없음")
-        void fail_NotFoundStorage() throws Exception {
+        void fail_NotFoundZone() throws Exception {
             willThrow(new ZoneNotFoundException()).given(thresholdService)
                     .deleteThreshold(11L, 1L);
 
@@ -290,8 +290,8 @@ class ThresholdControllerTest extends SupportControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 구역 없음")
-        void fail_NotFoundZone() throws Exception {
+        @DisplayName("실패 - 구역 임계값 없음")
+        void fail_NotFoundZoneThreshold() throws Exception {
             willThrow(new ThresholdNotFoundException()).given(thresholdService)
                     .deleteThreshold(11L, 1L);
 

@@ -69,7 +69,7 @@ security:
     access-token-ttl: 30m
     allowed-algorithms:
       - RS256
-    issuer: inventory-api
+    issuer: account-api
     key-id: account-key-001
     jwk-set-uri: http://localhost:10413/.well-known/jwks.json
     audiences:
