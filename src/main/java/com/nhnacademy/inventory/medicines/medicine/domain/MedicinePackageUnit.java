@@ -1,7 +1,6 @@
 package com.nhnacademy.inventory.medicines.medicine.domain;
 
-import com.nhnacademy.inventory.global.error.ErrorCode;
-import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
+
 import com.nhnacademy.inventory.medicines.medicine.exception.MedicineRequiredException;
 import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitRequiredException;
 import jakarta.persistence.*;

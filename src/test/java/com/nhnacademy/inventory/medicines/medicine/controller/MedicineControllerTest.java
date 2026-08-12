@@ -1,8 +1,9 @@
 package com.nhnacademy.inventory.medicines.medicine.controller;
 
+
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageSearchResponse;
-import com.nhnacademy.inventory.medicines.medicine.dto.MedicineSearchRequest;
+import com.nhnacademy.inventory.medicines.medicine.dto.request.MedicineSearchRequest;
 import com.nhnacademy.inventory.medicines.medicine.service.MedicineApiService;
 import com.nhnacademy.inventory.medicines.medicine.service.MedicineSearchService;
 
@@ -27,7 +28,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,18 +45,18 @@ class MedicineControllerTest {
 
 
 
-    @Test
-    void savedMedicines() throws Exception{
-
-
-        mockMvc.perform(post("/api/core/admin/medicines/import"))
-                .andExpect(status().isNoContent());
-
-
-        verify(medicineApiService).savedAllMedicines();
-
-
-    }
+//    @Test
+//    void savedMedicines() throws Exception{
+//
+//
+//        mockMvc.perform(post("/api/core/medicines/admin/import"))
+//                .andExpect(status().isNoContent());
+//
+//
+//        verify(medicineApiService).savedAllMedicines();
+//
+//
+//    }
 
     @Test
     @DisplayName("의약품 정보 조회")

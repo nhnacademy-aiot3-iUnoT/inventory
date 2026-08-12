@@ -62,7 +62,7 @@ public class InboundOperation {
                 TransactionType.INBOUND,
                 request.quantity(),
                 null,
-                null,
+                request.memo(),
                 UserContext.getUserUuid()
 
         ));

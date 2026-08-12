@@ -83,6 +83,7 @@ class InboundOperationTest {
                 "ABC-123",
                 LocalDate.now().plusDays(1),
                 20,
+                null,
                 null
         );
 

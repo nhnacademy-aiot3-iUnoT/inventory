@@ -1,9 +1,8 @@
 package com.nhnacademy.inventory.medicines.medicine.service;
 
-import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
-import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.domain.SearchType;
 import com.nhnacademy.inventory.medicines.medicine.dto.*;
+import com.nhnacademy.inventory.medicines.medicine.dto.request.MedicineSearchRequest;
 import com.nhnacademy.inventory.medicines.medicine.exception.*;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -16,24 +15,16 @@ import org.mockito.Mock;
 
 
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
-
-import java.sql.Connection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+
 import static org.mockito.Mockito.*;
 
 
@@ -93,12 +84,15 @@ class MedicineSearchServiceTest {
     void searchByProductName() {
 
 
+        Page<MedicinePackageSearchResponse> page = new PageImpl<>(List.of(response),pageable,1);
 
-        given(packageUnitRepository.findAllWithMedicineByProductName(productNameRequest.search(),pageable)).willReturn(new PageImpl<>(List.of(response),pageable,1));
 
+
+        given(packageUnitRepository.findAllWithMedicineByProductName(productNameRequest.search().trim(),pageable)).willReturn(page);
 
         Page<MedicinePackageSearchResponse> result = medicineSearchService.getMedicines(productNameRequest,pageable);
-        verify(packageUnitRepository).findAllWithMedicineByProductName(productNameRequest.search(),pageable);
+
+        verify(packageUnitRepository).findAllWithMedicineByProductName(productNameRequest.search().trim(),pageable);
 
         MedicinePackageSearchResponse test = result.getContent().getFirst();
 

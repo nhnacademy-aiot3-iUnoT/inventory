@@ -1,10 +1,11 @@
 package com.nhnacademy.inventory.medicines.enviroment.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
-import com.nhnacademy.inventory.medicines.enviroment.domain.MedicineEnvironmentType;
 import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
+import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentTypeResponse;
 import com.nhnacademy.inventory.medicines.enviroment.service.EnvironmentTypeSearchService;
 import com.nhnacademy.inventory.medicines.enviroment.service.MedicineEnvironmentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class MedicineEnvironmentController {
 
     // 환경기준 조회
     @GetMapping("/{package-unit-id}")
-    public ResponseEntity<ApiResponse<List<MedicineEnvironmentType>>> getEnvironmentTypes(
+    public ResponseEntity<ApiResponse<List<MedicineEnvironmentTypeResponse>>> getEnvironmentTypes(
             @PathVariable(name= "package-unit-id")Long medicinePackageUnitId){
 
        return ResponseEntity.ok(ApiResponse.success(environmentTypeSearchService.getTypes(medicinePackageUnitId)));
@@ -32,7 +33,7 @@ public class MedicineEnvironmentController {
     @PutMapping("/{package-unit-id}")
     public ResponseEntity<Void> updateEnvironmentTypes(
             @PathVariable(name = "package-unit-id")Long medicinePackageUnitId,
-            @RequestBody MedicineEnvironmentRequest request){
+            @Valid @RequestBody MedicineEnvironmentRequest request){
 
         medicineEnvironmentService.updateTypes(medicinePackageUnitId,request);
         return ResponseEntity.noContent().build();

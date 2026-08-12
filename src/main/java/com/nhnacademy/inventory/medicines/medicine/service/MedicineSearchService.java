@@ -6,7 +6,7 @@ import com.nhnacademy.inventory.medicines.medicine.domain.SearchType;
 
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageSearchResponse;
-import com.nhnacademy.inventory.medicines.medicine.dto.MedicineSearchRequest;
+import com.nhnacademy.inventory.medicines.medicine.dto.request.MedicineSearchRequest;
 import com.nhnacademy.inventory.medicines.medicine.exception.*;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import lombok.RequiredArgsConstructor;

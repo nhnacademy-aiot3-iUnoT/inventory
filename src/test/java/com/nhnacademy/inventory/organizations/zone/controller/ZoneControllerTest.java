@@ -1,8 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.controller;
 
-import com.nhnacademy.inventory.global.config.SecurityConfig;
+
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;

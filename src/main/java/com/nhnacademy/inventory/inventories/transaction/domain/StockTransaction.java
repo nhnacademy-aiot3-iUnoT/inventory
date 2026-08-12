@@ -1,6 +1,5 @@
 package com.nhnacademy.inventory.inventories.transaction.domain;
 
-import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import jakarta.persistence.*;

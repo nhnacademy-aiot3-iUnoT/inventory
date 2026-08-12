@@ -14,7 +14,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory.medicineInventory;
 import static com.nhnacademy.inventory.inventories.transaction.domain.QStockTransaction.stockTransaction;
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicine.medicine;
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit.medicinePackageUnit;
