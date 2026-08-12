@@ -41,6 +41,11 @@ spring:
       password: ${REDIS_PASSWORD}
       database: ${REDIS_DATABASE:0}
 
+  ai:
+    google:
+      genai:
+        api-key: ${GOOGLE_API_KEY:dummy}
+
 server:
   port: ${SERVER_PORT:10411}
 
