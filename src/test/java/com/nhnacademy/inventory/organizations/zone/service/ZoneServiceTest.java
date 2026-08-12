@@ -456,6 +456,35 @@ class ZoneServiceTest {
     }
 
     @Nested
+    @DisplayName("구역 환경상태 업데이트(내부 api용 메서드) 테스트")
+    class internalUpdateZoneEnvStatus{
+
+        @Test
+        @DisplayName("성공 테스트")
+        void Success() {
+            given(zoneRepository.findById(zone.getId()))
+                    .willReturn(Optional.of(zone));
+
+            assertNotEquals(EnvStatus.CRITICAL, zone.getEnvStatus());
+
+            assertDoesNotThrow(() -> zoneService.internalUpdateEnvStatus(zone.getId(), EnvStatus.CRITICAL));
+
+            assertEquals(EnvStatus.CRITICAL, zone.getEnvStatus());
+        }
+
+        @Test
+        @DisplayName("실패 - 존 없음")
+        void fail_NotFoundZone() {
+            given(zoneRepository.findById(zone.getId()))
+                    .willReturn(Optional.empty());
+
+            assertThrowsExactly(ZoneNotFoundException.class, () ->
+                    zoneService.internalUpdateEnvStatus(zone.getId(), EnvStatus.CRITICAL)
+            );
+        }
+    }
+
+    @Nested
     @DisplayName("구역 삭제 테스트")
     class deleteZone{
         @Test

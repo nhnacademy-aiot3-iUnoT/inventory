@@ -1,8 +1,6 @@
 package com.nhnacademy.inventory.organizations.zone.controller;
 
-import com.nhnacademy.inventory.global.config.SecurityConfig;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
@@ -36,8 +34,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.headerWit
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -628,6 +625,40 @@ class ZoneControllerTest extends SupportControllerTest {
 
             mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
                             .header("X-USER-ID", accountUuid.toString()))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false));
+        }
+    }
+
+    @Nested
+    @DisplayName("구역 환경 상태 수정 내부 api PUT /api/core/internal/zones/{zone-id}/env-status")
+    class internalUpdateEnvStatus {
+
+        @Test
+        @DisplayName("정상 처리 테스트")
+        void success() throws Exception {
+            mockMvc.perform(put("/api/core/internal/zones/{zone-id}/env-status", 1L)
+                            .queryParam("env-status", "WARNING"))
+                    .andExpect(status().isNoContent())
+                    .andDo(document("zone-update-env-internal",
+                            pathParameters(
+                                    parameterWithName("zone-id").description("저장소 ID")
+                            ),
+                            queryParameters(
+                                    parameterWithName("env-status").description("환경상태")
+                            )));
+
+            verify(zoneService).internalUpdateEnvStatus(1L, EnvStatus.WARNING);
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 구역")
+        void fail_NotFoundZoner() throws Exception {
+            willThrow(new ZoneNotFoundException())
+                    .given(zoneService).internalUpdateEnvStatus(1L, EnvStatus.WARNING);
+
+            mockMvc.perform(put("/api/core/internal/zones/{zone-id}/env-status", 1L)
+                            .queryParam("env-status", "WARNING"))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }

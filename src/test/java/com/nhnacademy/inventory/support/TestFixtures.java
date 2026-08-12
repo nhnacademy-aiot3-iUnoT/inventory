@@ -11,6 +11,7 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
+import com.nhnacademy.inventory.organizations.sensor.domain.ZoneSensor;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.*;
@@ -136,5 +137,14 @@ public class TestFixtures {
 
     public static Invitation createInvitation(Organization organization, String email) {
         return Invitation.create(organization, email);
+    }
+
+    public static ZoneSensor createZoneSensor(Zone zone, String deviceEui, String name){
+        return ZoneSensor.builder()
+                .zone(zone)
+                .deviceEui(deviceEui)
+                .name(name)
+                .description("테스트 설명")
+                .build();
     }
 }

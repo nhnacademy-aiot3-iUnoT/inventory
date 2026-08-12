@@ -41,16 +41,6 @@ public class ZoneSensorController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-    @DeleteMapping("/zones/{zone-id}/zone-sensors/{zone-sensor-id}")
-    public ResponseEntity<Void> deleteZoneSensor(
-            @PathVariable(name = "zone-id") Long zoneId,
-            @PathVariable(name = "zone-sensor-id") Long zoneSensorId
-    ){
-        zoneSensorService.deleteZoneSensor(zoneId, zoneSensorId);
-
-        return ResponseEntity.noContent().build();
-    }
-
     @PutMapping("/zones/{zone-id}/zone-sensors/{zone-sensor-id}")
     public ResponseEntity<ApiResponse<ZoneSensorInfoResponse>> updateZoneSensorInfo(
             @PathVariable(name = "zone-id") Long zoneId,
@@ -60,6 +50,16 @@ public class ZoneSensorController {
         ZoneSensorInfoResponse response = zoneSensorService.updateZoneSensorInfo(zoneId, zoneSensorId, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @DeleteMapping("/zones/{zone-id}/zone-sensors/{zone-sensor-id}")
+    public ResponseEntity<Void> deleteZoneSensor(
+            @PathVariable(name = "zone-id") Long zoneId,
+            @PathVariable(name = "zone-sensor-id") Long zoneSensorId
+    ){
+        zoneSensorService.deleteZoneSensor(zoneId, zoneSensorId);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/internal/devices/location")

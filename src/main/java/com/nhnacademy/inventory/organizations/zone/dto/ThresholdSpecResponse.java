@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 public record ThresholdSpecResponse(
         Long zoneId,
         Long sensorTypeId,
-        String sensorName,
+        String sensorTypeName,
         BigDecimal minValue,
         BigDecimal maxValue,
         Integer alertDuration
