@@ -28,7 +28,7 @@ public class MedicinePackageUnit {
     @Column(name = "pack_unit", length = 200, nullable = false)
     private String packUnit;
 
-
+    @Builder(access = AccessLevel.PRIVATE)
     private MedicinePackageUnit(Medicine medicine, String packUnit) {
 
         if(medicine == null){

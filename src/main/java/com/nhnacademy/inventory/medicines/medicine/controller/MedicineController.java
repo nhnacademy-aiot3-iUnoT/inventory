@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/core")
+@RequestMapping("/api/core/medicines")
 public class MedicineController {
 
     private final MedicineApiService medicineApiService;
@@ -28,7 +28,7 @@ public class MedicineController {
 
 
     // 공공 데이터 저장
-    @PostMapping("/admin/medicines/import")
+    @PostMapping("/admin/import")
     public ResponseEntity<Void> savedMedicines(){
 
         medicineApiService.savedAllMedicines();
@@ -37,16 +37,16 @@ public class MedicineController {
     }
 
     // 의약품 정보 조회
-    @GetMapping("/medicines")
+    @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<MedicinePackageSearchResponse>>> getMedicines(@Valid @ModelAttribute MedicineSearchRequest medicineSearchRequest, Pageable pageable){
 
-        Page<MedicinePackageSearchResponse> page = medicineSearchService.searchMedicines(medicineSearchRequest,pageable);
+        Page<MedicinePackageSearchResponse> page = medicineSearchService.getMedicines(medicineSearchRequest,pageable);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(page)));
 
     }
 
     // 특정 의약품 조회
-    @GetMapping("/medicines/package-units/{medicine-package-unit-id}")
+    @GetMapping("/package-units/{medicine-package-unit-id}")
     public ResponseEntity<ApiResponse<MedicinePackageDetailResponse>> getDetailMedicine(@PathVariable(name = "medicine-package-unit-id") Long medicinePackageUnitId){
 
         return ResponseEntity.ok(ApiResponse.success(medicineSearchService.getDetail(medicinePackageUnitId)));

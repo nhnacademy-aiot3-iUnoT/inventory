@@ -10,8 +10,6 @@ import java.util.List;
 public interface MedicineEnvironmentTypeRepository extends JpaRepository<MedicineEnvironmentType, Long> {
 
 
-
-
     @Query("""
             select t
             from MedicineEnvironmentType t

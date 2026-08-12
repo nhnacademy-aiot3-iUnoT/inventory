@@ -1,0 +1,12 @@
+
+
+POST http://localhost:10411/api/core/inventories
+Content-Type: application/json
+
+{
+  "medicinePackageUnitId": 1,
+  "zoneId": 1,
+  "lotNumber": "ABC-123",
+  "expirationDate": "2026-08-20",
+  "quantity": 30
+}

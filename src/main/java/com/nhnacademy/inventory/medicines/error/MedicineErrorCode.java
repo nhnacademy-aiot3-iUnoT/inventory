@@ -35,8 +35,8 @@ public enum MedicineErrorCode implements ErrorCode {
 
 
     // 환경
-    ENVIRONMENT_RANGE_INVALID(HttpStatus.BAD_REQUEST,"E001","환경 기준의 최소값은 최대값보다 클 수 없습니다.");
-
+    ENVIRONMENT_RANGE_INVALID(HttpStatus.BAD_REQUEST,"E001","환경 기준의 최소값은 최대값보다 클 수 없습니다."),
+    ENVIRONMENT_RANGE_REQUIRED(HttpStatus.BAD_REQUEST,"E002","최소값과 최대값은 null일 수 없습니다.");
 
 
     private final HttpStatus status;

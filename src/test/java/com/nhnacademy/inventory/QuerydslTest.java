@@ -28,12 +28,22 @@ class QuerydslTest {
     @DisplayName("Medicine 엔티티 저장 및 Querydsl 동적/조건 조회 테스트")
     void medicineQuerydslTest() {
 
-        Medicine medicine = Medicine.builder()
-                .itemCode("MED-001")
-                .productName("타이레놀정500밀리그램")
-                .storageMethod("기밀용기, 室溫보관")
-                .companyName("한국존슨앤드존슨")
-                .build();
+//        Medicine medicine = Medicine.builder()
+//                .itemCode("MED-001")
+//                .productName("타이레놀정500밀리그램")
+//                .storageMethod("기밀용기, 室溫보관")
+//                .companyName("한국존슨앤드존슨")
+//                .build();
+
+        Medicine medicine = Medicine.create(
+                "MED-001",
+                "타이레놀정500밀리그램",
+                "기밀용기, 室溫보관",
+                "한국존슨앤드존슨",
+                null,
+                "한국회사"
+        );
+
 
         em.persist(medicine);
         em.flush();

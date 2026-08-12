@@ -8,6 +8,8 @@ import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 
+import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
+import com.nhnacademy.inventory.medicines.enviroment.service.MedicineEnvironmentService;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 
@@ -22,6 +24,7 @@ public class InboundOperation {
 
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final StockTransactionService stockTransactionService;
+    private final MedicineEnvironmentService medicineEnvironmentService;
 
     // 인벤토리에 저장
     public void inboundInventory(MedicinePackageUnit medicinePackageUnit, Zone zone,MedicineInventory inventory, MedicineInboundRequest request){
@@ -43,6 +46,13 @@ public class InboundOperation {
         }
         else{
             inventory.increaseQuantity(request.quantity());
+        }
+
+        // 환경기준 추가
+        MedicineEnvironmentRequest environmentRequest = request.medicineEnvironmentRequest();
+
+        if(environmentRequest != null){
+            medicineEnvironmentService.createTypes(medicinePackageUnit.getId(),environmentRequest);
         }
 
 

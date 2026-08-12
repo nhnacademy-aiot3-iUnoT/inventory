@@ -8,8 +8,6 @@ import java.math.BigDecimal;
 
 public record MedicineEnvironmentRequest(
 
-        @NotNull(message= "의약품 선택은 필수입니다.")
-        Long medicinePackageUnitId,
         BigDecimal minTemperature,
         BigDecimal maxTemperature,
         BigDecimal minHumidity,
@@ -34,22 +32,26 @@ public record MedicineEnvironmentRequest(
 
     @AssertTrue(message = "습도 최소값과 최대값 모두 입력해주세요.")
     public boolean humIsValid(){
+
         return isValid(minHumidity,maxHumidity);
     }
 
     @AssertTrue(message = "습도 최소값은 최대값보다 클 수 없습니다.")
     public boolean humIsRangeValid(){
+
         return isRangeValid(minHumidity,maxHumidity);
     }
 
     @AssertTrue(message = "조도 최소값과 최대값 모두 입력해주세요.")
     public boolean illIsValid(){
+
         return isValid(minIlluminance,maxIlluminance);
     }
 
 
     @AssertTrue(message = "조도 최소값은 최대값보다 클 수 없습니다.")
     public boolean illIsRangeValid(){
+
         return isRangeValid(minIlluminance,maxIlluminance);
     }
 

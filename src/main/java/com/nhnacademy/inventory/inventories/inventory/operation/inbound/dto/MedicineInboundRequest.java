@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto;
 
+import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
@@ -18,8 +20,9 @@ public record MedicineInboundRequest(
         LocalDate expirationDate,
         @NotNull(message = "입고 수량을 입력해주세요.")
         @Positive(message = "수량은 양수여야 합니다.")
-        Integer quantity
-
+        Integer quantity,
+        @Valid
+        MedicineEnvironmentRequest medicineEnvironmentRequest
 
 ) {
 }
