@@ -32,19 +32,14 @@ public class OrganizationMember {
     @Column(name = "organization_role", nullable = false)
     private OrganizationRole organizationRole;
 
-    // TODO 제거할 예정
-    @Column(name = "is_approved", nullable = false)
-    private Boolean isApproved;
-
     @Column(name = "joined_at", nullable = false, updatable = false)
     private LocalDateTime joinedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrganizationMember(Organization organization, UUID accountUuid, OrganizationRole organizationRole, Boolean isApproved) {
+    private OrganizationMember(Organization organization, UUID accountUuid, OrganizationRole organizationRole) {
         this.organization = organization;
         this.accountUuid = accountUuid;
         this.organizationRole = organizationRole;
-        this.isApproved = isApproved;
     }
 
     public static OrganizationMember createMember(Organization organization, UUID accountUuid) {
@@ -52,7 +47,6 @@ public class OrganizationMember {
                 .organization(organization)
                 .accountUuid(accountUuid)
                 .organizationRole(OrganizationRole.ORG_MEMBER)
-                .isApproved(false)
                 .build();
     }
 
@@ -61,7 +55,6 @@ public class OrganizationMember {
                 .organization(organization)
                 .accountUuid(accountUuid)
                 .organizationRole(OrganizationRole.ORG_OWNER)
-                .isApproved(true)
                 .build();
     }
 

@@ -2,8 +2,6 @@ package com.nhnacademy.inventory.organizations.organization.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.global.dto.PageResponse;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationCreateResponse;
-import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgCreateRequest;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgSearchRequest;
 import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrgDetailResponse;
@@ -27,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/core/admin/organizations")
 public class OrganizationAdminController {
     private final OrganizationService organizationService;
-    private final InvitationService invitationService;
 
     /**
      * 조직 생성 (사업자 번호, 조직명, 이메일(Owner))
@@ -69,38 +66,6 @@ public class OrganizationAdminController {
     @DeleteMapping("/{organization-id}")
     public ResponseEntity<Void> deleteOrganization(@PathVariable(name = "organization-id") Long organizationId) {
         organizationService.deleteOrganization(organizationId);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * 재전송
-     */
-    @PostMapping("/{organization-id}/invitations/{invitation-id}/resend")
-    public ResponseEntity<Void> resendInvitation(@PathVariable(name = "organization-id") Long organizationId,
-                                                 @PathVariable(name = "invitation-id") Long invitationId) {
-        invitationService.resendInvitationForAdmin(organizationId, invitationId);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * 취소
-     */
-    @DeleteMapping("/{organization-id}/invitations/{invitation-id}")
-    public ResponseEntity<Void> cancelInvitation(@PathVariable(name = "organization-id") Long organizationId,
-                                                 @PathVariable(name = "invitation-id") Long invitationId) {
-        invitationService.cancelInvitationForAdmin(organizationId, invitationId);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * 재발급
-     */
-    @PostMapping("/{organization-id}/invitations/{invitation-id}/reissue")
-    public ResponseEntity<Void> reissueInvitation(@PathVariable(name = "organization-id") Long organizationId, @PathVariable(name = "invitation-id") Long invitationId) {
-        invitationService.reissueInvitationForAdmin(organizationId, invitationId);
 
         return ResponseEntity.noContent().build();
     }

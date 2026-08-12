@@ -1,15 +1,16 @@
 package com.nhnacademy.inventory.organizations.invitation.service;
 
-import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
-import com.nhnacademy.inventory.organizations.invitation.domain.InvitationType;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationCreateRequest;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
+import com.nhnacademy.inventory.organizations.organization.exception.OrganizationNotActiveException;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrganizationInvitationService {
@@ -17,15 +18,15 @@ public class OrganizationInvitationService {
     private final InvitationService invitationService;
 
     @Transactional
-    public InvitationCreateResponse inviteMember(InvitationCreateRequest request) {
+    public void inviteMember(InvitationCreateRequest request) {
         Organization organization = organizationService.getOrgAfterValidateOwner();
 
-        Invitation invitation = invitationService.createInvitation(
-                        organization,
-                        request.email(),
-                        InvitationType.MEMBER
-                );
+        if(organization.getStatus() == OrganizationStatus.PENDING) {
+            throw new OrganizationNotActiveException();
+        }
 
-        return InvitationCreateResponse.from(invitation);
+        invitationService.createInvitation(organization, request.email(), false);
+
+        log.info("멤버({}) 초대 생성", request.email());
     }
 }

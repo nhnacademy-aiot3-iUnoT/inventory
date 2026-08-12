@@ -26,10 +26,6 @@ include::{snippets}/invitation-create/request-fields.adoc[]
 
 include::{snippets}/invitation-create/http-response.adoc[]
 
-===== Response Fields
-
-include::{snippets}/invitation-create/response-fields.adoc[]
-
 === 초대 목록 조회
 
 조직에 생성된 초대 목록을 조회합니다.
@@ -200,6 +196,3 @@ include::{snippets}/invitation-reissue/path-parameters.adoc[]
 
 include::{snippets}/invitation-reissue/http-response.adoc[]
 
-===== Response Fields
-
-include::{snippets}/invitation-reissue/response-fields.adoc[]

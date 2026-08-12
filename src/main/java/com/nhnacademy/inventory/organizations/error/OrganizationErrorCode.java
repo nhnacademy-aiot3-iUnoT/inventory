@@ -24,6 +24,7 @@ public enum OrganizationErrorCode implements ErrorCode {
     //임계값 에러코드
     THRESHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "존재하지 않는 임계설정 입니다."),
     THRESHOLD_INVALID_RANGE(HttpStatus.BAD_REQUEST, "T003", "잘못된 범위의 임계값 입니다."),
+
     // 조직 에러코드
     ORG_ALREADY_EXISTS(HttpStatus.CONFLICT, "O001", "이미 존재하는 조직입니다."),
     ORG_NOT_FOUND(HttpStatus.NOT_FOUND, "O002", "존재하지 않는 조직입니다."),
@@ -31,6 +32,7 @@ public enum OrganizationErrorCode implements ErrorCode {
     ORG_STATUS_INVALID(HttpStatus.BAD_REQUEST, "O004", "허용되지 않는 조직 상태 변경 요청입니다."),
     ORG_ALREADY_SETUP(HttpStatus.CONFLICT, "O005", "이미 활성화된 조직입니다."),
     ORG_ALREADY_SUSPENDED(HttpStatus.CONFLICT, "O006", "이미 종료된 조직입니다."),
+    ORG_NOT_ACTIVE(HttpStatus.CONFLICT, "O007", "현재 조직 상태에서는 해당 작업을 수행할 수 없습니다."),
 
     // 초대 에러코드
     INVITATION_NOT_FOUND(HttpStatus.NOT_FOUND, "J001", "초대 내역을 찾을 수 없습니다."),

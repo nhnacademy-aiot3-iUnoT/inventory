@@ -28,7 +28,6 @@ public class InvitationRepositoryImpl implements InvitationRepositoryCustom {
                         invitation.id,
                         invitation.email,
                         invitation.invitationStatus,
-                        invitation.reissuedAt.isNotNull(),
                         invitation.createdAt,
                         invitation.expiredAt
                     )

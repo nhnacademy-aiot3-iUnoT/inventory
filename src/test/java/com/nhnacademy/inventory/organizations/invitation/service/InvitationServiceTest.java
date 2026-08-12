@@ -4,17 +4,12 @@ import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
-import com.nhnacademy.inventory.organizations.invitation.domain.InvitationType;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSignupRequest;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationCreateResponse;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSearchResponse;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSignupResponse;
 import com.nhnacademy.inventory.organizations.invitation.event.InvitationMailSendEvent;
-import com.nhnacademy.inventory.organizations.invitation.exception.InvalidInvitationException;
-import com.nhnacademy.inventory.organizations.invitation.exception.InvitationEmailMismatchException;
-import com.nhnacademy.inventory.organizations.invitation.exception.InvitationExpiredException;
-import com.nhnacademy.inventory.organizations.invitation.exception.InvitationNotFoundException;
+import com.nhnacademy.inventory.organizations.invitation.exception.*;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
@@ -39,6 +34,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -78,15 +74,31 @@ class InvitationServiceTest {
     void createInvitation_success() {
         String email = "test@test.com";
 
+        given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(false);
+
         given(invitationRepository.save(any(Invitation.class))).willReturn(invitation);
 
-        Invitation result = invitationService.createInvitation(organization, email, InvitationType.OWNER);
+        Invitation result = invitationService.createInvitation(organization, email, true);
 
+        assertNotNull(result);
         assertEquals(invitation, result);
-        assertEquals(InvitationType.OWNER, result.getInvitationType());
 
+        verify(invitationRepository).existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class));
         verify(invitationRepository).save(any(Invitation.class));
         verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
+    }
+
+    @Test
+    @DisplayName("초대 생성 실패 - 활성 초대 중복")
+    void createInvitation_duplicate() {
+        String email = "test@test.com";
+
+        given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(true);
+
+        assertThrows(InvitationAlreadyExistsException.class, () -> invitationService.createInvitation(organization, email, true));
+
+        verify(invitationRepository, never()).save(any());
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
     @Nested
@@ -415,7 +427,7 @@ class InvitationServiceTest {
     class ReissueInvitationTest {
 
         @Test
-        @DisplayName("성공 - MEMBER 타입 유지")
+        @DisplayName("성공")
         void successAndPreserveType() {
             Long invitationId = 1L;
 
@@ -431,38 +443,15 @@ class InvitationServiceTest {
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(oldInvitation));
 
             given(organizationMemberService.getCurrentOrganizationMember(owner.getAccountUuid())).willReturn(owner);
+            given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq("member@test.com"), any(LocalDateTime.class))).willReturn(false);
             given(invitationRepository.save(any(Invitation.class))).willReturn(newInvitation);
 
-            InvitationCreateResponse response = invitationService.reissueInvitation(invitationId);
+            invitationService.reissueInvitation(invitationId);
 
-            assertEquals(InvitationStatus.CANCELED, oldInvitation.getInvitationStatus());
+            assertEquals(InvitationStatus.REISSUED, oldInvitation.getInvitationStatus());
 
-            assertEquals(2L, response.id());
-            assertEquals("member@test.com", response.email());
-            assertEquals(InvitationType.MEMBER, newInvitation.getInvitationType());
-
+            verify(invitationRepository).save(any(Invitation.class));
             verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
-        }
-
-        @Test
-        @DisplayName("실패 - 취소된 초대는 재발급 불가")
-        void failWhenCanceled() {
-            Long invitationId = 1L;
-
-            invitation.cancel();
-
-            ReflectionTestUtils.setField(invitation, "id", invitationId);
-
-            UserContext.setUserUuid(owner.getAccountUuid());
-
-            given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
-            given(organizationMemberService.getCurrentOrganizationMember(owner.getAccountUuid())).willReturn(owner);
-
-            assertThrows(InvalidInvitationException.class,
-                    () -> invitationService.reissueInvitation(invitationId)
-            );
-
-            verify(invitationRepository, never()).save(any());
         }
 
         @Test
@@ -486,7 +475,7 @@ class InvitationServiceTest {
     }
 
     @Nested
-    @DisplayName("Admin 초대 재전송 및 취소")
+    @DisplayName("Admin 초대 관리")
     class AdminInvitationManagementTest {
 
         @Test
@@ -503,6 +492,7 @@ class InvitationServiceTest {
 
             invitationService.resendInvitationForAdmin(organizationId, invitationId);
 
+            verify(invitationRepository).findById(invitationId);
             verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
         }
 
@@ -521,6 +511,7 @@ class InvitationServiceTest {
             invitationService.cancelInvitationForAdmin(organizationId, invitationId);
 
             assertEquals(InvitationStatus.CANCELED, invitation.getInvitationStatus());
+            verify(invitationRepository).findById(invitationId);
         }
 
         @Test
@@ -534,10 +525,11 @@ class InvitationServiceTest {
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
 
             assertThrows(ForbiddenException.class, () -> invitationService.resendInvitationForAdmin(1L, invitationId));
+            verify(applicationEventPublisher, never()).publishEvent(any());
         }
 
         @Test
-        @DisplayName("실패 - MEMBER 타입 초대")
+        @DisplayName("실패 - MEMBER 초대")
         void failForMemberInvitation() {
             Long organizationId = 1L;
             Long invitationId = 10L;
@@ -550,6 +542,17 @@ class InvitationServiceTest {
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(memberInvitation));
 
             assertThrows(ForbiddenException.class, () -> invitationService.resendInvitationForAdmin(organizationId, invitationId));
+            verify(applicationEventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 초대")
+        void failWhenInvitationNotFound() {
+            Long invitationId = 10L;
+
+            given(invitationRepository.findById(invitationId)).willReturn(Optional.empty());
+
+            assertThrows(InvitationNotFoundException.class, () -> invitationService.resendInvitationForAdmin(1L, invitationId));
         }
     }
 
@@ -558,7 +561,7 @@ class InvitationServiceTest {
     class AdminReissueInvitationTest {
 
         @Test
-        @DisplayName("성공 - OWNER 타입 유지")
+        @DisplayName("성공 - OWNER 초대 재발급")
         void success() {
             Long organizationId = 1L;
             Long invitationId = 10L;
@@ -569,15 +572,16 @@ class InvitationServiceTest {
 
             Invitation newInvitation = TestFixtures.createInvitationOwner(organization, invitation.getEmail());
 
-            ReflectionTestUtils.setField(newInvitation, "id", 11L);
-
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
+            given(invitationRepository.existsActiveInvitation(eq(organizationId), eq(invitation.getEmail()), any(LocalDateTime.class))).willReturn(false);
             given(invitationRepository.save(any(Invitation.class))).willReturn(newInvitation);
 
             invitationService.reissueInvitationForAdmin(organizationId, invitationId);
 
-            assertEquals(InvitationStatus.CANCELED, invitation.getInvitationStatus());
-            assertEquals(InvitationType.OWNER, newInvitation.getInvitationType());
+            assertEquals(InvitationStatus.REISSUED, invitation.getInvitationStatus());
+
+            verify(invitationRepository).save(any(Invitation.class));
+            verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
         }
 
         @Test
@@ -594,6 +598,40 @@ class InvitationServiceTest {
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
 
             assertThrows(InvalidInvitationException.class, () -> invitationService.reissueInvitationForAdmin(organizationId, invitationId));
+
+            verify(invitationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("실패 - 다른 조직의 초대")
+        void reissueFailForAnotherOrganization() {
+            Long invitationId = 10L;
+
+            ReflectionTestUtils.setField(organization, "id", 2L);
+            ReflectionTestUtils.setField(invitation, "id", invitationId);
+
+            given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
+
+            assertThrows(ForbiddenException.class, () -> invitationService.reissueInvitationForAdmin(1L, invitationId));
+
+            verify(invitationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("실패 - MEMBER 초대는 재발급 불가")
+        void reissueFailForMemberInvitation() {
+            Long organizationId = 1L;
+            Long invitationId = 10L;
+
+            ReflectionTestUtils.setField(organization, "id", organizationId);
+
+            Invitation memberInvitation = TestFixtures.createInvitationMember(organization, "member@test.com");
+
+            ReflectionTestUtils.setField(memberInvitation, "id", invitationId);
+
+            given(invitationRepository.findById(invitationId)).willReturn(Optional.of(memberInvitation));
+
+            assertThrows(ForbiddenException.class, () -> invitationService.reissueInvitationForAdmin(organizationId, invitationId));
 
             verify(invitationRepository, never()).save(any());
         }

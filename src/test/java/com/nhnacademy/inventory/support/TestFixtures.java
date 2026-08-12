@@ -10,7 +10,6 @@ import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
-import com.nhnacademy.inventory.organizations.invitation.domain.InvitationType;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
@@ -142,11 +141,11 @@ public class TestFixtures {
     }
 
     public static Invitation createInvitationMember(Organization organization, String email) {
-        return Invitation.create(organization, email, InvitationType.MEMBER);
+        return Invitation.create(organization, email, false);
     }
 
     public static Invitation createInvitationOwner(Organization organization, String email) {
-        return Invitation.create(organization, email, InvitationType.OWNER);
+        return Invitation.create(organization, email, true);
     }
 
     public static Alert createAlert(Organization organization, AlertType alertType, String message, Boolean isRead){

@@ -4,8 +4,8 @@ import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationCreateRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationCreateResponse;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSearchResponse;
+import com.nhnacademy.inventory.organizations.invitation.exception.InvalidInvitationException;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.invitation.service.OrganizationInvitationService;
 import com.nhnacademy.inventory.support.RestDocsUtils;
@@ -67,31 +67,13 @@ class InvitationControllerTest extends SupportControllerTest {
         void success() throws Exception {
             InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
 
-            InvitationCreateResponse response = new InvitationCreateResponse(1L, "test@test.com");
-
-            given(organizationInvitationService.inviteMember(request)).willReturn(response);
-
-            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-
-            responseFields.addAll(List.of(
-                    fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("초대 아이디"),
-                    fieldWithPath("data.email").type(JsonFieldType.STRING).description("초대 대상 이메일")
-            ));
-
             mockMvc.perform(post("/api/core/organizations/me/invitations")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request))
                     )
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.id").value(1))
-                    .andExpect(jsonPath("$.data.email").value("test@test.com"))
-
+                    .andExpect(status().isNoContent())
                     .andDo(document("invitation-create",
-                            requestFields(
-                                    fieldWithPath("email").type(JsonFieldType.STRING).description("초대 대상 이메일")
-                            ),
-                            responseFields(responseFields)
+                            requestFields(fieldWithPath("email").type(JsonFieldType.STRING).description("초대 대상 이메일"))
                     ));
 
             verify(organizationInvitationService).inviteMember(request);
@@ -127,7 +109,6 @@ class InvitationControllerTest extends SupportControllerTest {
                     1L,
                     "test@test.com",
                     InvitationStatus.ACTIVE,
-                    false,
                     createdAt,
                     createdAt.plusDays(1)
             );
@@ -142,7 +123,6 @@ class InvitationControllerTest extends SupportControllerTest {
                     fieldWithPath("data.content[].id").type(JsonFieldType.NUMBER).description("초대 ID"),
                     fieldWithPath("data.content[].email").type(JsonFieldType.STRING).description("초대 대상 이메일"),
                     fieldWithPath("data.content[].status").type(JsonFieldType.STRING).description("초대 상태"),
-                    fieldWithPath("data.content[].reissued").type(JsonFieldType.BOOLEAN).description("재발급 여부"),
                     fieldWithPath("data.content[].createdAt").type(JsonFieldType.STRING).description("초대 생성 일시"),
                     fieldWithPath("data.content[].expiredAt").type(JsonFieldType.STRING).description("초대 토큰 만료 예정 일시"),
 
@@ -250,6 +230,18 @@ class InvitationControllerTest extends SupportControllerTest {
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
+
+        @Test
+        @DisplayName("실패 - 유효하지 않은 초대 토큰")
+        void invalidToken() throws Exception {
+            UUID token = UUID.randomUUID();
+
+            willThrow(new InvalidInvitationException()).given(invitationService).validateInvitationToken(token);
+
+            mockMvc.perform(get("/api/core/invitations/{token}", token))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false));
+        }
     }
 
 
@@ -296,34 +288,19 @@ class InvitationControllerTest extends SupportControllerTest {
         void success() throws Exception {
             Long invitationId = 1L;
 
-            InvitationCreateResponse response = new InvitationCreateResponse(1L, "test@test.com");
-
-            given(invitationService.reissueInvitation(invitationId)).willReturn(response);
-
-            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-
-            responseFields.addAll(List.of(
-                    fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("초대 아이디"),
-                    fieldWithPath("data.email").type(JsonFieldType.STRING).description("초대 대상 이메일")
-            ));
-
-            mockMvc.perform(post("/api/core/organizations/me/invitations/{invitation-id}/reissue", invitationId))                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.email").value("test@test.com"))
-
+            mockMvc.perform(post("/api/core/organizations/me/invitations/{invitation-id}/reissue", invitationId))
+                    .andExpect(status().isNoContent())
                     .andDo(document("invitation-reissue",
-                            pathParameters(parameterWithName("invitation-id").description("초대 ID")),
-                            responseFields(responseFields)
+                            pathParameters(parameterWithName("invitation-id").description("초대 ID"))
                     ));
 
             verify(invitationService).reissueInvitation(invitationId);
         }
 
-
         @Test
         @DisplayName("실패 - 권한 없음")
         void forbidden() throws Exception {
-           Long invitationId = 1L;
+            Long invitationId = 1L;
 
             willThrow(new ForbiddenException()).given(invitationService).reissueInvitation(invitationId);
 

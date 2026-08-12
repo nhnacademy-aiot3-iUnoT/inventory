@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,10 +29,10 @@ public class InvitationController {
      * OWNER 전용
      */
     @PostMapping("/organizations/me/invitations")
-    public ResponseEntity<ApiResponse<InvitationCreateResponse>> createInvitation(@Valid @RequestBody InvitationCreateRequest request) {
-        InvitationCreateResponse response = organizationInvitationService.inviteMember(request);
+    public ResponseEntity<Void> createInvitation(@Valid @RequestBody InvitationCreateRequest request) {
+        organizationInvitationService.inviteMember(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -86,7 +85,8 @@ public class InvitationController {
      * 초대 재발급
      */
     @PostMapping("/organizations/me/invitations/{invitation-id}/reissue")
-    public ResponseEntity<ApiResponse<InvitationCreateResponse>> reissueInvitation(@PathVariable(name = "invitation-id") Long invitationId) {
-        return ResponseEntity.ok(ApiResponse.success(invitationService.reissueInvitation(invitationId)));
+    public ResponseEntity<Void> reissueInvitation(@PathVariable(name = "invitation-id") Long invitationId) {
+        invitationService.reissueInvitation(invitationId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -3,7 +3,6 @@ package com.nhnacademy.inventory.organizations.organization.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
-import com.nhnacademy.inventory.organizations.invitation.domain.InvitationType;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
@@ -91,7 +90,7 @@ class OrganizationServiceTest {
             assertEquals("테스트 조직", response.name());
 
             verify(organizationRepository).save(any(Organization.class));
-            verify(invitationService).createInvitation(any(), eq(request.email()), eq(InvitationType.OWNER));
+            verify(invitationService).createInvitation(any(Organization.class), eq("test@test.com"), eq(true));
         }
 
         @Test
@@ -105,7 +104,7 @@ class OrganizationServiceTest {
                     () -> organizationService.createOrganization(request));
 
             verify(organizationRepository, never()).save(any());
-            verify(invitationService, never()).createInvitation(any(), anyString(), any(InvitationType.class));
+            verify(invitationService, never()).createInvitation(any(), anyString(), anyBoolean());
         }
     }
 
@@ -203,18 +202,27 @@ class OrganizationServiceTest {
             Long organizationId = organization.getId();
 
             Invitation ownerInvitation = TestFixtures.createInvitationOwner(organization, "owner@test.com");
+            List<OrganizationMember> owners = List.of(owner);
 
             given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
-            given(invitationRepository.findFirstByOrganizationIdAndInvitationTypeOrderByCreatedAtDesc(organizationId, InvitationType.OWNER)).willReturn(Optional.of(ownerInvitation));
+            given(invitationRepository.findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId))
+                    .willReturn(Optional.of(ownerInvitation));
+            given(organizationMemberService.getOwners(organizationId)).willReturn(owners);
 
             AdminOrgDetailResponse response = organizationService.getOrganizationForAdmin(organizationId);
 
-            assertEquals("owner@test.com", response.invitation().email());
             assertEquals(organization.getName(), response.name());
+
             assertNotNull(response.invitation());
+            assertEquals("owner@test.com", response.invitation().email());
+
+            assertNotNull(response.owners());
+            assertEquals(1, response.owners().size());
+            assertEquals(owner.getAccountUuid(), response.owners().get(0).accountUuid());
 
             verify(organizationRepository).findById(organizationId);
-            verify(invitationRepository).findFirstByOrganizationIdAndInvitationTypeOrderByCreatedAtDesc(organizationId, InvitationType.OWNER);
+            verify(invitationRepository).findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId);
+            verify(organizationMemberService).getOwners(organizationId);
         }
 
         @Test
@@ -231,17 +239,25 @@ class OrganizationServiceTest {
         }
 
         @Test
-        @DisplayName("관리자 조직 단건 조회 성공 - 초대 없음")
+        @DisplayName("관리자 조직 단건 조회 성공 - Owner 초대 없음")
         void getOrganizationForAdmin_withoutInvitation() {
-            Long organizationId = 1L;
+            Long organizationId = organization.getId();
 
             given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
 
-            given(invitationRepository.findFirstByOrganizationIdAndInvitationTypeOrderByCreatedAtDesc(organizationId, InvitationType.OWNER)).willReturn(Optional.empty());
+            given(invitationRepository.findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId)).willReturn(Optional.empty());
+
+            given(organizationMemberService.getOwners(organizationId)).willReturn(List.of(owner));
 
             AdminOrgDetailResponse response = organizationService.getOrganizationForAdmin(organizationId);
 
             assertNull(response.invitation());
+            assertNotNull(response.owners());
+            assertEquals(1, response.owners().size());
+
+            verify(organizationRepository).findById(organizationId);
+            verify(invitationRepository).findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId);
+            verify(organizationMemberService).getOwners(organizationId);
         }
 
         @Test
@@ -356,10 +372,13 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("조직 삭제 성공 - PENDING 상태 hard delete")
         void deleteOrganization_pending_success() {
-            given(organizationRepository.findById(organization.getId())).willReturn(Optional.of(organization));
+            Long organizationId = organization.getId();
 
-            organizationService.deleteOrganization(organization.getId());
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
 
+            organizationService.deleteOrganization(organizationId);
+
+            verify(orgDeletionService).deletePendingRelations(organizationId);
             verify(organizationRepository).delete(organization);
             verify(orgDeletionService, never()).softDelete(any());
         }
@@ -367,13 +386,30 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("조직 삭제 성공 - ACTIVE 상태 soft delete 위임")
         void deleteOrganization_active_success() {
+            Long organizationId = organization.getId();
             organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
 
-            given(organizationRepository.findById(organization.getId())).willReturn(Optional.of(organization));
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
 
-            organizationService.deleteOrganization(organization.getId());
+            organizationService.deleteOrganization(organizationId);
 
             verify(orgDeletionService).softDelete(organization);
+            verify(orgDeletionService, never()).deletePendingRelations(anyLong());
+            verify(organizationRepository, never()).delete(any());
+        }
+
+        @Test
+        @DisplayName("조직 삭제 실패 - 조직 없음")
+        void notFound() {
+            Long organizationId = 999L;
+
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.empty());
+
+            assertThrows(OrgNotFoundException.class, () -> organizationService.deleteOrganization(organizationId));
+
+            verify(organizationRepository).findById(organizationId);
+            verify(orgDeletionService, never()).deletePendingRelations(anyLong());
+            verify(orgDeletionService, never()).softDelete(any());
             verify(organizationRepository, never()).delete(any());
         }
     }

@@ -9,8 +9,7 @@ public record AdminInvitationResponse(
         Long id,
         String email,
         InvitationStatus status,
-        boolean reissued,
-        LocalDateTime createdAt,
+        LocalDateTime emailSentAt,
         LocalDateTime expiredAt
 ) {
     public static AdminInvitationResponse from(Invitation invitation) {
@@ -18,8 +17,7 @@ public record AdminInvitationResponse(
                 invitation.getId(),
                 invitation.getEmail(),
                 invitation.getInvitationStatus(),
-                invitation.isReissued(),
-                invitation.getCreatedAt(),
+                invitation.getEmailSentAt(),
                 invitation.getExpiredAt()
         );
     }
