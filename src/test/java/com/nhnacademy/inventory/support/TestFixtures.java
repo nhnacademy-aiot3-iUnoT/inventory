@@ -27,14 +27,18 @@ public class TestFixtures {
     }
 
     public static OrganizationMember createOrganizationMember(Organization organization) {
-        return createOrganizationMember(organization, true);
+        return createOrganizationMember(organization, OrganizationRole.ORG_MEMBER, true);
     }
 
-    public static OrganizationMember createOrganizationMember(Organization organization, boolean approved) {
+    public static OrganizationMember createOrganizationMember(Organization organization, OrganizationRole role) {
+        return createOrganizationMember(organization, role, true);
+    }
+
+    public static OrganizationMember createOrganizationMember(Organization organization, OrganizationRole role, boolean approved) {
         return OrganizationMember.builder()
                 .organization(organization)
                 .accountUuid(UUID.randomUUID())
-                .organizationRole(OrganizationRole.ORG_MEMBER)
+                .organizationRole(role)
                 .isApproved(approved)
                 .build();
     }
