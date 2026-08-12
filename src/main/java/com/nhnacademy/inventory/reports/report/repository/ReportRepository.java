@@ -1,0 +1,24 @@
+package com.nhnacademy.inventory.reports.report.repository;
+
+import com.nhnacademy.inventory.reports.report.domain.Report;
+import com.nhnacademy.inventory.reports.report.domain.ReportType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+public interface ReportRepository extends JpaRepository<Report, Long> {
+
+    @Query("""
+        SELECT r
+        FROM Report r
+        LEFT JOIN FETCH r.reportItems
+        WHERE r.id = :reportId
+        """)
+    Optional<Report> findByIdWithItems(@Param("reportId") Long reportId);
+
+    Optional<Report> findByOrganizationIdAndReportTypeAndPeriodStart(
+            Long organizationId, ReportType reportType, LocalDate periodStart);
+}
