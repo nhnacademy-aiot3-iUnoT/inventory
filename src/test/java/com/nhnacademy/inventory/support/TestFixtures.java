@@ -10,10 +10,9 @@ import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
+import com.nhnacademy.inventory.organizations.invitation.domain.InvitationType;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.*;
@@ -29,16 +28,11 @@ public class TestFixtures {
     }
 
     public static OrganizationMember createOrganizationMember(Organization organization) {
-        return createOrganizationMember(organization, true);
+        return OrganizationMember.createMember(organization, UUID.randomUUID());
     }
 
-    public static OrganizationMember createOrganizationMember(Organization organization, boolean approved) {
-        return OrganizationMember.builder()
-                .organization(organization)
-                .accountUuid(UUID.randomUUID())
-                .organizationRole(OrganizationRole.ORG_MEMBER)
-                .isApproved(approved)
-                .build();
+    public static OrganizationMember createOrganizationOwner(Organization organization) {
+        return OrganizationMember.createOwner(organization, UUID.randomUUID());
     }
 
     public static Storage createStorage(Organization organization) {
@@ -147,8 +141,12 @@ public class TestFixtures {
                 .build();
     }
 
-    public static Invitation createInvitation(Organization organization, String email) {
-        return Invitation.create(organization, email);
+    public static Invitation createInvitationMember(Organization organization, String email) {
+        return Invitation.create(organization, email, InvitationType.MEMBER);
+    }
+
+    public static Invitation createInvitationOwner(Organization organization, String email) {
+        return Invitation.create(organization, email, InvitationType.OWNER);
     }
 
     public static Alert createAlert(Organization organization, AlertType alertType, String message, Boolean isRead){

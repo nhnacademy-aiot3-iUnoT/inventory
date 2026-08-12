@@ -2,9 +2,11 @@ package com.nhnacademy.inventory.organizations.organization.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
+import com.nhnacademy.inventory.organizations.invitation.domain.InvitationType;
+import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
@@ -54,6 +56,9 @@ class OrganizationServiceTest {
     @InjectMocks
     private OrganizationService organizationService;
 
+    @Mock
+    private InvitationRepository invitationRepository;
+
     private Organization organization;
     private OrganizationMember owner;
     private OrganizationMember member;
@@ -62,11 +67,9 @@ class OrganizationServiceTest {
     void setUp() {
         organization = TestFixtures.createOrganization("테스트 조직", "1234567890");
 
-        owner = TestFixtures.createOrganizationMember(organization);
-        owner.changeRole(OrganizationRole.ORG_OWNER);
+        owner = TestFixtures.createOrganizationOwner(organization);
 
         member = TestFixtures.createOrganizationMember(organization);
-        member.changeRole(OrganizationRole.ORG_MEMBER);
     }
 
     @Nested
@@ -88,7 +91,7 @@ class OrganizationServiceTest {
             assertEquals("테스트 조직", response.name());
 
             verify(organizationRepository).save(any(Organization.class));
-            verify(invitationService).createInvitation(any(), eq(request.email()));
+            verify(invitationService).createInvitation(any(), eq(request.email()), eq(InvitationType.OWNER));
         }
 
         @Test
@@ -102,7 +105,7 @@ class OrganizationServiceTest {
                     () -> organizationService.createOrganization(request));
 
             verify(organizationRepository, never()).save(any());
-            verify(invitationService, never()).createInvitation(any(), anyString());
+            verify(invitationService, never()).createInvitation(any(), anyString(), any(InvitationType.class));
         }
     }
 
@@ -199,13 +202,19 @@ class OrganizationServiceTest {
         void getOrganizationForAdmin_success() {
             Long organizationId = organization.getId();
 
+            Invitation ownerInvitation = TestFixtures.createInvitationOwner(organization, "owner@test.com");
+
             given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
+            given(invitationRepository.findFirstByOrganizationIdAndInvitationTypeOrderByCreatedAtDesc(organizationId, InvitationType.OWNER)).willReturn(Optional.of(ownerInvitation));
 
             AdminOrgDetailResponse response = organizationService.getOrganizationForAdmin(organizationId);
 
+            assertEquals("owner@test.com", response.invitation().email());
             assertEquals(organization.getName(), response.name());
+            assertNotNull(response.invitation());
 
             verify(organizationRepository).findById(organizationId);
+            verify(invitationRepository).findFirstByOrganizationIdAndInvitationTypeOrderByCreatedAtDesc(organizationId, InvitationType.OWNER);
         }
 
         @Test
@@ -219,6 +228,20 @@ class OrganizationServiceTest {
                     () -> organizationService.getOrganizationForAdmin(organizationId));
 
             verify(organizationRepository).findById(organizationId);
+        }
+
+        @Test
+        @DisplayName("관리자 조직 단건 조회 성공 - 초대 없음")
+        void getOrganizationForAdmin_withoutInvitation() {
+            Long organizationId = 1L;
+
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
+
+            given(invitationRepository.findFirstByOrganizationIdAndInvitationTypeOrderByCreatedAtDesc(organizationId, InvitationType.OWNER)).willReturn(Optional.empty());
+
+            AdminOrgDetailResponse response = organizationService.getOrganizationForAdmin(organizationId);
+
+            assertNull(response.invitation());
         }
 
         @Test

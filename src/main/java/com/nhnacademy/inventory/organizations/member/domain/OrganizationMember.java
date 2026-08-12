@@ -32,20 +32,39 @@ public class OrganizationMember {
     @Column(name = "organization_role", nullable = false)
     private OrganizationRole organizationRole;
 
+    // TODO 제거할 예정
     @Column(name = "is_approved", nullable = false)
     private Boolean isApproved;
 
     @Column(name = "joined_at", nullable = false, updatable = false)
     private LocalDateTime joinedAt;
 
-    @Builder
-    private OrganizationMember(Organization organization, UUID accountUuid,
-                               OrganizationRole organizationRole, Boolean isApproved) {
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrganizationMember(Organization organization, UUID accountUuid, OrganizationRole organizationRole, Boolean isApproved) {
         this.organization = organization;
         this.accountUuid = accountUuid;
         this.organizationRole = organizationRole;
         this.isApproved = isApproved;
     }
+
+    public static OrganizationMember createMember(Organization organization, UUID accountUuid) {
+        return OrganizationMember.builder()
+                .organization(organization)
+                .accountUuid(accountUuid)
+                .organizationRole(OrganizationRole.ORG_MEMBER)
+                .isApproved(false)
+                .build();
+    }
+
+    public static OrganizationMember createOwner(Organization organization, UUID accountUuid) {
+        return OrganizationMember.builder()
+                .organization(organization)
+                .accountUuid(accountUuid)
+                .organizationRole(OrganizationRole.ORG_OWNER)
+                .isApproved(true)
+                .build();
+    }
+
 
     @PrePersist
     protected void onCreate() {

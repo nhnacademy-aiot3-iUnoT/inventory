@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.invitation.service;
 
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
+import com.nhnacademy.inventory.organizations.invitation.domain.InvitationType;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationCreateRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -21,7 +22,8 @@ public class OrganizationInvitationService {
 
         Invitation invitation = invitationService.createInvitation(
                         organization,
-                        request.email()
+                        request.email(),
+                        InvitationType.MEMBER
                 );
 
         return InvitationCreateResponse.from(invitation);

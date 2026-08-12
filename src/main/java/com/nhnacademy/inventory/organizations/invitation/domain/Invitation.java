@@ -34,6 +34,10 @@ public class Invitation {
     @Column(name = "invitation_status", nullable = false)
     private InvitationStatus invitationStatus;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "invitation_type", nullable = false)
+    private InvitationType invitationType;
+
     @Column(name = "email_sent_at")
     private LocalDateTime emailSentAt;
 
@@ -46,19 +50,24 @@ public class Invitation {
     @Column(name = "used_at")
     private LocalDateTime usedAt;
 
+    @Column(name = "reissued_at")
+    private LocalDateTime reissuedAt;
+
     @Builder(access = AccessLevel.PRIVATE)
-    private Invitation(Organization organization, String email, UUID token) {
+    private Invitation(Organization organization, String email, UUID token, InvitationType invitationType) {
         this.organization = organization;
         this.email = email;
         this.token = token;
+        this.invitationType = invitationType;
         this.invitationStatus = InvitationStatus.ACTIVE;
     }
 
-    public static Invitation create(Organization organization, String email) {
+    public static Invitation create(Organization organization, String email, InvitationType invitationType) {
         return Invitation.builder()
                 .organization(organization)
                 .email(email)
                 .token(UUID.randomUUID())
+                .invitationType(invitationType)
                 .build();
     }
 
@@ -75,9 +84,30 @@ public class Invitation {
         this.usedAt = LocalDateTime.now();
     }
 
+    public void restore() {
+        this.invitationStatus = InvitationStatus.ACTIVE;
+        this.usedAt = null;
+    }
+
+    public void expire() {
+        this.invitationStatus = InvitationStatus.EXPIRED;
+    }
+
+    public boolean isExpired(LocalDateTime now) {
+        return expiredAt.isBefore(now);
+    }
+
+    public void markReissued() {
+        this.reissuedAt = LocalDateTime.now();
+    }
+
+    public boolean isReissued() {
+        return reissuedAt != null;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        this.expiredAt = createdAt.plusDays(2);
+        this.expiredAt = createdAt.plusDays(1);
     }
 }

@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.organization.dto.response;
 
+import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 
@@ -13,9 +14,10 @@ public record AdminOrgDetailResponse(
         String zipCode,
         String addressDetail,
         OrganizationStatus status,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        AdminInvitationResponse invitation
 ){
-    public static AdminOrgDetailResponse from(Organization organization) {
+    public static AdminOrgDetailResponse from(Organization organization, Invitation invitation) {
         return new AdminOrgDetailResponse(
                 organization.getId(),
                 organization.getBusinessNumber(),
@@ -24,7 +26,8 @@ public record AdminOrgDetailResponse(
                 organization.getZipCode(),
                 organization.getAddressDetail(),
                 organization.getStatus(),
-                organization.getCreatedAt()
+                organization.getCreatedAt(),
+                invitation == null ? null : AdminInvitationResponse.from(invitation)
         );
     }
 }

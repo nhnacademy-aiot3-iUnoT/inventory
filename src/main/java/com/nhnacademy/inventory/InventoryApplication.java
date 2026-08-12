@@ -8,7 +8,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
-@EnableAsync
 @EnableConfigurationProperties(JwtProperties.class)
 public class InventoryApplication {
 

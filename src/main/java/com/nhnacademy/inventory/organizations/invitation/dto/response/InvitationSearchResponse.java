@@ -9,6 +9,7 @@ public record InvitationSearchResponse(
         Long id,
         String email,
         InvitationStatus status,
+        boolean reissued,
         LocalDateTime createdAt,
         LocalDateTime expiredAt
 ) {

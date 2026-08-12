@@ -28,6 +28,7 @@ public class InvitationRepositoryImpl implements InvitationRepositoryCustom {
                         invitation.id,
                         invitation.email,
                         invitation.invitationStatus,
+                        invitation.reissuedAt.isNotNull(),
                         invitation.createdAt,
                         invitation.expiredAt
                     )
@@ -46,6 +47,7 @@ public class InvitationRepositoryImpl implements InvitationRepositoryCustom {
                 .select(invitation.count())
                 .from(invitation)
                 .where(
+                        invitation.organization.id.eq(organizationId),
                         statusEq(request.status()),
                         emailContains(request.email())
                 )

@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.organization.dto.response;
 
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 
@@ -13,9 +14,10 @@ public record OrgDetailResponse(
         String addressDetail,
         String description,
         OrganizationStatus status,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        OrganizationRole organizationRole
 ) {
-    public static OrgDetailResponse from(Organization organization) {
+    public static OrgDetailResponse from(Organization organization, OrganizationRole organizationRole) {
         return new OrgDetailResponse(
                 organization.getId(),
                 organization.getName(),
@@ -24,7 +26,8 @@ public record OrgDetailResponse(
                 organization.getAddressDetail(),
                 organization.getDescription(),
                 organization.getStatus(),
-                organization.getCreatedAt()
+                organization.getCreatedAt(),
+                organizationRole
         );
     }
 }

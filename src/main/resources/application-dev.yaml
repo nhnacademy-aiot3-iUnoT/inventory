@@ -7,3 +7,7 @@ management:
     export:
       zipkin:
         enabled: false
+
+# 초대 base url
+app:
+  invitation-url: localhost:10404/signup

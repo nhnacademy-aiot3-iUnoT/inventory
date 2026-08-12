@@ -6,7 +6,6 @@ import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationC
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationCreateResponse;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSearchResponse;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationVerifyResponse;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.invitation.service.OrganizationInvitationService;
 import com.nhnacademy.inventory.support.RestDocsUtils;
@@ -128,8 +127,9 @@ class InvitationControllerTest extends SupportControllerTest {
                     1L,
                     "test@test.com",
                     InvitationStatus.ACTIVE,
+                    false,
                     createdAt,
-                    createdAt.plusDays(2)
+                    createdAt.plusDays(1)
             );
 
             Page<InvitationSearchResponse> page = new PageImpl<>(List.of(response));
@@ -142,6 +142,7 @@ class InvitationControllerTest extends SupportControllerTest {
                     fieldWithPath("data.content[].id").type(JsonFieldType.NUMBER).description("초대 ID"),
                     fieldWithPath("data.content[].email").type(JsonFieldType.STRING).description("초대 대상 이메일"),
                     fieldWithPath("data.content[].status").type(JsonFieldType.STRING).description("초대 상태"),
+                    fieldWithPath("data.content[].reissued").type(JsonFieldType.BOOLEAN).description("재발급 여부"),
                     fieldWithPath("data.content[].createdAt").type(JsonFieldType.STRING).description("초대 생성 일시"),
                     fieldWithPath("data.content[].expiredAt").type(JsonFieldType.STRING).description("초대 토큰 만료 예정 일시"),
 
@@ -209,127 +210,43 @@ class InvitationControllerTest extends SupportControllerTest {
         void success() throws Exception {
             UUID token = UUID.randomUUID();
 
-            InvitationVerifyResponse response = new InvitationVerifyResponse("test@test.com", "테스트 조직");
-
-            given(invitationService.validateInvitationToken(token)).willReturn(response);
-
-            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-
-            responseFields.addAll(List.of(
-                    fieldWithPath("data.email").type(JsonFieldType.STRING).description("초대 대상 이메일"),
-                    fieldWithPath("data.organizationName").type(JsonFieldType.STRING).description("조직 이름")
-            ));
-
             mockMvc.perform(get("/api/core/invitations/{token}", token))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.email").value("test@test.com"))
-                    .andExpect(jsonPath("$.data.organizationName").value("테스트 조직"))
-
+                    .andExpect(status().isNoContent())
                     .andDo(document("invitation-validate-token",
-                            pathParameters(parameterWithName("token").description("초대 토큰")),
-                            responseFields(responseFields)
+                            pathParameters(parameterWithName("token").description("초대 토큰"))
                     ));
 
             verify(invitationService).validateInvitationToken(token);
         }
     }
 
-
     @Nested
-    @DisplayName("회원가입 초대 검증 GET /api/core/invitations/{token}/validate")
-    class ValidateInvitationForSignup {
-
-        @Test
-        @DisplayName("성공")
-        void success() throws Exception {
-            UUID token = UUID.randomUUID();
-
-            mockMvc.perform(get("/api/core/invitations/{token}/validate", token).param("email", "test@test.com"))
-                    .andExpect(status().isNoContent())
-                    .andDo(document("invitation-validate-signup",
-                            pathParameters(parameterWithName("token").description("초대 토큰")),
-                            queryParameters(parameterWithName("email").description("회원가입 이메일"))
-                    ));
-
-            verify(invitationService).validateInvitationForSignup(token, "test@test.com");
-        }
-
-
-        @Test
-        @DisplayName("실패 - 권한 없음")
-        void forbidden() throws Exception {
-            UUID token = UUID.randomUUID();
-
-            willThrow(new ForbiddenException()).given(invitationService).validateInvitationForSignup(token, "test@test.com");
-
-            mockMvc.perform(get("/api/core/invitations/{token}/validate", token).param("email", "test@test.com"))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.success").value(false));
-        }
-    }
-
-
-    @Nested
-    @DisplayName("초대 사용 POST /api/core/invitations/{token}/use")
-    class UseInvitation {
-
-        @Test
-        @DisplayName("성공")
-        void success() throws Exception {
-            UUID token = UUID.randomUUID();
-
-            mockMvc.perform(post("/api/core/invitations/{token}/use", token))
-                    .andExpect(status().isNoContent())
-                    .andDo(document("invitation-use",
-                            pathParameters(parameterWithName("token").description("초대 토큰"))
-                    ));
-
-            verify(invitationService).useInvitation(token);
-        }
-
-
-        @Test
-        @DisplayName("실패 - 권한 없음")
-        void forbidden() throws Exception {
-            UUID token = UUID.randomUUID();
-
-            willThrow(new ForbiddenException()).given(invitationService).useInvitation(token);
-
-            mockMvc.perform(post("/api/core/invitations/{token}/use", token))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.success").value(false));
-        }
-    }
-
-
-    @Nested
-    @DisplayName("초대 재전송 POST /api/core/organizations/me/invitations/{token}/resend")
+    @DisplayName("초대 재전송 POST /api/core/organizations/me/invitations/{invitation-id}/resend")
     class ResendInvitation {
 
         @Test
         @DisplayName("성공")
         void success() throws Exception {
-            UUID token = UUID.randomUUID();
+            Long invitationId = 1L;
 
-            mockMvc.perform(post("/api/core/organizations/me/invitations/{token}/resend", token))
+            mockMvc.perform(post("/api/core/organizations/me/invitations/{invitation-id}/resend", invitationId))
                     .andExpect(status().isNoContent())
                     .andDo(document("invitation-resend",
-                            pathParameters(parameterWithName("token").description("초대 토큰"))
+                            pathParameters(parameterWithName("invitation-id").description("초대 ID"))
                     ));
 
-            verify(invitationService).resendInvitation(token);
+            verify(invitationService).resendInvitation(invitationId);
         }
 
 
         @Test
         @DisplayName("실패 - 권한 없음")
         void forbidden() throws Exception {
-            UUID token = UUID.randomUUID();
+            Long invitationId = 1L;
 
-            willThrow(new ForbiddenException()).given(invitationService).resendInvitation(token);
+            willThrow(new ForbiddenException()).given(invitationService).resendInvitation(invitationId);
 
-            mockMvc.perform(post("/api/core/organizations/me/invitations/{token}/resend", token))
+            mockMvc.perform(post("/api/core/organizations/me/invitations/{invitation-id}/resend", invitationId))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -337,33 +254,33 @@ class InvitationControllerTest extends SupportControllerTest {
 
 
     @Nested
-    @DisplayName("초대 취소 DELETE /api/core/organizations/me/invitations/{token}")
+    @DisplayName("초대 취소 DELETE /api/core/organizations/me/invitations/{invitation-id}")
     class CancelInvitation {
 
         @Test
         @DisplayName("성공")
         void success() throws Exception {
-            UUID token = UUID.randomUUID();
+            Long invitationId = 1L;
 
-            mockMvc.perform(delete("/api/core/organizations/me/invitations/{token}", token))
+            mockMvc.perform(delete("/api/core/organizations/me/invitations/{invitation-id}", invitationId))
                     .andExpect(status().isNoContent())
 
                     .andDo(document("invitation-cancel",
-                            pathParameters(parameterWithName("token").description("초대 토큰"))
+                            pathParameters(parameterWithName("invitation-id").description("초대 ID"))
                     ));
 
-            verify(invitationService).cancelInvitation(token);
+            verify(invitationService).cancelInvitation(invitationId);
         }
 
 
         @Test
         @DisplayName("실패 - 권한 없음")
         void forbidden() throws Exception {
-            UUID token = UUID.randomUUID();
+            Long invitationId = 1L;
 
-            willThrow(new ForbiddenException()).given(invitationService).cancelInvitation(token);
+            willThrow(new ForbiddenException()).given(invitationService).cancelInvitation(invitationId);
 
-            mockMvc.perform(delete("/api/core/organizations/me/invitations/{token}", token))
+            mockMvc.perform(delete("/api/core/organizations/me/invitations/{invitation-id}", invitationId))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -371,17 +288,17 @@ class InvitationControllerTest extends SupportControllerTest {
 
 
     @Nested
-    @DisplayName("초대 재발급 POST /api/core/organizations/me/invitations/{token}/reissue")
+    @DisplayName("초대 재발급 POST /api/core/organizations/me/invitations/{invitation-id}/reissue")
     class ReissueInvitation {
 
         @Test
         @DisplayName("성공")
         void success() throws Exception {
-            UUID token = UUID.randomUUID();
+            Long invitationId = 1L;
 
             InvitationCreateResponse response = new InvitationCreateResponse(1L, "test@test.com");
 
-            given(invitationService.reissueInvitation(token)).willReturn(response);
+            given(invitationService.reissueInvitation(invitationId)).willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
 
@@ -390,28 +307,27 @@ class InvitationControllerTest extends SupportControllerTest {
                     fieldWithPath("data.email").type(JsonFieldType.STRING).description("초대 대상 이메일")
             ));
 
-            mockMvc.perform(post("/api/core/organizations/me/invitations/{token}/reissue", token))
-                    .andExpect(status().isOk())
+            mockMvc.perform(post("/api/core/organizations/me/invitations/{invitation-id}/reissue", invitationId))                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.email").value("test@test.com"))
 
                     .andDo(document("invitation-reissue",
-                            pathParameters(parameterWithName("token").description("기존 초대 토큰")),
+                            pathParameters(parameterWithName("invitation-id").description("초대 ID")),
                             responseFields(responseFields)
                     ));
 
-            verify(invitationService).reissueInvitation(token);
+            verify(invitationService).reissueInvitation(invitationId);
         }
 
 
         @Test
         @DisplayName("실패 - 권한 없음")
         void forbidden() throws Exception {
-            UUID token = UUID.randomUUID();
+           Long invitationId = 1L;
 
-            willThrow(new ForbiddenException()).given(invitationService).reissueInvitation(token);
+            willThrow(new ForbiddenException()).given(invitationService).reissueInvitation(invitationId);
 
-            mockMvc.perform(post("/api/core/organizations/me/invitations/{token}/reissue", token))
+            mockMvc.perform(post("/api/core/organizations/me/invitations/{invitation-id}/reissue", invitationId))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }

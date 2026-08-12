@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -53,6 +54,7 @@ class OrganizationDeletionServiceTest {
     @BeforeEach
     void setUp() {
         organization = TestFixtures.createOrganization("테스트 조직", "12345");
+        ReflectionTestUtils.setField(organization, "id", 1L);
     }
 
     @Test
@@ -74,9 +76,23 @@ class OrganizationDeletionServiceTest {
 
         verify(zoneRepository).closeByOrganizationId(organizationId);
 
-        verify(invitationRepository).cancelByOrganizationId(organizationId);
+        verify(invitationRepository).deleteByOrganizationId(organizationId);
 
         assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+    }
+
+    @Test
+    @DisplayName("PENDING 조직 관계 삭제 성공")
+    void deletePendingRelations_success() {
+        Long organizationId = 1L;
+
+        organizationDeletionService.deletePendingRelations(
+                organizationId
+        );
+
+        verify(organizationMemberRepository).deleteByOrganizationId(organizationId);
+
+        verify(invitationRepository).deleteByOrganizationId(organizationId);
     }
 
 }

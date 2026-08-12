@@ -3,6 +3,8 @@ package com.nhnacademy.inventory.organizations.organization.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
+import com.nhnacademy.inventory.organizations.invitation.domain.InvitationType;
+import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
@@ -35,6 +37,9 @@ public class OrganizationService {
     private final OrganizationMemberService orgMemberService;
     private final OrganizationDeletionService orgDeletionService;
 
+    private final InvitationRepository invitationRepository;
+
+
     /**
      * (Admin) 조직 생성
      * - OrgStatus = Pending
@@ -54,7 +59,7 @@ public class OrganizationService {
         organizationRepository.save(createOrg);
         log.info("조직({}) : {} 생성 완료", createOrg.getBusinessNumber(), createOrg.getName());
 
-        invitationService.createInvitation(createOrg, orgCreateRequest.email());
+        invitationService.createInvitation(createOrg, orgCreateRequest.email(), InvitationType.OWNER);
 
         return OrgCreateResponse.from(createOrg);
     }
@@ -86,11 +91,16 @@ public class OrganizationService {
         Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(OrgNotFoundException::new);
 
-        return AdminOrgDetailResponse.from(organization);
+        Invitation invitation = invitationRepository.findFirstByOrganizationIdAndInvitationTypeOrderByCreatedAtDesc(organizationId, InvitationType.OWNER)
+                .orElse(null);
+
+        return AdminOrgDetailResponse.from(organization, invitation);
     }
 
     public OrgDetailResponse getOrganizationForUser() {
-        return OrgDetailResponse.from(getCurrentOrganization());
+        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+
+        return OrgDetailResponse.from(member.getOrganization(), member.getOrganizationRole());
     }
 
     /**
@@ -129,7 +139,7 @@ public class OrganizationService {
 
         // Owner 조직 생성 전 : hard delete
         if(organization.getStatus() == OrganizationStatus.PENDING) {
-            invitationService.deleteByOrganizationId(organizationId);
+            orgDeletionService.deletePendingRelations(organizationId);
             organizationRepository.delete(organization);
             return;
         }

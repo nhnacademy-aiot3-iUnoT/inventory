@@ -1,9 +1,12 @@
 package com.nhnacademy.inventory.organizations.organization.controller;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
+import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgCreateRequest;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgSearchRequest;
+import com.nhnacademy.inventory.organizations.organization.dto.response.AdminInvitationResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrgDetailResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
@@ -55,6 +58,9 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
 
     @MockitoBean
     private OrganizationService organizationService;
+
+    @MockitoBean
+    private InvitationService invitationService;
 
     @Nested
     @DisplayName("조직 생성 POST /api/core/admin/organizations")
@@ -235,12 +241,14 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("성공")
         void success() throws Exception {
+            LocalDateTime createdAt = LocalDateTime.now();
+            AdminInvitationResponse invitation = new AdminInvitationResponse(10L, "owner@test.com", InvitationStatus.ACTIVE, false, createdAt, createdAt.plusDays(1));
 
             AdminOrgDetailResponse response =
                     new AdminOrgDetailResponse(
                             1L, "1234567890", "테스트 조직",
                             "광주시 북구", "12345", "101호",
-                            OrganizationStatus.ACTIVE, LocalDateTime.now()
+                            OrganizationStatus.ACTIVE, createdAt, invitation
 
                     );
 
@@ -256,7 +264,13 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     fieldWithPath("data.zipCode").type(JsonFieldType.STRING).description("우편번호"),
                     fieldWithPath("data.addressDetail").type(JsonFieldType.STRING).description("상세 주소"),
                     fieldWithPath("data.status").type(JsonFieldType.STRING).description("조직 상태"),
-                    fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성 일시")
+                    fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성 일시"),
+                    fieldWithPath("data.invitation.id").type(JsonFieldType.NUMBER).description("Owner 초대 ID"),
+                    fieldWithPath("data.invitation.email").type(JsonFieldType.STRING).description("Owner 초대 이메일"),
+                    fieldWithPath("data.invitation.status").type(JsonFieldType.STRING).description("Owner 초대 상태"),
+                    fieldWithPath("data.invitation.reissued").type(JsonFieldType.BOOLEAN).description("재발급 여부"),
+                    fieldWithPath("data.invitation.createdAt").type(JsonFieldType.STRING).description("Owner 초대 생성 일시"),
+                    fieldWithPath("data.invitation.expiredAt").type(JsonFieldType.STRING).description("Owner 초대 만료 일시")
                 )
             );
 
@@ -265,7 +279,9 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.id").value(1))
                     .andExpect(jsonPath("$.data.name").value("테스트 조직"))
-
+                    .andExpect(jsonPath("$.data.invitation.id").value(10))
+                    .andExpect(jsonPath("$.data.invitation.email").value("owner@test.com"))
+                    .andExpect(jsonPath("$.data.invitation.status").value("ACTIVE"))
                     .andDo(document("organization-admin-get",
                             pathParameters(parameterWithName("organization-id").description("조직 ID")),
 
@@ -340,6 +356,38 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
             mockMvc.perform(delete("/api/core/admin/organizations/{organization-id}", 1L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
+        }
+    }
+
+    @Nested
+    @DisplayName("Admin 초대 재전송")
+    class ResendInvitation {
+
+        @Test
+        @DisplayName("성공")
+        void success() throws Exception {
+            Long organizationId = 1L;
+            Long invitationId = 10L;
+
+            mockMvc.perform(post("/api/core/admin/organizations/{organization-id}/invitations/{invitation-id}/resend", organizationId, invitationId)).andExpect(status().isNoContent());
+
+            verify(invitationService).resendInvitationForAdmin(organizationId, invitationId);
+        }
+    }
+
+    @Nested
+    @DisplayName("Admin 초대 취소")
+    class CancelInvitation {
+
+        @Test
+        @DisplayName("성공")
+        void success() throws Exception {
+            Long organizationId = 1L;
+            Long invitationId = 10L;
+
+            mockMvc.perform(delete("/api/core/admin/organizations/{organization-id}/invitations/{invitation-id}", organizationId, invitationId)).andExpect(status().isNoContent());
+
+            verify(invitationService).cancelInvitationForAdmin(organizationId, invitationId);
         }
     }
 }
