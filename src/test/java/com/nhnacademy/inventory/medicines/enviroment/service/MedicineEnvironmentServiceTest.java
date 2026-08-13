@@ -136,7 +136,7 @@ class MedicineEnvironmentServiceTest {
     void deleteTypes() {
 
         MedicineEnvironmentStandard standard = mock(MedicineEnvironmentStandard.class);
-        given(standardRepository.findByMedicinePackageUnitId(1L)).willReturn(Optional.of(standard));
+        given(standardRepository.findById(1L)).willReturn(Optional.of(standard));
         given(standard.getId()).willReturn(1L);
 
         medicineEnvironmentService.deleteTypes(1L);

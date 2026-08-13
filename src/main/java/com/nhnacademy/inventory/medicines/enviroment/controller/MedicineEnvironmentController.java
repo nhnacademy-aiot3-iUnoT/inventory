@@ -29,7 +29,7 @@ public class MedicineEnvironmentController {
 
 
     // 환경기준 수정
-    @PutMapping("/package-units/{package-unit-id}/medicine-environment-standard")
+    @PutMapping("/package-units/{package-unit-id}/medicine-environment-standards")
     public ResponseEntity<Void> updateEnvironmentTypes(
             @PathVariable(name = "package-unit-id")Long packageUnitId,
             @Valid @RequestBody MedicineEnvironmentRequest request){

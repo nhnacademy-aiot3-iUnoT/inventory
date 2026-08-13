@@ -14,7 +14,6 @@ public interface MedicineEnvironmentStandardRepository extends JpaRepository<Med
 
     //조회용
     Optional<MedicineEnvironmentStandard> findByOrganizationIdAndMedicinePackageUnitId(Long organizationId, Long medicinePackageUnitId);
-    Optional<MedicineEnvironmentStandard> findByMedicinePackageUnitId(Long packageUnitId);
 
     // 수정용
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -29,7 +28,7 @@ public interface MedicineEnvironmentStandardRepository extends JpaRepository<Med
     Optional<MedicineEnvironmentStandard> findByOrganizationIdAndPackageUnitIdForUpdate(Long organizationId, Long medicinePackageUnitId);
 
 
-    void deleteByMedicinePackageUnitId(Long packageUnitId);
+
 
 
 

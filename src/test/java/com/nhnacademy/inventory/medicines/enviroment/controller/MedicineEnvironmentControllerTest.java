@@ -48,10 +48,10 @@ class MedicineEnvironmentControllerTest {
                 new BigDecimal("30")
         );
 
-
+        /// /package-units/{package-unit-id}/medicine-environment-types
         given(environmentTypeSearchService.getTypes(1L)).willReturn(List.of(response));
 
-        mockMvc.perform(get("/api/core/medicine-environment/package-units/1"))
+        mockMvc.perform(get("/api/core/package-units/1/medicine-environment-types"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json("""
@@ -76,6 +76,8 @@ class MedicineEnvironmentControllerTest {
 
     }
 
+    /// /package-units/{package-unit-id}/medicine-environment-standard
+
     @Test
     @DisplayName("환경기준 수정")
     void updateEnvironmentTypes() throws Exception{
@@ -91,7 +93,7 @@ class MedicineEnvironmentControllerTest {
 
         );
 
-        mockMvc.perform(put("/api/core/medicine-environment/package-units/1")
+        mockMvc.perform(put("/api/core/package-units/1/medicine-environment-standards")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 
@@ -114,11 +116,13 @@ class MedicineEnvironmentControllerTest {
 
 
 
+    /// /medicine-environment-standards/{standard-id}
+
     @Test
     @DisplayName("환경기준 삭제")
     void deleteEnvironmentTypes() throws Exception{
 
-        mockMvc.perform(delete("/api/core/medicine-environment/package-units/1"))
+        mockMvc.perform(delete("/api/core/medicine-environment-standards/1"))
                 .andExpect(status().isNoContent());
 
 
@@ -133,7 +137,7 @@ class MedicineEnvironmentControllerTest {
     void validationTest() throws Exception{
 
         // min > max
-        mockMvc.perform(put("/api/core/medicine-environment/package-units/1")
+        mockMvc.perform(put("/api/core/package-units/1/medicine-environment-standards")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                        
@@ -153,7 +157,7 @@ class MedicineEnvironmentControllerTest {
         ).andExpect(status().is4xxClientError());
 
 
-        mockMvc.perform(put("/api/core/medicine-environment/package-units/1")
+        mockMvc.perform(put("/api/core/package-units/1/medicine-environment-standards")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                        
@@ -174,7 +178,7 @@ class MedicineEnvironmentControllerTest {
 
 
 
-        mockMvc.perform(put("/api/core/medicine-environment/package-units/1")
+        mockMvc.perform(put("/api/core/package-units/1/medicine-environment-standards")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                        
@@ -205,7 +209,7 @@ class MedicineEnvironmentControllerTest {
     void nullTest() throws Exception{
 
 
-        mockMvc.perform(put("/api/core/medicine-environment/package-units/1")
+        mockMvc.perform(put("/api/core/package-units/1/medicine-environment-standards")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 
@@ -224,7 +228,7 @@ class MedicineEnvironmentControllerTest {
 
 
 
-        mockMvc.perform(put("/api/core/medicine-environment/package-units/1")
+        mockMvc.perform(put("/api/core/package-units/1/medicine-environment-standards")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 
@@ -243,7 +247,7 @@ class MedicineEnvironmentControllerTest {
 
 
 
-        mockMvc.perform(put("/api/core/medicine-environment/package-units/1")
+        mockMvc.perform(put("/api/core/package-units/1/medicine-environment-standards")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 
