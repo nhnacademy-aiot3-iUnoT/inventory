@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.organization.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
+import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
@@ -25,6 +26,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,8 @@ public class OrganizationService {
     private final InvitationService invitationService;
     private final OrganizationMemberService orgMemberService;
     private final OrganizationDeletionService orgDeletionService;
+
+    private final InvitationRepository invitationRepository;
 
     /**
      * (Admin) 조직 생성
@@ -54,7 +59,7 @@ public class OrganizationService {
         organizationRepository.save(createOrg);
         log.info("조직({}) : {} 생성 완료", createOrg.getBusinessNumber(), createOrg.getName());
 
-        invitationService.createInvitation(createOrg, orgCreateRequest.email());
+        invitationService.createInvitation(createOrg, orgCreateRequest.email(), true);
 
         return OrgCreateResponse.from(createOrg);
     }
@@ -86,11 +91,17 @@ public class OrganizationService {
         Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(OrgNotFoundException::new);
 
-        return AdminOrgDetailResponse.from(organization);
+        Invitation invitation = invitationRepository.findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId).orElse(null);
+
+        List<OrganizationMember> owners = orgMemberService.getOwners(organizationId);
+
+        return AdminOrgDetailResponse.from(organization, invitation, owners);
     }
 
     public OrgDetailResponse getOrganizationForUser() {
-        return OrgDetailResponse.from(getCurrentOrganization());
+        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+
+        return OrgDetailResponse.from(member.getOrganization(), member.getOrganizationRole());
     }
 
     /**
@@ -100,9 +111,11 @@ public class OrganizationService {
     public void updateOrganizationStatus(OrgStatusUpdateRequest request) {
         Organization organization = getOrgAfterValidateOwner();
 
+        OrganizationStatus previousStatus = organization.getStatus();
+
         organization.updateStatus(request.status());
 
-        log.info("조직 상태 변경 {} -> {}", organization.getStatus(), request.status());
+        log.info("조직({}) 상태 변경 {} -> {}", organization.getId(), previousStatus, request.status());
     }
 
     @Transactional
@@ -129,7 +142,7 @@ public class OrganizationService {
 
         // Owner 조직 생성 전 : hard delete
         if(organization.getStatus() == OrganizationStatus.PENDING) {
-            invitationService.deleteByOrganizationId(organizationId);
+            orgDeletionService.deletePendingRelations(organizationId);
             organizationRepository.delete(organization);
             return;
         }
@@ -147,13 +160,5 @@ public class OrganizationService {
         }
 
         return organizationMember.getOrganization();
-    }
-
-    /**
-     * 현재 로그인한 사용자가 소속된 조직
-     */
-    public Organization getCurrentOrganization() {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
-        return member.getOrganization();
     }
 }

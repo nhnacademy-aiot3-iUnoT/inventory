@@ -18,3 +18,12 @@ management:
     export:
       zipkin:
         endpoint: ${ZIPKIN_ENDPOINT}
+
+# 초대 base url
+app:
+  invitation-url: https://iunot.cloud/signup
+
+security:
+  jwt:
+    jwk-set-uri: https://iunot.cloud/.well-known/jwks.json
+

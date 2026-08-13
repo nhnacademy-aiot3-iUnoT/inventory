@@ -1,12 +1,11 @@
 package com.nhnacademy.inventory.organizations.organization.controller;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgCreateRequest;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgSearchRequest;
-import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrgDetailResponse;
-import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
-import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
+import com.nhnacademy.inventory.organizations.organization.dto.response.*;
 import com.nhnacademy.inventory.organizations.organization.exception.OrgNotFoundException;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
 import com.nhnacademy.inventory.support.RestDocsUtils;
@@ -28,6 +27,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -235,12 +235,18 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("성공")
         void success() throws Exception {
+            LocalDateTime createdAt = LocalDateTime.now();
+            LocalDateTime emailSentAt = createdAt.plusMinutes(1);
+
+            AdminInvitationResponse invitation = new AdminInvitationResponse(10L, "owner@test.com", InvitationStatus.ACTIVE, emailSentAt, createdAt.plusDays(1));
+            AdminOwnerResponse owner = new AdminOwnerResponse(UUID.randomUUID(), createdAt);
+            List<AdminOwnerResponse> owners = List.of(owner);
 
             AdminOrgDetailResponse response =
                     new AdminOrgDetailResponse(
                             1L, "1234567890", "테스트 조직",
                             "광주시 북구", "12345", "101호",
-                            OrganizationStatus.ACTIVE, LocalDateTime.now()
+                            OrganizationStatus.ACTIVE, createdAt, invitation, owners
 
                     );
 
@@ -256,7 +262,16 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     fieldWithPath("data.zipCode").type(JsonFieldType.STRING).description("우편번호"),
                     fieldWithPath("data.addressDetail").type(JsonFieldType.STRING).description("상세 주소"),
                     fieldWithPath("data.status").type(JsonFieldType.STRING).description("조직 상태"),
-                    fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성 일시")
+                    fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성 일시"),
+
+                    fieldWithPath("data.invitation.id").type(JsonFieldType.NUMBER).description("Owner 초대 ID"),
+                    fieldWithPath("data.invitation.email").type(JsonFieldType.STRING).description("Owner 초대 이메일"),
+                    fieldWithPath("data.invitation.status").type(JsonFieldType.STRING).description("Owner 초대 상태"),
+                    fieldWithPath("data.invitation.emailSentAt").type(JsonFieldType.STRING).description("Owner 초대 메일 발송 일시"),
+                    fieldWithPath("data.invitation.expiredAt").type(JsonFieldType.STRING).description("Owner 초대 만료 일시"),
+
+                    fieldWithPath("data.owners[].accountUuid").type(JsonFieldType.STRING).description("계정 UUID"),
+                    fieldWithPath("data.owners[].joinedAt").type(JsonFieldType.STRING).description("조직 가입 일시")
                 )
             );
 
@@ -265,15 +280,18 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.id").value(1))
                     .andExpect(jsonPath("$.data.name").value("테스트 조직"))
-
+                    .andExpect(jsonPath("$.data.invitation.id").value(10))
+                    .andExpect(jsonPath("$.data.invitation.email").value("owner@test.com"))
+                    .andExpect(jsonPath("$.data.invitation.status").value("ACTIVE"))
+                    .andExpect(jsonPath("$.data.owners").isArray())
+                    .andExpect(jsonPath("$.data.owners[0].accountUuid").value(owner.accountUuid().toString()))
+                    .andExpect(jsonPath("$.data.owners[0].joinedAt").isNotEmpty())
                     .andDo(document("organization-admin-get",
                             pathParameters(parameterWithName("organization-id").description("조직 ID")),
-
                             responseFields(responseFields)
                     ));
 
-            verify(organizationService)
-                    .getOrganizationForAdmin(1L);
+            verify(organizationService).getOrganizationForAdmin(1L);
         }
 
 

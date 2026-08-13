@@ -7,3 +7,12 @@ management:
     export:
       zipkin:
         enabled: false
+
+# 초대 base url
+app:
+  invitation-url: localhost:10404/signup
+
+security:
+  jwt:
+    jwk-set-uri: http://localhost:10413/api/auth/.well-known/jwks.json
+

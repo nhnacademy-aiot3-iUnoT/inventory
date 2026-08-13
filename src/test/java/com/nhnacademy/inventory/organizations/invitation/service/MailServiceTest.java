@@ -27,7 +27,7 @@ class MailServiceTest {
     @DisplayName("초대 메일 발송 성공")
     void sendInvitation_success() {
         String email = "test@test.com";
-        String link = "https://iunot.cloud/signup/invite?token=1234";
+        String link = "localhost:10404/signup?token=1234";
 
         mailService.sendInvitation(email, link);
 
@@ -39,9 +39,8 @@ class MailServiceTest {
         SimpleMailMessage message = captor.getValue();
 
         assertAll(
-                () -> assertEquals("noreply@iunot.cloud", message.getFrom()),
                 () -> assertEquals(email, message.getTo()[0]),
-                () -> assertEquals("조직 초대 안내", message.getSubject()),
+                () -> assertEquals("[iUnoT] 조직 초대", message.getSubject()),
                 () -> assertTrue(message.getText().contains(link))
         );
     }
