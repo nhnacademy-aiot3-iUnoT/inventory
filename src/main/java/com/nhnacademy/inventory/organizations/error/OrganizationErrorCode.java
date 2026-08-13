@@ -30,6 +30,7 @@ public enum OrganizationErrorCode implements ErrorCode {
     USER_ORG_NOT_FOUND(HttpStatus.NOT_FOUND, "O003", "소속된 조직이 없습니다."),
     ORG_STATUS_INVALID(HttpStatus.BAD_REQUEST, "O004", "허용되지 않는 조직 상태 변경 요청입니다."),
     ORG_ALREADY_SETUP(HttpStatus.CONFLICT, "O005", "이미 활성화된 조직입니다."),
+    ORG_ALREADY_SUSPENDED(HttpStatus.CONFLICT, "O006", "이미 종료된 조직입니다."),
 
     // 초대 에러코드
     INVITATION_NOT_FOUND(HttpStatus.NOT_FOUND, "J001", "초대 내역을 찾을 수 없습니다."),

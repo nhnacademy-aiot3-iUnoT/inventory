@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.global.config;
 
+import com.nhnacademy.inventory.global.security.ApiAccessDeniedHandler;
+import com.nhnacademy.inventory.global.security.ApiAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,7 +28,13 @@ import java.util.UUID;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception{
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtDecoder jwtDecoder,
+            JwtAuthenticationConverter converter,
+            ApiAuthenticationEntryPoint entryPoint,
+            ApiAccessDeniedHandler accessDeniedHandler
+    ) throws Exception{
         http.csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -39,15 +47,23 @@ public class SecurityConfig {
                         )
                 )
 
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(entryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
+
                 .oauth2ResourceServer(resourceServer -> resourceServer
+                        .authenticationEntryPoint(entryPoint)
                         .jwt(jwt -> jwt
                                 .decoder(jwtDecoder)
+                                .jwtAuthenticationConverter(converter)
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/actuator/health", "/actuator/health/**", "/actuator/serviceregistry"
+                                "/actuator/health", "/actuator/health/**", "/actuator/serviceregistry", "/actuator/prometheus"
                         ).permitAll()
+                        .requestMatchers("/api/core/internal/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
