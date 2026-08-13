@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneThreshold;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSaveRequest;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
+import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSpecResponse;
 import com.nhnacademy.inventory.organizations.zone.exception.SensorTypeNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdInvalidRangeException;
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdNotFoundException;
@@ -65,6 +66,14 @@ public class ThresholdService {
 
         return thresholds.stream()
                 .map(ThresholdInfoResponse::from)
+                .toList();
+    }
+
+    public List<ThresholdSpecResponse> internalGetThresholds(Long zoneId){
+        List<ZoneThreshold> zoneThreshold = thresholdRepository.findAllByZoneId(zoneId);
+
+        return zoneThreshold.stream()
+                .map(ThresholdSpecResponse::from)
                 .toList();
     }
 

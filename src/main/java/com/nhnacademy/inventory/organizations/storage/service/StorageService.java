@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.storage.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -33,7 +33,7 @@ public class StorageService {
 
     @Transactional
     public StorageInfoResponse createStorage(Long organizationId, StorageCreateRequest request){
-        Organization organization = validateOrganizationMember(organizationId);
+        Organization organization = validateOrganizationOwner(organizationId);
 
         validateDuplicateStorageName(organization, request.name());
 
@@ -60,7 +60,7 @@ public class StorageService {
 
     @Transactional
     public StorageInfoResponse updateStorage(Long organizationId, Long storageId, StorageUpdateRequest request){
-        Storage storage = findByIdAndValidate(organizationId, storageId);
+        Storage storage = findByIdAndValidateOwner(organizationId, storageId);
 
         validateDuplicateStorageName(storage.getOrganization(), request.name(), storage.getId());
 
@@ -71,7 +71,7 @@ public class StorageService {
 
     @Transactional
     public StorageInfoResponse updateStorageStatus(Long organizationId, Long storageId, StorageStatusUpdateRequest request){
-        Storage storage = findByIdAndValidate(organizationId, storageId);
+        Storage storage = findByIdAndValidateOwner(organizationId, storageId);
 
         storage.changeStatus(request.status());
 
@@ -80,7 +80,7 @@ public class StorageService {
 
     @Transactional
     public void closeStorage(Long organizationId, Long storageId){
-        Storage storage = findByIdAndValidate(organizationId, storageId);
+        Storage storage = findByIdAndValidateOwner(organizationId, storageId);
 
         storage.close();
     }
@@ -99,6 +99,21 @@ public class StorageService {
         return storage;
     }
 
+    public Storage validateOwnerAndGetStorage(Long storageId){
+        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
+                .orElseThrow(ForbiddenException::new);
+
+        Storage storage = storageRepository.findById(storageId)
+                .orElseThrow(StorageNotFoundException::new);
+
+        if(!Objects.equals(member.getOrganization().getId(), storage.getOrganization().getId()) ||
+            member.getOrganizationRole() != OrganizationRole.ORG_OWNER){
+            throw new ForbiddenException();
+        }
+
+        return storage;
+    }
+
     private Organization validateOrganizationMember(Long organizationId){
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
@@ -110,8 +125,20 @@ public class StorageService {
         return member.getOrganization();
     }
 
-    private Storage findByIdAndValidate(Long organizationId, Long storageId){
-        Organization organization = validateOrganizationMember(organizationId);
+    private Organization validateOrganizationOwner(Long organizationId){
+        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
+                .orElseThrow(ForbiddenException::new);
+
+        if(!Objects.equals(member.getOrganization().getId(), organizationId) ||
+            member.getOrganizationRole() != OrganizationRole.ORG_OWNER){
+            throw new ForbiddenException();
+        }
+
+        return member.getOrganization();
+    }
+
+    private Storage findByIdAndValidateOwner(Long organizationId, Long storageId){
+        Organization organization = validateOrganizationOwner(organizationId);
 
         return storageRepository.findByIdAndOrganization(storageId, organization)
                 .orElseThrow(StorageNotFoundException::new);
