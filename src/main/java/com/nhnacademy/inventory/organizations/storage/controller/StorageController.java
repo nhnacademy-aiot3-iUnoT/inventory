@@ -71,6 +71,6 @@ public class StorageController {
 
         storageService.closeStorage(organizationId, storageId);
 
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.noContent().build();
     }
 }
