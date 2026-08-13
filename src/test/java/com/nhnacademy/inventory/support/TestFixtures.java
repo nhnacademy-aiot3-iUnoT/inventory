@@ -1,15 +1,19 @@
 package com.nhnacademy.inventory.support;
 
+import com.nhnacademy.inventory.inventories.alert.domain.Alert;
+import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.inventories.threshold.domain.StockThreshold;
 import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
+import com.nhnacademy.inventory.organizations.sensor.domain.ZoneSensor;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.*;
@@ -25,16 +29,11 @@ public class TestFixtures {
     }
 
     public static OrganizationMember createOrganizationMember(Organization organization) {
-        return createOrganizationMember(organization, true);
+        return OrganizationMember.createMember(organization, UUID.randomUUID());
     }
 
-    public static OrganizationMember createOrganizationMember(Organization organization, boolean approved) {
-        return OrganizationMember.builder()
-                .organization(organization)
-                .accountUuid(UUID.randomUUID())
-                .organizationRole(OrganizationRole.ORG_MEMBER)
-                .isApproved(approved)
-                .build();
+    public static OrganizationMember createOrganizationOwner(Organization organization) {
+        return OrganizationMember.createOwner(organization, UUID.randomUUID());
     }
 
     public static Storage createStorage(Organization organization) {
@@ -130,6 +129,42 @@ public class TestFixtures {
                 .transactionType(transactionType)
                 .quantity(quantity)
                 .processedBy(UUID.randomUUID())
+                .build();
+    }
+
+    public static StockThreshold createStockThreshold(Storage storage, MedicinePackageUnit medicinePackageUnit,
+                                                      Integer threshold){
+        return StockThreshold.builder()
+                .storage(storage)
+                .medicinePackageUnit(medicinePackageUnit)
+                .threshold(threshold)
+                .isActive(true)
+                .build();
+    }
+
+    public static Invitation createInvitationMember(Organization organization, String email) {
+        return Invitation.create(organization, email, false);
+    }
+
+    public static Invitation createInvitationOwner(Organization organization, String email) {
+        return Invitation.create(organization, email, true);
+    }
+
+    public static Alert createAlert(Organization organization, AlertType alertType, String message, Boolean isRead){
+        return Alert.builder()
+                .organization(organization)
+                .alertType(alertType)
+                .message(message)
+                .isChecked(isRead)
+                .build();
+    }
+
+    public static ZoneSensor createZoneSensor(Zone zone, String deviceEui, String name){
+        return ZoneSensor.builder()
+                .zone(zone)
+                .deviceEui(deviceEui)
+                .name(name)
+                .description("테스트 설명")
                 .build();
     }
 }

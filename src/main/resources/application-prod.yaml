@@ -10,7 +10,15 @@ logging:
     com.nhnacademy.inventory: INFO
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health, service-registry, prometheus
   tracing:
     export:
       zipkin:
         endpoint: ${ZIPKIN_ENDPOINT}
+
+# 초대 base url
+app:
+  invitation-url: https://iunot.cloud/signup

@@ -3,31 +3,33 @@ package com.nhnacademy.inventory.organizations.organization.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
-import com.nhnacademy.inventory.organizations.invitation.event.InvitationMailSendEvent;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.*;
+import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrgDetailResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
-import com.nhnacademy.inventory.organizations.organization.exception.OrgAlreadyExistsException;
+import com.nhnacademy.inventory.organizations.organization.dto.response.OrgDetailResponse;
+import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
+import com.nhnacademy.inventory.organizations.organization.exception.*;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
 import com.nhnacademy.inventory.support.TestFixtures;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -53,6 +55,9 @@ class OrganizationServiceTest {
     @InjectMocks
     private OrganizationService organizationService;
 
+    @Mock
+    private InvitationRepository invitationRepository;
+
     private Organization organization;
     private OrganizationMember owner;
     private OrganizationMember member;
@@ -61,142 +66,352 @@ class OrganizationServiceTest {
     void setUp() {
         organization = TestFixtures.createOrganization("테스트 조직", "1234567890");
 
-        owner = TestFixtures.createOrganizationMember(organization);
-        owner.changeRole(OrganizationRole.ORG_OWNER);
+        owner = TestFixtures.createOrganizationOwner(organization);
 
         member = TestFixtures.createOrganizationMember(organization);
-        member.changeRole(OrganizationRole.ORG_MEMBER);
     }
 
-    @AfterEach
-    void tearDown() {
-        UserContext.clear();
+    @Nested
+    @DisplayName("조직 생성")
+    class CreateOrganizationTest {
+        @Test
+        @DisplayName("성공")
+        void success() {
+            OrgCreateRequest request = new OrgCreateRequest(
+                    "1234567890",
+                    "test@test.com",
+                    "테스트 조직"
+            );
+
+            given(organizationRepository.existsByBusinessNumber(anyString())).willReturn(false); // 중복 x
+
+            OrgCreateResponse response = organizationService.createOrganization(request);
+
+            assertEquals("테스트 조직", response.name());
+
+            verify(organizationRepository).save(any(Organization.class));
+            verify(invitationService).createInvitation(any(Organization.class), eq("test@test.com"), eq(true));
+        }
+
+        @Test
+        @DisplayName("실패 - 사업자번호 중복")
+        void duplicate() {
+            OrgCreateRequest request = new OrgCreateRequest("1234567890", "test@test.com", "테스트 조직");
+
+            given(organizationRepository.existsByBusinessNumber(anyString())).willReturn(true);
+
+            assertThrows(OrgAlreadyExistsException.class,
+                    () -> organizationService.createOrganization(request));
+
+            verify(organizationRepository, never()).save(any());
+            verify(invitationService, never()).createInvitation(any(), anyString(), anyBoolean());
+        }
     }
 
-    @Test
-    @DisplayName("조직 생성 성공")
-    void createOrganization_success() {
-        OrgCreateRequest request = new OrgCreateRequest("1234567890", "test@test.com", "테스트 조직");
+    @Nested
+    @DisplayName("조직 초기화")
+    class SetupOrganizationTest {
+        @Test
+        @DisplayName("성공")
+        void success() {
+            UserContext.setUserUuid(owner.getAccountUuid());
 
-        given(organizationRepository.existsByBusinessNumber(anyString())).willReturn(false); // 중복 x
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
 
-        Invitation invitation = mock(Invitation.class);
+            OrganizationSetupRequest request = new OrganizationSetupRequest(
+                    "12345",
+                    "광주시 남구",
+                    "101호",
+                    "이 조직은 테스트 조직이다.");
 
-        given(invitationService.createInvitation(any(), anyString())).willReturn(invitation);
+            organizationService.setupOrganization(request);
 
-        OrgCreateResponse response = organizationService.createOrganization(request);
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+            assertEquals("12345", organization.getZipCode());
+            assertEquals("광주시 남구", organization.getRoadAddress());
+            assertEquals("이 조직은 테스트 조직이다.", organization.getDescription());
+        }
 
-        assertEquals("테스트 조직", response.name());
+        @Test
+        @DisplayName("조직 초기화 실패 - OWNER 아님")
+        void forbidden() {
+            UserContext.setUserUuid(member.getAccountUuid());
 
-        verify(organizationRepository).save(any(Organization.class));
-        verify(invitationService).createInvitation(any(), eq(request.email()));
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+
+            OrganizationSetupRequest request = new OrganizationSetupRequest(
+                    "12345",
+                    "광주시 남구",
+                    "101호",
+                    "이 조직은 테스트 조직이다.");
+
+            assertThrows(ForbiddenException.class, () -> organizationService.setupOrganization(request));
+        }
+
+        @Test
+        @DisplayName("조직 초기화 실패 - PENDING 상태의 조직이 아님")
+        void alreadySetup() {
+            UserContext.setUserUuid(owner.getAccountUuid());
+
+            organization.complete("12345", "광주시 남구", "101호", "조직을 이미 초기화된 상태로 바꾸는 중");
+
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+
+            OrganizationSetupRequest request = new OrganizationSetupRequest(
+                    "12345",
+                    "광주시 남구",
+                    "101호",
+                    "이 조직은 테스트 조직이다.");
+
+            assertThrows(AlreadySetupOrganization.class, () -> organizationService.setupOrganization(request));
+        }
     }
 
-    @Test
-    @DisplayName("조직 생성 실패 - 사업자번호 중복")
-    void createOrganization_duplicate() {
-        OrgCreateRequest request = new OrgCreateRequest("1234567890", "test@test.com", "테스트 조직");
+    @Nested
+    @DisplayName("조직 조회")
+    class GetOrganizationTest {
+        @Test
+        @DisplayName("목록 조회 성공")
+        void getOrganizationList_success() {
+            OrgSearchRequest request = new OrgSearchRequest(null, null);
+            Pageable pageable = PageRequest.of(0, 10);
 
-        given(organizationRepository.existsByBusinessNumber(anyString())).willReturn(true);
+            OrgSearchResponse response = new OrgSearchResponse(
+                    1L,
+                    "1234567890",
+                    "테스트 조직",
+                    OrganizationStatus.ACTIVE,
+                    LocalDateTime.now()
+            );
 
-        assertThrows(OrgAlreadyExistsException.class,
-                () -> organizationService.createOrganization(request));
+            Page<OrgSearchResponse> expected = new PageImpl<>(List.of(response), pageable, 1);
 
-        verify(organizationRepository, never()).save(any());
-        verify(invitationService, never()).createInvitation(any(), anyString());
+            given(organizationRepository.search(request, pageable)).willReturn(expected);
+
+            Page<OrgSearchResponse> result = organizationService.getOrganizationList(request, pageable);
+
+            assertEquals(expected, result);
+            verify(organizationRepository).search(request,pageable);
+
+
+        }
+
+        @Test
+        @DisplayName("관리자 조직 단건 조회 성공")
+        void getOrganizationForAdmin_success() {
+            Long organizationId = organization.getId();
+
+            Invitation ownerInvitation = TestFixtures.createInvitationOwner(organization, "owner@test.com");
+            List<OrganizationMember> owners = List.of(owner);
+
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
+            given(invitationRepository.findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId))
+                    .willReturn(Optional.of(ownerInvitation));
+            given(organizationMemberService.getOwners(organizationId)).willReturn(owners);
+
+            AdminOrgDetailResponse response = organizationService.getOrganizationForAdmin(organizationId);
+
+            assertEquals(organization.getName(), response.name());
+
+            assertNotNull(response.invitation());
+            assertEquals("owner@test.com", response.invitation().email());
+
+            assertNotNull(response.owners());
+            assertEquals(1, response.owners().size());
+            assertEquals(owner.getAccountUuid(), response.owners().get(0).accountUuid());
+
+            verify(organizationRepository).findById(organizationId);
+            verify(invitationRepository).findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId);
+            verify(organizationMemberService).getOwners(organizationId);
+        }
+
+        @Test
+        @DisplayName("관리자 조직 단건 조회 실패")
+        void getOrganizationForAdmin_notFound() {
+            Long organizationId = 1L;
+
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.empty());
+
+            assertThrows(OrgNotFoundException.class,
+                    () -> organizationService.getOrganizationForAdmin(organizationId));
+
+            verify(organizationRepository).findById(organizationId);
+        }
+
+        @Test
+        @DisplayName("관리자 조직 단건 조회 성공 - Owner 초대 없음")
+        void getOrganizationForAdmin_withoutInvitation() {
+            Long organizationId = organization.getId();
+
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
+
+            given(invitationRepository.findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId)).willReturn(Optional.empty());
+
+            given(organizationMemberService.getOwners(organizationId)).willReturn(List.of(owner));
+
+            AdminOrgDetailResponse response = organizationService.getOrganizationForAdmin(organizationId);
+
+            assertNull(response.invitation());
+            assertNotNull(response.owners());
+            assertEquals(1, response.owners().size());
+
+            verify(organizationRepository).findById(organizationId);
+            verify(invitationRepository).findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId);
+            verify(organizationMemberService).getOwners(organizationId);
+        }
+
+        @Test
+        @DisplayName("유저 조직 단건 조회 성공")
+        void getOrganizationForUser_success() {
+            UserContext.setUserUuid(owner.getAccountUuid());
+
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+
+            OrgDetailResponse response = organizationService.getOrganizationForUser();
+
+            assertEquals(organization.getName(), response.name());
+            verify(organizationMemberService).getCurrentOrganizationMember(owner.getAccountUuid());
+        }
     }
 
-    @Test
-    @DisplayName("조직 초기화 성공")
-    void completeOrganization_success() {
-        UserContext.setUserUuid(owner.getAccountUuid());
+    @Nested
+    @DisplayName("조직 상태 변경")
+    class UpdateOrganizationStatusTest {
+        @BeforeEach
+        void setUpOwner() {
+            UserContext.setUserUuid(owner.getAccountUuid());
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+        }
 
-        given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+        @Test
+        @DisplayName("성공 ACTIVE -> INACTIVE")
+        void updateOrganizationStatus_success() {
+            organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
 
-        OrganizationSetupRequest request = new OrganizationSetupRequest("12345", "서울시 강남구", "101호", "테스트 조직");
+            OrgStatusUpdateRequest request = new OrgStatusUpdateRequest(OrganizationStatus.INACTIVE);
 
-        organizationService.setupOrganization(request);
+            organizationService.updateOrganizationStatus(request);
 
-        assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+            assertEquals(OrganizationStatus.INACTIVE, organization.getStatus());
+        }
+
+        @Test
+        @DisplayName("조직 상태 변경 실패 - PENDING -> ACTIVE")
+        void updateOrganizationStatus_invalidPending() {
+            OrgStatusUpdateRequest request = new OrgStatusUpdateRequest(OrganizationStatus.ACTIVE);
+
+            assertThrows(InvalidOrgStatusException.class, () -> organizationService.updateOrganizationStatus(request));
+        }
+
+        @Test
+        @DisplayName("조직 상태 변경 실패 - SUSPENDED -> ..")
+        void updateOrganizationStatus_suspended() {
+            organization.suspended();
+
+            OrgStatusUpdateRequest request = new OrgStatusUpdateRequest(OrganizationStatus.INACTIVE);
+
+            assertThrows(InvalidOrgStatusException.class, () -> organizationService.updateOrganizationStatus(request));
+        }
+
+        @Test
+        @DisplayName("조직 상태 변경 실패 - OWNER 아님")
+        void updateOrganizationStatus_forbidden() {
+            UserContext.setUserUuid(member.getAccountUuid());
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+
+            organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
+
+            OrgStatusUpdateRequest request = new OrgStatusUpdateRequest(OrganizationStatus.INACTIVE);
+
+            assertThrows(ForbiddenException.class, () -> organizationService.updateOrganizationStatus(request));
+        }
     }
 
-    @Test
-    @DisplayName("조직 초기화 실패 - OWNER 아님")
-    void setupOrganization_forbidden() {
-        UserContext.setUserUuid(member.getAccountUuid());
+    @Nested
+    @DisplayName("조직 정보 수정")
+    class UpdateOrganizationTest {
+        @Test
+        @DisplayName("조직 정보 수정 성공")
+        void success() {
+            UserContext.setUserUuid(owner.getAccountUuid());
 
-        given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
 
-        OrganizationSetupRequest request = new OrganizationSetupRequest("12345", "주소", "상세", "설명");
+            OrgUpdateRequest request = new OrgUpdateRequest(
+                    "도로명주소",
+                    "12345",
+                    "상세주소",
+                    "설명"
+            );
 
-        assertThrows(ForbiddenException.class, () -> organizationService.setupOrganization(request));
+            organizationService.updateOrganization(request);
+
+            assertEquals("도로명주소", organization.getRoadAddress());
+            assertEquals("12345", organization.getZipCode());
+        }
+
+        @Test
+        @DisplayName("조직 정보 수정 실패 - Owner 아님")
+        void forbidden() {
+            UserContext.setUserUuid(member.getAccountUuid());
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+
+            OrgUpdateRequest request = new OrgUpdateRequest(
+                    "도로명주소",
+                    "12345",
+                    "상세주소",
+                    "설명"
+            );
+            assertThrows(ForbiddenException.class, () -> organizationService.updateOrganization(request));
+        }
     }
 
-    @Test
-    @DisplayName("조직 상태 변경 성공")
-    void updateOrganizationStatus_success() {
+    @Nested
+    @DisplayName("조직 삭제")
+    class DeleteOrganizationTest {
+        @Test
+        @DisplayName("조직 삭제 성공 - PENDING 상태 hard delete")
+        void deleteOrganization_pending_success() {
+            Long organizationId = organization.getId();
 
-        // 상태 변경은 ACTIVE -> INACTIVE 만 가능
-        organization.complete("12345", "서울시 강남구", "101호", "테스트 조직");
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
 
-        UserContext.setUserUuid(owner.getAccountUuid());
+            organizationService.deleteOrganization(organizationId);
 
-        given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+            verify(orgDeletionService).deletePendingRelations(organizationId);
+            verify(organizationRepository).delete(organization);
+            verify(orgDeletionService, never()).softDelete(any());
+        }
 
+        @Test
+        @DisplayName("조직 삭제 성공 - ACTIVE 상태 soft delete 위임")
+        void deleteOrganization_active_success() {
+            Long organizationId = organization.getId();
+            organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
 
-        OrgStatusUpdateRequest request = new OrgStatusUpdateRequest(OrganizationStatus.INACTIVE);
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
 
-        organizationService.updateOrganizationStatus(request);
+            organizationService.deleteOrganization(organizationId);
 
-        assertEquals(OrganizationStatus.INACTIVE, organization.getStatus());
+            verify(orgDeletionService).softDelete(organization);
+            verify(orgDeletionService, never()).deletePendingRelations(anyLong());
+            verify(organizationRepository, never()).delete(any());
+        }
 
+        @Test
+        @DisplayName("조직 삭제 실패 - 조직 없음")
+        void notFound() {
+            Long organizationId = 999L;
+
+            given(organizationRepository.findById(organizationId)).willReturn(Optional.empty());
+
+            assertThrows(OrgNotFoundException.class, () -> organizationService.deleteOrganization(organizationId));
+
+            verify(organizationRepository).findById(organizationId);
+            verify(orgDeletionService, never()).deletePendingRelations(anyLong());
+            verify(orgDeletionService, never()).softDelete(any());
+            verify(organizationRepository, never()).delete(any());
+        }
     }
 
-    @Test
-    @DisplayName("조직 정보 수정 성공")
-    void updateOrganization_success() {
-
-        UserContext.setUserUuid(owner.getAccountUuid());
-
-        given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-
-        OrgUpdateRequest request = new OrgUpdateRequest("도로명주소", "12345", "상세주소", "설명");
-
-        organizationService.updateOrganization(request);
-
-        assertEquals("도로명주소", organization.getRoadAddress());
-        assertEquals("12345", organization.getZipCode());
-    }
-
-    @Test
-    @DisplayName("조직 삭제 성공 - PENDING 상태 hard delete")
-    void deleteOrganization_pending_success() {
-
-        given(organizationRepository.findById(organization.getId()))
-                .willReturn(Optional.of(organization));
-
-        organizationService.deleteOrganization(organization.getId());
-
-        verify(organizationRepository).delete(organization);
-        verify(orgDeletionService, never()).softDelete(any());
-    }
-
-    @Test
-    @DisplayName("조직 삭제 성공 - ACTIVE 상태 soft delete 위임")
-    void deleteOrganization_active_success() {
-
-        organization.complete(
-                "12345",
-                "서울시 강남구",
-                "101호",
-                "테스트 조직"
-        );
-
-        given(organizationRepository.findById(organization.getId())).willReturn(Optional.of(organization));
-
-        organizationService.deleteOrganization(organization.getId());
-
-        verify(orgDeletionService).softDelete(organization);
-        verify(organizationRepository, never()).delete(any());
-    }
 }

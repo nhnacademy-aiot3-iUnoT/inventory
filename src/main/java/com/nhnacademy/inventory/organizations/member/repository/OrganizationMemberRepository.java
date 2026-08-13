@@ -1,10 +1,12 @@
 package com.nhnacademy.inventory.organizations.member.repository;
 
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,4 +19,6 @@ public interface OrganizationMemberRepository extends JpaRepository<Organization
         where om.organization.id = :organizationId
     """)
     void deleteByOrganizationId(Long organizationId);
+
+    List<OrganizationMember> findByOrganizationIdAndOrganizationRole(Long organizationId, OrganizationRole organizationRole);
 }

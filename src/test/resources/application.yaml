@@ -38,4 +38,4 @@ security:
       - inventory-api
 
 app:
-  invitation-url: https://iunot.cloud/signup
+  invitation-url: localhost:10404/signup

@@ -1,6 +1,8 @@
 package com.nhnacademy.inventory.organizations.storage.service;
 
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
@@ -49,7 +51,7 @@ class StorageServiceTest {
         organization = TestFixtures.createOrganization("테스트 조직1", "0123456789");
         setId(organization, 1L);
 
-        approvedMember = TestFixtures.createOrganizationMember(organization);
+        approvedMember = TestFixtures.createOrganizationOwner(organization);
         setId(approvedMember, 11L);
 
         storage = TestFixtures.createStorage(organization, "테스트 저장소1");
@@ -67,9 +69,10 @@ class StorageServiceTest {
         given(storageRepository.existsByOrganizationAndNameAndStatusNot(organization, request.name(), StorageStatus.CLOSED))
                 .willReturn(false);
 
+        UserContext.setUserUuid(approvedMember.getAccountUuid());
+
         StorageInfoResponse response = storageService.createStorage(
                 organization.getId(),
-                approvedMember.getAccountUuid(),
                 request
         );
 
@@ -92,8 +95,10 @@ class StorageServiceTest {
         given(storageRepository.findAllByOrganizationAndStatusNot(organization, StorageStatus.CLOSED))
                 .willReturn(List.of(storage));
 
+        UserContext.setUserUuid(approvedMember.getAccountUuid());
+
         List<StorageInfoResponse> responses = storageService
-                .getStorages(organization.getId(), approvedMember.getAccountUuid());
+                .getStorages(organization.getId());
 
         assertAll(
                 () -> assertEquals(1, responses.size()),
@@ -116,9 +121,10 @@ class StorageServiceTest {
         given(storageRepository.existsByOrganizationAndNameAndStatusNotAndIdNot(organization, request.name(), StorageStatus.CLOSED, storage.getId()))
                 .willReturn(false);
 
+        UserContext.setUserUuid(approvedMember.getAccountUuid());
+
         StorageInfoResponse response = storageService.updateStorage(
-                organization.getId(), storage.getId(), approvedMember.getAccountUuid(),
-                request
+                organization.getId(), storage.getId(), request
         );
 
         assertAll(
@@ -141,9 +147,10 @@ class StorageServiceTest {
         given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid())).willReturn(Optional.of(approvedMember));
         given(storageRepository.findByIdAndOrganization(storage.getId(), organization)).willReturn(Optional.of(storage));
 
+        UserContext.setUserUuid(approvedMember.getAccountUuid());
+
         StorageInfoResponse response = storageService.updateStorageStatus(
-                organization.getId(), storage.getId(), approvedMember.getAccountUuid(),
-                request
+                organization.getId(), storage.getId(), request
         );
 
         assertAll(
@@ -163,7 +170,9 @@ class StorageServiceTest {
         given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid())).willReturn(Optional.of(approvedMember));
         given(storageRepository.findByIdAndOrganization(storage.getId(), organization)).willReturn(Optional.of(storage));
 
-        storageService.closeStorage(organization.getId(), storage.getId(), approvedMember.getAccountUuid());
+        UserContext.setUserUuid(approvedMember.getAccountUuid());
+
+        storageService.closeStorage(organization.getId(), storage.getId());
 
         assertEquals(StorageStatus.CLOSED, storage.getStatus());
 

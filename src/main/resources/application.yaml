@@ -1,10 +1,19 @@
 spring:
   application:
     name: inventory
-  # email 전송 테스트용
+  # email 전송
   mail:
-    host: localhost
-    port: 1025
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    default-encoding: UTF-8
+    properties:
+      "[mail.smtp.auth]": true
+      "[mail.smtp.starttls.enable]": true
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
 
   config:
     import: optional:file:.env[.properties]
@@ -69,12 +78,8 @@ security:
     access-token-ttl: 30m
     allowed-algorithms:
       - RS256
-    issuer: inventory-api
+    issuer: account-api
     key-id: account-key-001
     jwk-set-uri: http://localhost:10413/.well-known/jwks.json
     audiences:
       - inventory-api
-
-# 초대 base url
-app:
-  invitation-url: https://iunot.cloud/signup

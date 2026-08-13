@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.inventories.transaction.dto;
 
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
+import com.querydsl.core.annotations.QueryProjection;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,4 +17,8 @@ public record StockTransactionSearchResponse (
         UUID processedBy,
         LocalDateTime processedAt
 ){
+    @QueryProjection
+    public StockTransactionSearchResponse{
+
+    }
 }
