@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.medicines.enviroment.domain.MedicineEnvironmentS
 
 import com.nhnacademy.inventory.medicines.enviroment.domain.MedicineEnvironmentType;
 import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
+import com.nhnacademy.inventory.medicines.enviroment.exception.EnvironmentStandardNotFoundException;
 import com.nhnacademy.inventory.medicines.enviroment.operation.EnvironmentStandardCreator;
 import com.nhnacademy.inventory.medicines.enviroment.repository.MedicineEnvironmentStandardRepository;
 
@@ -91,16 +92,15 @@ public class MedicineEnvironmentService {
         typeRepository.saveAll(types);
         standard.updateIdAndAt(UserContext.getUserUuid());
 
-
     }
 
 
     // 환경 유형 삭제
     @Transactional
-    public void deleteTypes(Long packageUnitId){
+    public void deleteTypes(Long standardId){
 
-        MedicineEnvironmentStandard standard = standardRepository.findByMedicinePackageUnitId(packageUnitId)
-                        .orElseThrow(MedicineNotFoundException::new);
+        MedicineEnvironmentStandard standard = standardRepository.findById(standardId)
+                        .orElseThrow(EnvironmentStandardNotFoundException::new);
 
         typeRepository.deleteAllByMedicineEnvironmentStandardId(standard.getId());
         standardRepository.deleteById(standard.getId());

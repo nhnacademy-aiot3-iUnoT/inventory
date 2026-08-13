@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/core/medicine-environment/package-units")
+@RequestMapping("/api/core")
 @RequiredArgsConstructor
 public class MedicineEnvironmentController {
 
@@ -21,31 +21,29 @@ public class MedicineEnvironmentController {
     private final MedicineEnvironmentService medicineEnvironmentService;
 
     // 환경기준 조회
-    @GetMapping("/{package-unit-id}")
+    @GetMapping("/package-units/{package-unit-id}/medicine-environment-types")
     public ResponseEntity<ApiResponse<List<MedicineEnvironmentTypeResponse>>> getEnvironmentTypes(
             @PathVariable(name= "package-unit-id")Long medicinePackageUnitId){
-
        return ResponseEntity.ok(ApiResponse.success(environmentTypeSearchService.getTypes(medicinePackageUnitId)));
     }
 
 
     // 환경기준 수정
-    @PutMapping("/{package-unit-id}")
+    @PutMapping("/package-units/{package-unit-id}/medicine-environment-standard")
     public ResponseEntity<Void> updateEnvironmentTypes(
-            @PathVariable(name = "package-unit-id")Long medicinePackageUnitId,
+            @PathVariable(name = "package-unit-id")Long packageUnitId,
             @Valid @RequestBody MedicineEnvironmentRequest request){
-
-        medicineEnvironmentService.updateTypes(medicinePackageUnitId,request);
+        medicineEnvironmentService.updateTypes(packageUnitId,request);
         return ResponseEntity.noContent().build();
     }
 
 
     // 환경기준 삭제
-    @DeleteMapping("/{package-unit-id}")
+    @DeleteMapping("/medicine-environment-standards/{standard-id}")
     public ResponseEntity<Void> deleteEnvironmentTypes(
-            @PathVariable(name = "package-unit-id")Long medicinePackageUnitId){
+            @PathVariable(name = "standard-id")Long standardId){
 
-        medicineEnvironmentService.deleteTypes(medicinePackageUnitId);
+        medicineEnvironmentService.deleteTypes(standardId);
 
         return ResponseEntity.noContent().build();
     }
