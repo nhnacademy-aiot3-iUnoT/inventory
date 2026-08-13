@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
+import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.dto.*;
 import com.nhnacademy.inventory.organizations.zone.service.ZoneService;
 import jakarta.validation.Valid;
@@ -78,6 +79,16 @@ public class ZoneController {
             @PathVariable(name = "zone-id") Long zoneId
     ){
         zoneService.closeZone(storageId, zoneId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/internal/zones/{zone-id}/env-status")
+    public ResponseEntity<Void> internalUpdateEnvStatus(
+            @PathVariable(name = "zone-id") Long zoneId,
+            @RequestParam("env-status") EnvStatus envStatus
+    ){
+        zoneService.internalUpdateEnvStatus(zoneId, envStatus);
 
         return ResponseEntity.noContent().build();
     }

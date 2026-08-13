@@ -3,8 +3,8 @@ package com.nhnacademy.inventory.organizations.invitation.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationCreateRequest;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.organization.exception.OrganizationNotActiveException;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,10 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -41,7 +39,7 @@ class OrganizationInvitationServiceTest {
     @BeforeEach
     void setUp() {
         organization = TestFixtures.createOrganization("테스트 조직", "1234567890");
-        invitation = Invitation.create(organization, "test@test.com");
+        invitation = TestFixtures.createInvitationMember(organization, "test@test.com");
     }
 
     @Test
@@ -49,20 +47,32 @@ class OrganizationInvitationServiceTest {
     void inviteMember_success() {
         InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
 
+        organization.complete("12345", "광주시 남구", "101호", "테스트 조직"); // ACTIVE 상태
+
         given(organizationService.getOrgAfterValidateOwner()).willReturn(organization);
-        given(invitationService.createInvitation(organization, request.email()))
-                .willReturn(invitation);
+        given(invitationService.createInvitation(organization, request.email(), false)).willReturn(invitation);
 
-        InvitationCreateResponse response = organizationInvitationService.inviteMember(request);
-
-        assertEquals(invitation.getEmail(), response.email());
+        organizationInvitationService.inviteMember(request);
 
         verify(organizationService).getOrgAfterValidateOwner();
-        verify(invitationService).createInvitation(organization, request.email());
+        verify(invitationService).createInvitation(organization, request.email(), false);
     }
 
     @Test
-    @DisplayName("조직원 초대 실패 - 조직 조회 실패")
+    @DisplayName("조직원 초대 실패 - PENDING 조직")
+    void inviteMember_pendingOrganization() {
+        InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
+
+        given(organizationService.getOrgAfterValidateOwner()).willReturn(organization); // 기본은 PENDING
+
+        assertThrows(OrganizationNotActiveException.class, () -> organizationInvitationService.inviteMember(request));
+
+        verify(invitationService, never())
+                .createInvitation(any(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("조직원 초대 실패 - OWNER 아님")
     void inviteMember_organizationNotFound() {
         InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
 
@@ -70,6 +80,6 @@ class OrganizationInvitationServiceTest {
 
         assertThrows(ForbiddenException.class, () -> organizationInvitationService.inviteMember(request));
 
-        verify(invitationService, never()).createInvitation(any(), anyString());
+        verify(invitationService, never()).createInvitation(any(), anyString(), eq(false));
     }
 }

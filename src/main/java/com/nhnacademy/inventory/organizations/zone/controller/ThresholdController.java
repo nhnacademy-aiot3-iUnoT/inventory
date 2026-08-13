@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.zone.controller;
 import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSaveRequest;
+import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSpecResponse;
 import com.nhnacademy.inventory.organizations.zone.service.ThresholdService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,5 +48,14 @@ public class ThresholdController {
         thresholdService.deleteThreshold(zoneId, zoneThresholdId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/internal/zones/{zone-id}/zone-threshold")
+    public ResponseEntity<ApiResponse<List<ThresholdSpecResponse>>> internalGetThresholds(
+            @PathVariable(name = "zone-id") Long zoneId
+    ){
+        List<ThresholdSpecResponse> responses = thresholdService.internalGetThresholds(zoneId);
+
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 }

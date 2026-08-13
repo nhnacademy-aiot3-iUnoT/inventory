@@ -10,6 +10,7 @@ import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneThreshold;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSaveRequest;
+import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSpecResponse;
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdInvalidRangeException;
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.repository.SensorTypeRepository;
@@ -252,6 +253,40 @@ class ThresholdServiceTest {
             assertThrowsExactly(ForbiddenException.class, () ->
                     thresholdService.getThresholds(zone.getId())
             );
+        }
+    }
+
+    @Nested
+    @DisplayName("임계값 조회(내부 api용 메서드) 테스트")
+    class internalGetThresholds{
+
+        @Test
+        @DisplayName("성공 테스트")
+        void success() {
+            given(thresholdRepository.findAllByZoneId(threshold.getZone().getId()))
+                    .willReturn(List.of(threshold));
+
+            List<ThresholdSpecResponse> responses = thresholdService.internalGetThresholds(threshold.getZone().getId());
+
+            assertAll(
+                    () -> assertEquals(1, responses.size()),
+                    () -> assertEquals(1L, responses.getFirst().sensorTypeId()),
+                    () -> assertEquals("테스트 센서", responses.getFirst().sensorTypeName()),
+                    () -> assertEquals(BigDecimal.valueOf(0), responses.getFirst().minValue()),
+                    () -> assertEquals(BigDecimal.valueOf(30), responses.getFirst().maxValue()),
+                    () -> assertEquals(5, responses.getFirst().alertDuration())
+            );
+        }
+
+        @Test
+        @DisplayName("성공 테스트(빈 리스트)")
+        void success_empty() {
+            given(thresholdRepository.findAllByZoneId(zone.getId()))
+                    .willReturn(List.of());
+
+            List<ThresholdSpecResponse> responses = thresholdService.internalGetThresholds(threshold.getZone().getId());
+
+            assertEquals(0, responses.size());
         }
     }
 

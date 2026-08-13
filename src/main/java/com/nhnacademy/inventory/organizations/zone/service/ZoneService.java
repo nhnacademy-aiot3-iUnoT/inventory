@@ -32,7 +32,7 @@ public class ZoneService {
 
     @Transactional
     public ZoneInfoResponse createZone(Long storageId, ZoneCreateRequest request){
-        Storage storage = storageService.validateMemberAndGetStorage(storageId);
+        Storage storage = storageService.validateOwnerAndGetStorage(storageId);
 
         validateDuplicateZoneName(storage, request.name());
 
@@ -61,7 +61,7 @@ public class ZoneService {
 
     @Transactional
     public ZoneInfoResponse updateZone(Long storageId, Long zoneId, ZoneUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId);
+        Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
         validateDuplicateZoneName(zone.getStorage(), request.name(), zone.getId());
 
@@ -72,7 +72,7 @@ public class ZoneService {
 
     @Transactional
     public ZoneInfoResponse updateZoneStatus(Long storageId, Long zoneId, ZoneStatusUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId);
+        Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
         zone.changeStatus(request.status());
 
@@ -81,7 +81,7 @@ public class ZoneService {
 
     @Transactional
     public ZoneInfoResponse updateZoneEnvStatus(Long storageId, Long zoneId, ZoneEnvStatusUpdateRequest request){
-        Zone zone = findByIdAndValidate(storageId, zoneId);
+        Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
         zone.changeEnvStatus(request.envStatus());
 
@@ -89,8 +89,16 @@ public class ZoneService {
     }
 
     @Transactional
+    public void internalUpdateEnvStatus(Long zoneId, EnvStatus envStatus){
+        Zone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
+
+        zone.changeEnvStatus(envStatus);
+    }
+
+    @Transactional
     public void closeZone(Long storageId, Long zoneId){
-        Zone zone = findByIdAndValidate(storageId, zoneId);
+        Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
         zone.close();
     }
@@ -109,8 +117,8 @@ public class ZoneService {
         return zone;
     }
 
-    private Zone findByIdAndValidate(Long storageId, Long zoneId){
-        Storage storage = storageService.validateMemberAndGetStorage(storageId);
+    private Zone findByIdAndValidateOwner(Long storageId, Long zoneId){
+        Storage storage = storageService.validateOwnerAndGetStorage(storageId);
 
         return zoneRepository.findByIdAndStorage(zoneId, storage)
                 .orElseThrow(ZoneNotFoundException::new);

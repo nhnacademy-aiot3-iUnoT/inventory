@@ -46,6 +46,7 @@ public class InvitationRepositoryImpl implements InvitationRepositoryCustom {
                 .select(invitation.count())
                 .from(invitation)
                 .where(
+                        invitation.organization.id.eq(organizationId),
                         statusEq(request.status()),
                         emailContains(request.email())
                 )
