@@ -80,5 +80,5 @@ security:
       - RS256
     issuer: account-api
     key-id: account-key-001
-   audiences:
+    audiences:
       - inventory-api
