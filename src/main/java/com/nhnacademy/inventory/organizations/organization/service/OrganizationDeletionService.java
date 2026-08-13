@@ -37,8 +37,15 @@ public class OrganizationDeletionService {
         storageRepository.closeByOrganizationId(id);
         zoneRepository.closeByOrganizationId(id);
 
-        invitationRepository.cancelByOrganizationId(id);
+        // 4. 초대 삭제
+        invitationRepository.deleteByOrganizationId(id);
 
         organization.suspended();
+    }
+
+    public void deletePendingRelations(Long organizationId) {
+        orgMemberRepository.deleteByOrganizationId(organizationId);
+
+        invitationRepository.deleteByOrganizationId(organizationId);
     }
 }

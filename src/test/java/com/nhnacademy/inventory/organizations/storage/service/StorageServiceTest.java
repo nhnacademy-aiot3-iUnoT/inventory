@@ -51,7 +51,7 @@ class StorageServiceTest {
         organization = TestFixtures.createOrganization("테스트 조직1", "0123456789");
         setId(organization, 1L);
 
-        approvedMember = TestFixtures.createOrganizationMember(organization, OrganizationRole.ORG_OWNER);
+        approvedMember = TestFixtures.createOrganizationOwner(organization);
         setId(approvedMember, 11L);
 
         storage = TestFixtures.createStorage(organization, "테스트 저장소1");

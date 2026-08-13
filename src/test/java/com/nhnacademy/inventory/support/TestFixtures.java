@@ -29,20 +29,11 @@ public class TestFixtures {
     }
 
     public static OrganizationMember createOrganizationMember(Organization organization) {
-        return createOrganizationMember(organization, OrganizationRole.ORG_MEMBER, true);
+        return OrganizationMember.createMember(organization, UUID.randomUUID());
     }
 
-    public static OrganizationMember createOrganizationMember(Organization organization, OrganizationRole role) {
-        return createOrganizationMember(organization, role, true);
-    }
-
-    public static OrganizationMember createOrganizationMember(Organization organization, OrganizationRole role, boolean approved) {
-        return OrganizationMember.builder()
-                .organization(organization)
-                .accountUuid(UUID.randomUUID())
-                .organizationRole(role)
-                .isApproved(approved)
-                .build();
+    public static OrganizationMember createOrganizationOwner(Organization organization) {
+        return OrganizationMember.createOwner(organization, UUID.randomUUID());
     }
 
     public static Storage createStorage(Organization organization) {
@@ -151,6 +142,14 @@ public class TestFixtures {
                 .build();
     }
 
+    public static Invitation createInvitationMember(Organization organization, String email) {
+        return Invitation.create(organization, email, false);
+    }
+
+    public static Invitation createInvitationOwner(Organization organization, String email) {
+        return Invitation.create(organization, email, true);
+    }
+
     public static Alert createAlert(Organization organization, AlertType alertType, String message, Boolean isRead){
         return Alert.builder()
                 .organization(organization)
@@ -158,10 +157,6 @@ public class TestFixtures {
                 .message(message)
                 .isChecked(isRead)
                 .build();
-    }
-
-    public static Invitation createInvitation(Organization organization, String email) {
-        return Invitation.create(organization, email);
     }
 
     public static ZoneSensor createZoneSensor(Zone zone, String deviceEui, String name){
