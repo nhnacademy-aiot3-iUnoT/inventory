@@ -23,11 +23,11 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
             (Long medicinePackageUnitId, Long zoneId, String lotNumber, LocalDate expiration) {
 
         MedicineInventory content = queryFactory.selectFrom(inventory)
-                .where(inventory.medicinePackageUnit.id.eq(medicinePackageUnitId),
+                .where(
+                        inventory.medicinePackageUnit.id.eq(medicinePackageUnitId),
                         inventory.zone.id.eq(zoneId),
                         inventory.lotNumber.eq(lotNumber),
                         inventory.expirationDate.eq(expiration)
-
                 )
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE) //비관적 락
                 .fetchOne();

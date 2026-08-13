@@ -1,4 +1,4 @@
-package com.nhnacademy.inventory.medicines.medicine.dto;
+package com.nhnacademy.inventory.medicines.medicine.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 

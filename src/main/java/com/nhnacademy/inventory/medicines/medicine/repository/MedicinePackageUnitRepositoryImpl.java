@@ -25,12 +25,9 @@ public class MedicinePackageUnitRepositoryImpl implements MedicinePackageUnitRep
     private static final QMedicine medicine = QMedicine.medicine;
 
 
-
     // 제품명 조회
-
     @Override
     public Page<MedicinePackageSearchResponse> findAllWithMedicineByProductName(String productName, Pageable pageable) {
-
 
         List<MedicinePackageSearchResponse> content = queryFactory.select(new QMedicinePackageSearchResponse(
                 medicine.id,

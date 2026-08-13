@@ -12,14 +12,14 @@ public class MedicineMapper {
 
     public Medicine toMedicineEntity(MedicineResponse medicineResponse){
 
-        return Medicine.builder()
-                .itemCode(parse(medicineResponse.itemCode()))
-                .productName(parse(medicineResponse.productName()))
-                .companyName(parse(medicineResponse.companyName()))
-                .storageMethod(parse(medicineResponse.storageMethod()))
-                .validityPeriod(parse(medicineResponse.validityPeriod()))
-                .narcoticKindCode(parse(medicineResponse.narcoticKindCode()))
-                .build();
+        return Medicine.create(
+                        parse(medicineResponse.itemCode()),
+                        parse(medicineResponse.productName()),
+                        parse(medicineResponse.storageMethod()),
+                        parse(medicineResponse.validityPeriod()),
+                        parse(medicineResponse.narcoticKindCode()),
+                        parse(medicineResponse.companyName()));
+
 
     }
 
