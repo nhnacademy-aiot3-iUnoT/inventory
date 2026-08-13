@@ -22,3 +22,8 @@ management:
 # 초대 base url
 app:
   invitation-url: https://iunot.cloud/signup
+
+security:
+  jwt:
+    jwk-set-uri: https://inuot.cloud/.well-known/jwks.json
+
