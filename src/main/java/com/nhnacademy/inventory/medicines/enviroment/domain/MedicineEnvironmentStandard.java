@@ -42,6 +42,9 @@ public class MedicineEnvironmentStandard {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
+    @Version
+    private Long version;
+
     @Column(name = "create_account_id", columnDefinition = "BINARY(16)", nullable = false)
     private UUID createAccountId;
 

@@ -65,7 +65,6 @@ public class MedicineEnvironmentService {
     @Transactional
     public void updateTypes(Long medicinePackageUnitId,MedicineEnvironmentRequest request){
 
-
         UUID accountId = UserContext.getUserUuid();
         OrganizationMember organizationMember = memberRepository.findByAccountUuid(accountId)
                 .orElseThrow(UserOrgNotFoundException::new);

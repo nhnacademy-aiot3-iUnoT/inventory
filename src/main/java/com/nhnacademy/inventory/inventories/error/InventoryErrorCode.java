@@ -13,6 +13,7 @@ public enum InventoryErrorCode implements ErrorCode {
 
     //환경
     ENVIRONMENT_STANDARD_NOT_FOUND(HttpStatus.NOT_FOUND,"E001","해당하는 환경 기준이 존재하지 않습니다."),
+    ENVIRONMENT_STANDARD_CONFLICT(HttpStatus.CONFLICT,"E002","조회 이후 환경기준이 변경되었습니다. 최신 정보를 확인 후 다시 시도해주세요."),
 
 
     //알림 에러코드

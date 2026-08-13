@@ -1,7 +1,9 @@
 package com.nhnacademy.inventory.global.error;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
+import com.nhnacademy.inventory.inventories.error.InventoryErrorCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -39,4 +41,17 @@ public class GlobalExceptionHandler{
                         GlobalErrorCode.INTERNAL_SERVER_ERROR.getMessage()
                 ));
     }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(ObjectOptimisticLockingFailureException e){
+
+        return ResponseEntity.status(InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getStatus())
+                .body(ApiResponse.error(InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getCode(),
+                        InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getMessage()
+                        ));
+    }
+
+
+
+
 }
