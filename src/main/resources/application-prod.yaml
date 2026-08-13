@@ -25,5 +25,5 @@ app:
 
 security:
   jwt:
-    jwk-set-uri: https://inuot.cloud/.well-known/jwks.json
+    jwk-set-uri: https://iunot.cloud/.well-known/jwks.json
 
