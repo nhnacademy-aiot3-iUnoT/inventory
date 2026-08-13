@@ -1,9 +1,12 @@
 package com.nhnacademy.inventory.organizations.organization.dto.response;
 
+import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record AdminOrgDetailResponse(
         Long id,
@@ -13,9 +16,15 @@ public record AdminOrgDetailResponse(
         String zipCode,
         String addressDetail,
         OrganizationStatus status,
-        LocalDateTime createdAt
-){
-    public static AdminOrgDetailResponse from(Organization organization) {
+        LocalDateTime createdAt,
+        AdminInvitationResponse invitation,
+        List<AdminOwnerResponse> owners
+) {
+    public static AdminOrgDetailResponse from(
+            Organization organization,
+            Invitation invitation,
+            List<OrganizationMember> owners
+    ) {
         return new AdminOrgDetailResponse(
                 organization.getId(),
                 organization.getBusinessNumber(),
@@ -24,7 +33,9 @@ public record AdminOrgDetailResponse(
                 organization.getZipCode(),
                 organization.getAddressDetail(),
                 organization.getStatus(),
-                organization.getCreatedAt()
+                organization.getCreatedAt(),
+                invitation == null ? null : AdminInvitationResponse.from(invitation),
+                owners.stream().map(AdminOwnerResponse::from).toList()
         );
     }
 }

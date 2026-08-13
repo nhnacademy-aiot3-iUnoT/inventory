@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.organization.controller;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgStatusUpdateRequest;
 import com.nhnacademy.inventory.organizations.organization.dto.request.OrgUpdateRequest;
@@ -52,7 +53,8 @@ class OrganizationControllerTest extends SupportControllerTest {
                     1L, "테스트 조직",
                     "광주시 남구", "12345",
                     "101호", "테스트 조직 설명",
-                    OrganizationStatus.ACTIVE, LocalDateTime.now()
+                    OrganizationStatus.ACTIVE, LocalDateTime.now(),
+                    OrganizationRole.ORG_OWNER
             );
 
             given(organizationService.getOrganizationForUser()).willReturn(response);
@@ -66,7 +68,8 @@ class OrganizationControllerTest extends SupportControllerTest {
                     fieldWithPath("data.addressDetail").type(JsonFieldType.STRING).description("상세 주소"),
                     fieldWithPath("data.description").type(JsonFieldType.STRING).description("조직 설명").optional(),
                     fieldWithPath("data.status").type(JsonFieldType.STRING).description("조직 상태"),
-                    fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("조직 생성 일시")
+                    fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("조직 생성 일시"),
+                    fieldWithPath("data.organizationRole").type(JsonFieldType.STRING).description("조직원 Role")
             ));
 
             mockMvc.perform(get("/api/core/organizations/me"))
@@ -80,6 +83,7 @@ class OrganizationControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.description").value("테스트 조직 설명"))
                     .andExpect(jsonPath("$.data.status").value("ACTIVE"))
                     .andExpect(jsonPath("$.data.createdAt").exists())
+                    .andExpect(jsonPath("$.data.organizationRole").value("ORG_OWNER"))
 
                     .andDo(document("organization-get",
                             responseFields(responseFields)
