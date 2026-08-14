@@ -8,6 +8,7 @@ import com.nhnacademy.inventory.organizations.department.dto.response.Department
 import com.nhnacademy.inventory.organizations.department.dto.response.DepartmentInfoResponse;
 import com.nhnacademy.inventory.organizations.department.dto.response.DepartmentListResponse;
 import com.nhnacademy.inventory.organizations.department.service.DepartmentService;
+import com.nhnacademy.inventory.organizations.department.service.MemberDepartmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import java.util.List;
 @RequestMapping("/api/core/departments")
 public class DepartmentController {
     private final DepartmentService departmentService;
+    private final MemberDepartmentService memberDepartmentService;
 
     /**
      * 부서 생성
@@ -33,11 +35,20 @@ public class DepartmentController {
     }
 
     /**
-     * 부서 목록 조회
+     * 전체 부서 목록 조회
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<DepartmentListResponse>>> getDepartments() {
         List<DepartmentListResponse> responses = departmentService.getDepartments();
+        return ResponseEntity.ok(ApiResponse.success(responses));
+    }
+
+    /**
+     * 본인 부서 목록 조회
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<DepartmentListResponse>>> getMyDepartments() {
+        List<DepartmentListResponse> responses = memberDepartmentService.getMyDepartments();
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
@@ -54,24 +65,24 @@ public class DepartmentController {
      * 부서 활성화 <-> 비활성화
      */
     @PutMapping("/{department-id}/status")
-    public ResponseEntity<ApiResponse<DepartmentInfoResponse>> updateDepartmentStatus(
+    public ResponseEntity<Void> updateDepartmentStatus(
             @Valid @RequestBody DepartmentStatusUpdateRequest request,
             @PathVariable(name = "department-id") Long departmentId
     ) {
-        DepartmentInfoResponse response = departmentService.updateDepartmentStatus(request, departmentId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        departmentService.updateDepartmentStatus(request, departmentId);
+        return ResponseEntity.noContent().build();
     }
 
     /**
      * 부서 정보 수정
      */
     @PutMapping("/{department-id}")
-    public ResponseEntity<ApiResponse<DepartmentInfoResponse>> updateDepartment(
+    public ResponseEntity<Void> updateDepartment(
             @Valid @RequestBody DepartmentUpdateRequest request,
             @PathVariable(name = "department-id") Long departmentId
     ) {
-        DepartmentInfoResponse response = departmentService.updateDepartment(request, departmentId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        departmentService.updateDepartment(request, departmentId);
+        return ResponseEntity.noContent().build();
 
     }
 

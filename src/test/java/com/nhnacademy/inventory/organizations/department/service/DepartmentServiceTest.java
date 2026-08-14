@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.department.domain.Department;
 import com.nhnacademy.inventory.organizations.department.domain.DepartmentStatus;
+import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentCreateRequest;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentStatusUpdateRequest;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentUpdateRequest;
@@ -17,11 +18,9 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
 import com.nhnacademy.inventory.support.TestFixtures;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -40,12 +39,18 @@ import static org.mockito.Mockito.*;
 class DepartmentServiceTest {
     @Mock
     private DepartmentRepository departmentRepository;
+
     @Mock
     private OrganizationMemberService orgMemberService;
+
+    @Mock
+    private OrganizationService organizationService;
+
     @InjectMocks
     private DepartmentService departmentService;
+
     private Organization organization;
-    private OrganizationMember owner;
+
     private OrganizationMember member;
     private Department department;
 
@@ -54,232 +59,256 @@ class DepartmentServiceTest {
         organization = TestFixtures.createOrganization("테스트 조직", "1234567890");
         ReflectionTestUtils.setField(organization, "id", 1L);
 
-        owner = TestFixtures.createOrganizationMember(organization);
-        owner.changeRole(OrganizationRole.ORG_OWNER);
-
         member = TestFixtures.createOrganizationMember(organization);
-        member.changeRole(OrganizationRole.ORG_MEMBER);
 
         department = Department.create(organization, "이비인후과", "부서 설명");
         ReflectionTestUtils.setField(department, "id", 1L);
+
+
     }
 
-    @Test
-    @DisplayName("부서 생성 성공")
-    void createDepartment_success() {
-        UserContext.setUserUuid(owner.getAccountUuid());
+    @Nested
+    @DisplayName("부서 생성")
+    class create_department {
+        @Test
+        @DisplayName("성공")
+        void success() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.existsByOrganizationIdAndName(anyLong(), anyString())).willReturn(false);
+            given(departmentRepository.save(any(Department.class))).willReturn(department);
 
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-        given(departmentRepository.existsByOrganizationIdAndName(anyLong(), anyString())).willReturn(false);
-        given(departmentRepository.save(any(Department.class))).willReturn(department);
+            DepartmentCreateRequest request = new DepartmentCreateRequest("이비인후과", "부서 설명");
+            DepartmentCreateResponse response = departmentService.createDepartment(request);
 
-        DepartmentCreateRequest request = new DepartmentCreateRequest("이비인후과", "부서 설명");
-        DepartmentCreateResponse response = departmentService.createDepartment(request);
+            assertEquals("이비인후과", response.name());
+            verify(departmentRepository).save(any(Department.class));
+        }
+        @Test
+        @DisplayName("성공 - 부서 설명 없음")
+        void success_description_blank() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.existsByOrganizationIdAndName(anyLong(), anyString())).willReturn(false);
+            given(departmentRepository.save(any(Department.class))).willReturn(department);
 
-        assertEquals("이비인후과", response.name());
-        verify(departmentRepository).save(any(Department.class));
+            DepartmentCreateRequest request = new DepartmentCreateRequest("이비인후과", null);
+            DepartmentCreateResponse response = departmentService.createDepartment(request);
+
+            assertEquals("이비인후과", response.name());
+            verify(departmentRepository).save(any(Department.class));
+        }
+
+        @Test
+        @DisplayName("실패 - BOSS, OWNER 아님")
+        void forbidden() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willThrow(ForbiddenException.class);
+
+            DepartmentCreateRequest request = new DepartmentCreateRequest("이비인후과", "부서 설명");
+
+            assertThrows(ForbiddenException.class, () -> departmentService.createDepartment(request));
+            verify(departmentRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("부서 생성 실패 - 부서 이름 중복")
+        void duplicate() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.existsByOrganizationIdAndName(anyLong(), anyString())).willReturn(true);
+
+            DepartmentCreateRequest request = new DepartmentCreateRequest("이비인후과", "부서 설명");
+
+            assertThrows(DepartmentAlreadyExistsException.class, () -> departmentService.createDepartment(request));
+            verify(departmentRepository, never()).save(any());
+        }
     }
 
-    @Test
-    @DisplayName("부서 생성 실패 - OWNER 아님")
-    void createDepartment_forbidden() {
-        UserContext.setUserUuid(member.getAccountUuid());
+    @Nested
+    @DisplayName("부서 목록 조회")
+    class get_departments {
+        @Test
+        @DisplayName("성공")
+        void success() {
+            UserContext.setUserUuid(member.getAccountUuid());
 
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            given(departmentRepository.findAllByOrganizationId(anyLong())).willReturn(List.of(department));
 
-        DepartmentCreateRequest request = new DepartmentCreateRequest("이비인후과", "부서 설명");
+            List<DepartmentListResponse> responses = departmentService.getDepartments();
 
-        assertThrows(ForbiddenException.class, () -> departmentService.createDepartment(request));
-        verify(departmentRepository, never()).save(any());
+            assertEquals(1, responses.size());
+            assertEquals("이비인후과", responses.getFirst().name());
+            assertEquals(DepartmentStatus.ACTIVE, responses.getFirst().status());
+            verify(departmentRepository).findAllByOrganizationId(organization.getId());
+        }
+
+        @Test
+        @DisplayName("성공 - 조회 결과 없음")
+        void success_empty() {
+            UserContext.setUserUuid(member.getAccountUuid());
+
+            given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            given(departmentRepository.findAllByOrganizationId(anyLong())).willReturn(List.of());
+
+            List<DepartmentListResponse> responses = departmentService.getDepartments();
+
+            assertTrue(responses.isEmpty());
+        }
     }
 
-    @Test
-    @DisplayName("부서 생성 실패 - 부서 이름 중복")
-    void createDepartment_duplicate() {
-        UserContext.setUserUuid(owner.getAccountUuid());
+    @Nested
+    @DisplayName("부서 단건 조회")
+    class get_department {
+        @Test
+        @DisplayName("성공")
+        void success() {
+            UserContext.setUserUuid(member.getAccountUuid());
 
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-        given(departmentRepository.existsByOrganizationIdAndName(anyLong(), anyString())).willReturn(true);
+            given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            given(departmentRepository.findByIdAndOrganizationId(department.getId(), organization.getId())).willReturn(Optional.of(department));
 
-        DepartmentCreateRequest request = new DepartmentCreateRequest("이비인후과", "부서 설명");
+            DepartmentInfoResponse response = departmentService.getDepartment(department.getId());
 
-        assertThrows(DepartmentAlreadyExistsException.class, () -> departmentService.createDepartment(request));
-        verify(departmentRepository, never()).save(any());
+            assertEquals("이비인후과", response.name());
+            verify(departmentRepository).findByIdAndOrganizationId(department.getId(), organization.getId());
+        }
+
+        @Test
+        @DisplayName("실패 - 부서 없음")
+        void notFound() {
+            UserContext.setUserUuid(member.getAccountUuid());
+
+            given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            given(departmentRepository.findByIdAndOrganizationId(department.getId(), organization.getId())).willReturn(Optional.empty());
+
+            assertThrows(DepartmentNotFoundException.class, () -> departmentService.getDepartment(1L));
+
+            verify(orgMemberService).getCurrentOrganizationMember(member.getAccountUuid());
+            verify(departmentRepository).findByIdAndOrganizationId(1L, organization.getId());
+        }
     }
 
-    @Test
-    @DisplayName("부서 목록 조회 성공")
-    void getDepartments_success() {
-        UserContext.setUserUuid(member.getAccountUuid());
+    @Nested
+    @DisplayName("부서 수정")
+    class update_department {
+        @Test
+        @DisplayName("부서 상태 변경 성공")
+        void status_success() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.findByIdAndOrganizationId(department.getId(), organization.getId())).willReturn(Optional.of(department));
 
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
-        given(departmentRepository.findAllByOrganizationId(anyLong())).willReturn(List.of(department));
+            DepartmentStatusUpdateRequest request = new DepartmentStatusUpdateRequest(DepartmentStatus.INACTIVE);
 
-        List<DepartmentListResponse> responses = departmentService.getDepartments();
+            DepartmentInfoResponse response = departmentService.updateDepartmentStatus(request, department.getId());
 
-        assertEquals(1, responses.size());
-        assertEquals("이비인후과", responses.get(0).name());
-        assertEquals(DepartmentStatus.ACTIVE, responses.get(0).status());
-        verify(departmentRepository).findAllByOrganizationId(organization.getId());
+            assertEquals(DepartmentStatus.INACTIVE, response.status());
+            assertEquals(DepartmentStatus.INACTIVE, department.getStatus());
+        }
+
+        @Test
+        @DisplayName("부서 상태 변경 실패 - 권한 없음")
+        void status_forbidden() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willThrow(ForbiddenException.class);
+
+            DepartmentStatusUpdateRequest request = new DepartmentStatusUpdateRequest(DepartmentStatus.INACTIVE);
+
+            assertThrows(ForbiddenException.class, () -> departmentService.updateDepartmentStatus(request, department.getId()));
+            verify(departmentRepository, never()).findByIdAndOrganizationId(anyLong(), anyLong());
+        }
+
+        @Test
+        @DisplayName("부서 상태 변경 실패 - 부서 없음")
+        void status_not_found() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.empty());
+
+            DepartmentStatusUpdateRequest request = new DepartmentStatusUpdateRequest(DepartmentStatus.INACTIVE);
+
+            assertThrows(DepartmentNotFoundException.class, () -> departmentService.updateDepartmentStatus(request, 999L));
+        }
+
+        @Test
+        @DisplayName("부서 정보 수정 성공")
+        void info_success() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.of(department));
+            given(departmentRepository.existsByOrganizationIdAndNameAndIdNot(anyLong(), anyString(), anyLong())).willReturn(false);
+
+            DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
+
+            DepartmentInfoResponse response = departmentService.updateDepartment(request, department.getId());
+
+            assertEquals("기획팀", response.name());
+            assertEquals("기획 부서", response.description());
+        }
+
+        @Test
+        @DisplayName("부서 정보 수정 실패 - 권한 없음")
+        void info_forbidden() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willThrow(ForbiddenException.class);
+
+            DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
+
+            assertThrows(ForbiddenException.class, () -> departmentService.updateDepartment(request, department.getId()));
+
+            verify(departmentRepository, never()).findByIdAndOrganizationId(anyLong(), anyLong());
+        }
+
+        @Test
+        @DisplayName("부서 정보 수정 실패 - 부서 없음")
+        void info_notFound() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.empty());
+
+            DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
+
+            assertThrows(DepartmentNotFoundException.class, () -> departmentService.updateDepartment(request, department.getId()));
+        }
+
+        @Test
+        @DisplayName("부서 정보 수정 실패 - 부서 이름 중복")
+        void info_duplicate() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.of(department));
+            given(departmentRepository.existsByOrganizationIdAndNameAndIdNot(anyLong(), anyString(), anyLong())).willReturn(true);
+
+            DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
+
+            assertThrows(DepartmentAlreadyExistsException.class, () -> departmentService.updateDepartment(request, department.getId()));
+        }
     }
 
-    @Test
-    @DisplayName("부서 목록 조회 성공 - 조회 결과 없음")
-    void getDepartments_empty() {
-        UserContext.setUserUuid(member.getAccountUuid());
+    @Nested
+    @DisplayName("부서 삭제")
+    class delete_department {
+        @Test
+        @DisplayName("성공")
+        void success() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.of(department));
 
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
-        given(departmentRepository.findAllByOrganizationId(anyLong())).willReturn(List.of());
+            departmentService.deleteDepartment(department.getId());
 
-        List<DepartmentListResponse> responses = departmentService.getDepartments();
+            verify(departmentRepository).delete(department);
+        }
 
-        assertTrue(responses.isEmpty());
-    }
+        @Test
+        @DisplayName("부서 삭제 실패 - 권한 없음")
+        void forbidden() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willThrow(ForbiddenException.class);
 
-    @Test
-    @DisplayName("부서 단건 조회 성공")
-    void getDepartment_success() {
-        UserContext.setUserUuid(member.getAccountUuid());
+            assertThrows(ForbiddenException.class, () -> departmentService.deleteDepartment(department.getId()));
 
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
-        given(departmentRepository.findByIdAndOrganizationId(department.getId(), organization.getId())).willReturn(Optional.of(department));
+            verify(departmentRepository, never()).delete(any());
+        }
 
-        DepartmentInfoResponse response = departmentService.getDepartment(department.getId());
+        @Test
+        @DisplayName("부서 삭제 실패 - 부서 없음")
+        void notFound() {
+            given(organizationService.getOrgAfterValidateOwnerOrBoss()).willReturn(organization);
+            given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.empty());
 
-        assertEquals("이비인후과", response.name());
-        verify(departmentRepository).findByIdAndOrganizationId(department.getId(), organization.getId());
-    }
+            assertThrows(DepartmentNotFoundException.class, () -> departmentService.deleteDepartment(department.getId()));
 
-    @Test
-    @DisplayName("부서 단건 조회 실패 - 부서 없음")
-    void getDepartment_notFound() {
-        UserContext.setUserUuid(member.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
-        given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.empty());
-
-        assertThrows(DepartmentNotFoundException.class, () -> departmentService.getDepartment(1L));
-    }
-
-    @Test
-    @DisplayName("부서 상태 변경 성공")
-    void updateDepartmentStatus_success() {
-        UserContext.setUserUuid(owner.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-        given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.of(department));
-
-        DepartmentStatusUpdateRequest request = new DepartmentStatusUpdateRequest(DepartmentStatus.INACTIVE);
-
-        DepartmentInfoResponse response = departmentService.updateDepartmentStatus(request, department.getId());
-
-        assertEquals(DepartmentStatus.INACTIVE, response.status());
-        assertEquals(DepartmentStatus.INACTIVE, department.getStatus());
-    }
-
-    @Test
-    @DisplayName("부서 상태 변경 실패 - OWNER 아님")
-    void updateDepartmentStatus_forbidden() {
-        UserContext.setUserUuid(member.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
-
-        DepartmentStatusUpdateRequest request = new DepartmentStatusUpdateRequest(DepartmentStatus.INACTIVE);
-
-        assertThrows(ForbiddenException.class, () -> departmentService.updateDepartmentStatus(request, department.getId()));
-        verify(departmentRepository, never()).findByIdAndOrganizationId(anyLong(), anyLong());
-    }
-
-    @Test
-    @DisplayName("부서 정보 수정 성공")
-    void updateDepartment_success() {
-        UserContext.setUserUuid(owner.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-        given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.of(department));
-        given(departmentRepository.existsByOrganizationIdAndNameAndIdNot(anyLong(), anyString(), anyLong())).willReturn(false);
-
-        DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
-
-        DepartmentInfoResponse response = departmentService.updateDepartment(request, department.getId());
-
-        assertEquals("기획팀", response.name());
-        assertEquals("기획 부서", response.description());
-    }
-
-    @Test
-    @DisplayName("부서 정보 수정 실패 - OWNER 아님")
-    void updateDepartment_forbidden() {
-        UserContext.setUserUuid(member.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
-
-        DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
-
-        assertThrows(ForbiddenException.class, () -> departmentService.updateDepartment(request, department.getId()));
-        verify(departmentRepository, never()).findByIdAndOrganizationId(anyLong(), anyLong());
-    }
-
-    @Test
-    @DisplayName("부서 정보 수정 실패 - 부서 없음")
-    void updateDepartment_notFound() {
-        UserContext.setUserUuid(owner.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-        given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.empty());
-
-        DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
-
-        assertThrows(DepartmentNotFoundException.class, () -> departmentService.updateDepartment(request, department.getId()));
-    }
-
-    @Test
-    @DisplayName("부서 정보 수정 실패 - 부서 이름 중복")
-    void updateDepartment_duplicate() {
-        UserContext.setUserUuid(owner.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-        given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.of(department));
-        given(departmentRepository.existsByOrganizationIdAndNameAndIdNot(anyLong(), anyString(), anyLong())).willReturn(true);
-
-        DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
-
-        assertThrows(DepartmentAlreadyExistsException.class, () -> departmentService.updateDepartment(request, department.getId()));
-    }
-
-    @Test
-    @DisplayName("부서 삭제 성공")
-    void deleteDepartment_success() {
-        UserContext.setUserUuid(owner.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-        given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.of(department));
-
-        departmentService.deleteDepartment(department.getId());
-
-        verify(departmentRepository).delete(department);
-    }
-
-    @Test
-    @DisplayName("부서 삭제 실패 - OWNER 아님")
-    void deleteDepartment_forbidden() {
-        UserContext.setUserUuid(member.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(member);
-
-        assertThrows(ForbiddenException.class, () -> departmentService.deleteDepartment(department.getId()));
-        verify(departmentRepository, never()).delete(any());
-    }
-
-    @Test
-    @DisplayName("부서 삭제 실패 - 부서 없음")
-    void deleteDepartment_notFound() {
-        UserContext.setUserUuid(owner.getAccountUuid());
-
-        given(orgMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-        given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.empty());
-
-        assertThrows(DepartmentNotFoundException.class, () -> departmentService.deleteDepartment(department.getId()));
-        verify(departmentRepository, never()).delete(any());
+            verify(departmentRepository, never()).delete(any());
+        }
     }
 }

@@ -29,7 +29,7 @@ public enum OrganizationErrorCode implements ErrorCode {
     THRESHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "존재하지 않는 임계설정 입니다."),
     THRESHOLD_INVALID_RANGE(HttpStatus.BAD_REQUEST, "T003", "잘못된 범위의 임계값 입니다."),
 
-    // 조직 에러코드
+    // 조직/조직원 에러코드
     ORG_ALREADY_EXISTS(HttpStatus.CONFLICT, "O001", "이미 존재하는 조직입니다."),
     ORG_NOT_FOUND(HttpStatus.NOT_FOUND, "O002", "존재하지 않는 조직입니다."),
     USER_ORG_NOT_FOUND(HttpStatus.NOT_FOUND, "O003", "소속된 조직이 없습니다."),
@@ -38,6 +38,8 @@ public enum OrganizationErrorCode implements ErrorCode {
     ORG_ALREADY_SUSPENDED(HttpStatus.CONFLICT, "O006", "이미 종료된 조직입니다."),
     ORG_NOT_ACTIVE(HttpStatus.CONFLICT, "O007", "현재 조직 상태에서는 해당 작업을 수행할 수 없습니다."),
 
+    ORG_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "OM001", "존재하지 않는 조직원입니다."),
+
     // 초대 에러코드
     INVITATION_NOT_FOUND(HttpStatus.NOT_FOUND, "J001", "초대 내역을 찾을 수 없습니다."),
     INVITATION_ALREADY_EXISTS(HttpStatus.CONFLICT, "J002", "초대 내역이 이미 존재합니다."),
@@ -45,8 +47,11 @@ public enum OrganizationErrorCode implements ErrorCode {
     INVITATION_ALREADY_EXPIRED(HttpStatus.BAD_REQUEST, "J004", "이미 만료된 초대 토큰입니다."),
     INVITATION_INVALID(HttpStatus.BAD_REQUEST, "J005", "유효하지 않거나 이미 처리된 초대입니다."),
 
+    // 부서 에러코드
     DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "부서를 찾을 수 없습니다."),
-    DEPARTMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "D002", "이미 존재하는 부서 입니다.");
+    DEPARTMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "D002", "이미 존재하는 부서 입니다."),
+    MEMBER_DEPARTMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "D003", "해당 조직원은 이미 부서에 속해있습니다."),
+    MEMBER_DEPARTMENT_NOT_IN(HttpStatus.BAD_REQUEST, "D004", "조직원에게 해당 부서가 지정되어 있지 않습니다.");
 
     private final HttpStatus status;
     private final String code;

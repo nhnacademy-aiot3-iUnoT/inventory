@@ -12,7 +12,6 @@ import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.*;
 import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrgDetailResponse;
-import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgDetailResponse;
 import com.nhnacademy.inventory.organizations.organization.exception.AlreadySetupOrganization;
@@ -25,8 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -45,7 +42,7 @@ public class OrganizationService {
      * - OrgStatus = Pending
      */
     @Transactional
-    public OrgCreateResponse createOrganization(OrgCreateRequest orgCreateRequest) {
+    public void createOrganization(OrgCreateRequest orgCreateRequest) {
         // 조직 중복 확인
         if(organizationRepository.existsByBusinessNumber(orgCreateRequest.businessNumber())) {
             throw new OrgAlreadyExistsException();
@@ -60,17 +57,15 @@ public class OrganizationService {
         log.info("조직({}) : {} 생성 완료", createOrg.getBusinessNumber(), createOrg.getName());
 
         invitationService.createInvitation(createOrg, orgCreateRequest.email(), true);
-
-        return OrgCreateResponse.from(createOrg);
     }
 
     /**
-     * (Owner) 조직 초기화
+     * (Boss) 조직 초기화
      * 주소, 상세 설명 입력 -> OrgStatus = Active
      */
     @Transactional
     public void setupOrganization(OrganizationSetupRequest request) {
-        Organization organization = getOrgAfterValidateOwner();
+        Organization organization = getOrgAfterValidateBoss();
 
         if (organization.getStatus() != OrganizationStatus.PENDING) {
             throw new AlreadySetupOrganization();
@@ -93,9 +88,7 @@ public class OrganizationService {
 
         Invitation invitation = invitationRepository.findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId).orElse(null);
 
-        List<OrganizationMember> owners = orgMemberService.getOwners(organizationId);
-
-        return AdminOrgDetailResponse.from(organization, invitation, owners);
+        return AdminOrgDetailResponse.from(organization, invitation);
     }
 
     public OrgDetailResponse getOrganizationForUser() {
@@ -105,11 +98,11 @@ public class OrganizationService {
     }
 
     /**
-     * 조직 수정
+     * 조직 수정 (Boss)
      */
     @Transactional
     public void updateOrganizationStatus(OrgStatusUpdateRequest request) {
-        Organization organization = getOrgAfterValidateOwner();
+        Organization organization = getOrgAfterValidateBoss();
 
         OrganizationStatus previousStatus = organization.getStatus();
 
@@ -120,7 +113,7 @@ public class OrganizationService {
 
     @Transactional
     public void updateOrganization(OrgUpdateRequest request) {
-        Organization organization = getOrgAfterValidateOwner();
+        Organization organization = getOrgAfterValidateBoss();
 
         organization.update(
                 request.roadAddress(),
@@ -140,12 +133,13 @@ public class OrganizationService {
         Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(OrgNotFoundException::new);
 
-        // Owner 조직 생성 전 : hard delete
+        // Boss 조직 생성 전 : hard delete
         if(organization.getStatus() == OrganizationStatus.PENDING) {
             orgDeletionService.deletePendingRelations(organizationId);
             organizationRepository.delete(organization);
             return;
         }
+        // 조직 Active 상태
         orgDeletionService.softDelete(organization);
     }
 
@@ -156,6 +150,34 @@ public class OrganizationService {
         OrganizationMember organizationMember = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
 
         if(organizationMember.getOrganizationRole() != OrganizationRole.ORG_OWNER) {
+            throw new ForbiddenException();
+        }
+
+        return organizationMember.getOrganization();
+    }
+
+    /**
+     * Role : ORG_BOSS 검증 후 조직 반환
+     */
+    public Organization getOrgAfterValidateBoss() {
+        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+
+        if(!member.isBoss()) {
+           throw new ForbiddenException();
+        }
+
+        return member.getOrganization();
+    }
+
+    /**
+     * Role : ORG_OWNER, ORG_BOSS 검증 후 조직 반환
+     */
+    public Organization getOrgAfterValidateOwnerOrBoss() {
+        OrganizationMember organizationMember = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+
+        OrganizationRole role = organizationMember.getOrganizationRole();
+
+        if(role != OrganizationRole.ORG_OWNER && role != OrganizationRole.ORG_BOSS) {
             throw new ForbiddenException();
         }
 

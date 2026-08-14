@@ -45,6 +45,7 @@ public class InvitationService {
      */
     @Transactional
     public Invitation createInvitation(Organization organization, String email, boolean invitedByAdmin) {
+        // 진행중인 초대 내역 존재
         boolean duplicated = invitationRepository.existsActiveInvitation(organization.getId(), email, LocalDateTime.now());
 
         if (duplicated) {
@@ -73,7 +74,7 @@ public class InvitationService {
     }
 
     @Transactional
-    public InvitationSignupResponse signupWithInvitation(InvitationSignupRequest request) {
+    public void signupWithInvitation(InvitationSignupRequest request) {
         Invitation invitation = findInvitation(request.token());
 
         // 초대 토큰 검증
@@ -86,25 +87,23 @@ public class InvitationService {
 
         Organization organization = invitation.getOrganization();
 
-        boolean isOwner = invitation.isInvitedByAdmin();
+        boolean isBoss = invitation.isInvitedByAdmin();
         // 조직원 생성
-        if (isOwner) {
-            orgMemberService.createOwner(organization, request.accountUuid());
+        if (isBoss) {
+            orgMemberService.createUser(organization, request.accountUuid(), OrganizationRole.ORG_BOSS);
         } else {
-            orgMemberService.createMember(organization, request.accountUuid());
+            orgMemberService.createUser(organization, request.accountUuid(), OrganizationRole.ORG_MEMBER);
         }
 
         // 초대 토큰 사용
         invitation.use();
-
-        return new InvitationSignupResponse(isOwner);
     }
 
     @Transactional
     public void compensateSignup(SignupCompensateRequest request) {
         Invitation invitation = findInvitation(request.token());
 
-        orgMemberService.deleteOrganizationMember(request.accountUuid());
+        orgMemberService.compensateMember(request.accountUuid());
 
         invitation.restore();
     }
@@ -199,14 +198,6 @@ public class InvitationService {
         reissue(invitation);
     }
 
-    private void reissue(Invitation oldInvitation) {
-        oldInvitation.reissue();
-
-        Invitation newInvitation = createInvitation(oldInvitation.getOrganization(), oldInvitation.getEmail(), oldInvitation.isInvitedByAdmin());
-
-        log.info("회원({}) 초대 재발급", newInvitation.getEmail());
-    }
-
     /**
      * 토큰으로 초대 내역 찾기
      */
@@ -274,6 +265,14 @@ public class InvitationService {
     private void cancel(Invitation invitation) {
         validateToken(invitation);
         invitation.cancel();
+    }
+
+    private void reissue(Invitation oldInvitation) {
+        oldInvitation.reissue();
+
+        Invitation newInvitation = createInvitation(oldInvitation.getOrganization(), oldInvitation.getEmail(), oldInvitation.isInvitedByAdmin());
+
+        log.info("회원({}) 초대 재발급", newInvitation.getEmail());
     }
 
 }

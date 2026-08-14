@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.member.domain;
 
+import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -8,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -42,25 +45,21 @@ public class OrganizationMember {
         this.organizationRole = organizationRole;
     }
 
-    public static OrganizationMember createMember(Organization organization, UUID accountUuid) {
+    public static OrganizationMember createUser(Organization organization, UUID accountUuid, OrganizationRole role) {
         return OrganizationMember.builder()
                 .organization(organization)
                 .accountUuid(accountUuid)
-                .organizationRole(OrganizationRole.ORG_MEMBER)
-                .build();
-    }
-
-    public static OrganizationMember createOwner(Organization organization, UUID accountUuid) {
-        return OrganizationMember.builder()
-                .organization(organization)
-                .accountUuid(accountUuid)
-                .organizationRole(OrganizationRole.ORG_OWNER)
+                .organizationRole(role)
                 .build();
     }
 
 
     public boolean isOwner() {
         return this.organizationRole == OrganizationRole.ORG_OWNER;
+    }
+
+    public boolean isBoss() {
+        return this.organizationRole == OrganizationRole.ORG_BOSS;
     }
 
     @PrePersist

@@ -61,6 +61,7 @@ class OrganizationServiceTest {
     private InvitationRepository invitationRepository;
 
     private Organization organization;
+    private OrganizationMember boss;
     private OrganizationMember owner;
     private OrganizationMember member;
 
@@ -68,8 +69,8 @@ class OrganizationServiceTest {
     void setUp() {
         organization = TestFixtures.createOrganization("테스트 조직", "1234567890");
 
+        boss = TestFixtures.createOrganizationBoss(organization);
         owner = TestFixtures.createOrganizationOwner(organization);
-
         member = TestFixtures.createOrganizationMember(organization);
     }
 
@@ -87,9 +88,7 @@ class OrganizationServiceTest {
 
             given(organizationRepository.existsByBusinessNumber(anyString())).willReturn(false); // 중복 x
 
-            OrgCreateResponse response = organizationService.createOrganization(request);
-
-            assertEquals("테스트 조직", response.name());
+            organizationService.createOrganization(request);
 
             verify(organizationRepository).save(any(Organization.class));
             verify(invitationService).createInvitation(any(Organization.class), eq("test@test.com"), eq(true));
@@ -116,9 +115,9 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("성공")
         void success() {
-            UserContext.setUserUuid(owner.getAccountUuid());
+            UserContext.setUserUuid(boss.getAccountUuid());
 
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(boss);
 
             OrganizationSetupRequest request = new OrganizationSetupRequest(
                     "12345",
@@ -135,11 +134,11 @@ class OrganizationServiceTest {
         }
 
         @Test
-        @DisplayName("조직 초기화 실패 - OWNER 아님")
+        @DisplayName("조직 초기화 실패 - BOSS 아님")
         void forbidden() {
-            UserContext.setUserUuid(member.getAccountUuid());
+            UserContext.setUserUuid(owner.getAccountUuid());
 
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
 
             OrganizationSetupRequest request = new OrganizationSetupRequest(
                     "12345",
@@ -153,11 +152,11 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("조직 초기화 실패 - PENDING 상태의 조직이 아님")
         void alreadySetup() {
-            UserContext.setUserUuid(owner.getAccountUuid());
+            UserContext.setUserUuid(boss.getAccountUuid());
 
             organization.complete("12345", "광주시 남구", "101호", "조직을 이미 초기화된 상태로 바꾸는 중");
 
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(boss);
 
             OrganizationSetupRequest request = new OrganizationSetupRequest(
                     "12345",
@@ -203,32 +202,25 @@ class OrganizationServiceTest {
         void getOrganizationForAdmin_success() {
             Long organizationId = organization.getId();
 
-            Invitation ownerInvitation = TestFixtures.createInvitationOwner(organization, "owner@test.com");
-            List<OrganizationMember> owners = List.of(owner);
+            Invitation bossInvitation = TestFixtures.createInvitationOwner(organization, "boss@test.com");
 
             given(organizationRepository.findById(organizationId)).willReturn(Optional.of(organization));
             given(invitationRepository.findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId))
-                    .willReturn(Optional.of(ownerInvitation));
-            given(organizationMemberService.getOwners(organizationId)).willReturn(owners);
+                    .willReturn(Optional.of(bossInvitation));
 
             AdminOrgDetailResponse response = organizationService.getOrganizationForAdmin(organizationId);
 
             assertEquals(organization.getName(), response.name());
 
             assertNotNull(response.invitation());
-            assertEquals("owner@test.com", response.invitation().email());
-
-            assertNotNull(response.owners());
-            assertEquals(1, response.owners().size());
-            assertEquals(owner.getAccountUuid(), response.owners().get(0).accountUuid());
+            assertEquals("boss@test.com", response.invitation().email());
 
             verify(organizationRepository).findById(organizationId);
             verify(invitationRepository).findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId);
-            verify(organizationMemberService).getOwners(organizationId);
         }
 
         @Test
-        @DisplayName("관리자 조직 단건 조회 실패")
+        @DisplayName("관리자 조직 단건 조회 실패 - 존재하지 않는 조직")
         void getOrganizationForAdmin_notFound() {
             Long organizationId = 1L;
 
@@ -241,7 +233,7 @@ class OrganizationServiceTest {
         }
 
         @Test
-        @DisplayName("관리자 조직 단건 조회 성공 - Owner 초대 없음")
+        @DisplayName("관리자 조직 단건 조회 성공 - Boss 초대 없음")
         void getOrganizationForAdmin_withoutInvitation() {
             Long organizationId = organization.getId();
 
@@ -249,30 +241,25 @@ class OrganizationServiceTest {
 
             given(invitationRepository.findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId)).willReturn(Optional.empty());
 
-            given(organizationMemberService.getOwners(organizationId)).willReturn(List.of(owner));
-
             AdminOrgDetailResponse response = organizationService.getOrganizationForAdmin(organizationId);
 
             assertNull(response.invitation());
-            assertNotNull(response.owners());
-            assertEquals(1, response.owners().size());
 
             verify(organizationRepository).findById(organizationId);
             verify(invitationRepository).findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(organizationId);
-            verify(organizationMemberService).getOwners(organizationId);
         }
 
         @Test
         @DisplayName("유저 조직 단건 조회 성공")
         void getOrganizationForUser_success() {
-            UserContext.setUserUuid(owner.getAccountUuid());
+            UserContext.setUserUuid(member.getAccountUuid());
 
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
 
             OrgDetailResponse response = organizationService.getOrganizationForUser();
 
             assertEquals(organization.getName(), response.name());
-            verify(organizationMemberService).getCurrentOrganizationMember(owner.getAccountUuid());
+            verify(organizationMemberService).getCurrentOrganizationMember(member.getAccountUuid());
         }
     }
 
@@ -280,9 +267,9 @@ class OrganizationServiceTest {
     @DisplayName("조직 상태 변경")
     class UpdateOrganizationStatusTest {
         @BeforeEach
-        void setUpOwner() {
-            UserContext.setUserUuid(owner.getAccountUuid());
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+        void setUpBoss() {
+            UserContext.setUserUuid(boss.getAccountUuid());
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(boss);
         }
 
         @Test
@@ -316,10 +303,10 @@ class OrganizationServiceTest {
         }
 
         @Test
-        @DisplayName("조직 상태 변경 실패 - OWNER 아님")
+        @DisplayName("조직 상태 변경 실패 - BOSS 아님")
         void updateOrganizationStatus_forbidden() {
-            UserContext.setUserUuid(member.getAccountUuid());
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            UserContext.setUserUuid(owner.getAccountUuid());
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
 
             organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
 
@@ -335,9 +322,9 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("조직 정보 수정 성공")
         void success() {
-            UserContext.setUserUuid(owner.getAccountUuid());
+            UserContext.setUserUuid(boss.getAccountUuid());
 
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(boss);
 
             OrgUpdateRequest request = new OrgUpdateRequest(
                     "도로명주소",
@@ -353,10 +340,10 @@ class OrganizationServiceTest {
         }
 
         @Test
-        @DisplayName("조직 정보 수정 실패 - Owner 아님")
+        @DisplayName("조직 정보 수정 실패 - Boss 아님")
         void forbidden() {
-            UserContext.setUserUuid(member.getAccountUuid());
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            UserContext.setUserUuid(owner.getAccountUuid());
+            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
 
             OrgUpdateRequest request = new OrgUpdateRequest(
                     "도로명주소",

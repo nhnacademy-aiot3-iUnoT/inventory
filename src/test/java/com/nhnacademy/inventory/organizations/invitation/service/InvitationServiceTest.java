@@ -7,11 +7,11 @@ import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSignupRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSearchResponse;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSignupResponse;
 import com.nhnacademy.inventory.organizations.invitation.event.InvitationMailSendEvent;
 import com.nhnacademy.inventory.organizations.invitation.exception.*;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.support.TestFixtures;
@@ -146,7 +146,7 @@ class InvitationServiceTest {
     class SignupWithInvitationTest {
 
         @Test
-        @DisplayName("성공 - OWNER 초대면 Owner로 생성")
+        @DisplayName("성공 - Admin 초대면 Boss로 생성")
         void signupAsOwner() {
             UUID token = invitation.getToken();
             UUID accountUuid = UUID.randomUUID();
@@ -157,11 +157,9 @@ class InvitationServiceTest {
 
             InvitationSignupRequest request = new InvitationSignupRequest(token, "test@test.com", accountUuid);
 
-            InvitationSignupResponse response = invitationService.signupWithInvitation(request);
+            invitationService.signupWithInvitation(request);
 
-            assertTrue(response.isOwner());
-
-            verify(organizationMemberService).createOwner(organization, accountUuid);
+            verify(organizationMemberService).createUser(organization, accountUuid, OrganizationRole.ORG_BOSS);
 
             assertEquals(InvitationStatus.USED, invitation.getInvitationStatus());
 
@@ -169,7 +167,7 @@ class InvitationServiceTest {
         }
 
         @Test
-        @DisplayName("성공 - MEMBER 초대면 Member로 생성")
+        @DisplayName("성공 - Boss/Owner 초대면 Member로 생성")
         void signupAsMember() {
             Invitation memberInvitation = TestFixtures.createInvitationMember(organization, "test@test.com");
             UUID token = memberInvitation.getToken();
@@ -185,12 +183,10 @@ class InvitationServiceTest {
                     accountUuid
             );
 
-            InvitationSignupResponse response = invitationService.signupWithInvitation(request);
+            invitationService.signupWithInvitation(request);
 
-            assertFalse(response.isOwner());
-
-            verify(organizationMemberService).createMember(organization, accountUuid);
-            verify(organizationMemberService, never()).createOwner(any(), any());
+            verify(organizationMemberService).createUser(organization, accountUuid, OrganizationRole.ORG_MEMBER);
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_OWNER));
 
             assertEquals(InvitationStatus.USED, memberInvitation.getInvitationStatus());
 
@@ -215,8 +211,8 @@ class InvitationServiceTest {
 
             assertThrows(InvitationEmailMismatchException.class, () -> invitationService.signupWithInvitation(request));
 
-            verify(organizationMemberService, never()).createOwner(any(), any());
-            verify(organizationMemberService, never()).createMember(any(), any());
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_BOSS));
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_MEMBER));
 
             assertEquals(InvitationStatus.ACTIVE, invitation.getInvitationStatus());
 
@@ -241,8 +237,8 @@ class InvitationServiceTest {
 
             assertThrows(InvitationExpiredException.class, () -> invitationService.signupWithInvitation(request));
 
-            verify(organizationMemberService, never()).createOwner(any(), any());
-            verify(organizationMemberService, never()).createMember(any(), any());
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_BOSS));
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_MEMBER));
 
             assertEquals(InvitationStatus.ACTIVE, invitation.getInvitationStatus());
 

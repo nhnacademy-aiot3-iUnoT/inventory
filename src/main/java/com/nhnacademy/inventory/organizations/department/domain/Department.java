@@ -46,12 +46,6 @@ public class Department {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "department", cascade = CascadeType.REMOVE)
-    private List<MemberDepartment> memberDepartments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "department", cascade = CascadeType.REMOVE)
-    private List<StorageDepartment> storageDepartments = new ArrayList<>();
-
     @Builder(access = AccessLevel.PRIVATE)
     private Department(Organization organization, String name, String description, DepartmentStatus status) {
         this.organization = organization;

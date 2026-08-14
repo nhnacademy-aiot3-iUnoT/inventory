@@ -11,6 +11,7 @@ import com.nhnacademy.inventory.organizations.department.dto.response.Department
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentNotFoundException;
 import com.nhnacademy.inventory.organizations.department.service.DepartmentService;
+import com.nhnacademy.inventory.organizations.department.service.MemberDepartmentService;
 import com.nhnacademy.inventory.support.RestDocsUtils;
 import com.nhnacademy.inventory.support.SupportControllerTest;
 import org.junit.jupiter.api.DisplayName;
@@ -42,8 +43,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DepartmentControllerTest extends SupportControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
+
     @MockitoBean
     private DepartmentService departmentService;
+
+    @MockitoBean
+    private MemberDepartmentService memberDepartmentService;
 
     @Nested
     @DisplayName("부서 생성 POST /api/core/departments")
@@ -124,7 +129,7 @@ class DepartmentControllerTest extends SupportControllerTest {
     }
 
     @Nested
-    @DisplayName("부서 목록 조회 GET /api/core/departments")
+    @DisplayName("전체 부서 목록 조회 GET /api/core/departments")
     class getDepartments {
         @Test
         @DisplayName("성공")
@@ -164,6 +169,53 @@ class DepartmentControllerTest extends SupportControllerTest {
             given(departmentService.getDepartments()).willReturn(List.of());
 
             mockMvc.perform(get("/api/core/departments"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(0));
+        }
+    }
+
+    @Nested
+    @DisplayName("본인 부서 목록 조회 GET /api/core/departments/me")
+    class getMyDepartments {
+        @Test
+        @DisplayName("성공")
+        void success() throws Exception {
+            List<DepartmentListResponse> responses = List.of(
+                    new DepartmentListResponse(1L, "이비인후과", DepartmentStatus.ACTIVE),
+                    new DepartmentListResponse(2L, "정형외과", DepartmentStatus.INACTIVE));
+
+            given(memberDepartmentService.getMyDepartments()).willReturn(responses);
+
+            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
+
+            responseFields.addAll(
+                    List.of(
+                            fieldWithPath("data[].id").type(NUMBER).description("부서 ID"),
+                            fieldWithPath("data[].name").type(STRING).description("부서 이름"),
+                            fieldWithPath("data[].status").type(STRING).description("부서 상태")
+                    )
+            );
+
+            mockMvc.perform(get("/api/core/departments/me"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(2))
+                    .andExpect(jsonPath("$.data[0].id").value(1))
+                    .andExpect(jsonPath("$.data[0].name").value("이비인후과"))
+                    .andExpect(jsonPath("$.data[0].status").value("ACTIVE"))
+                    .andDo(document("my-department-list",
+                            responseFields(responseFields)));
+
+            verify(memberDepartmentService).getMyDepartments();
+        }
+
+        @Test
+        @DisplayName("성공 - 조회 결과 없음")
+        void empty() throws Exception {
+            given(memberDepartmentService.getMyDepartments()).willReturn(List.of());
+
+            mockMvc.perform(get("/api/core/departments/me"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(0));
@@ -216,26 +268,15 @@ class DepartmentControllerTest extends SupportControllerTest {
         @DisplayName("성공")
         void success() throws Exception {
             DepartmentStatusUpdateRequest request = new DepartmentStatusUpdateRequest(DepartmentStatus.INACTIVE);
-            DepartmentInfoResponse response = new DepartmentInfoResponse(
-                    1L, "이비인후과",
-                    "부서 설명", DepartmentStatus.INACTIVE, LocalDateTime.now()
-            );
-
-            given(departmentService.updateDepartmentStatus(request, 1L)).willReturn(response);
-
-            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(departmentInfoResponseFields());
 
             mockMvc.perform(put("/api/core/departments/{department-id}/status", 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.status").value("INACTIVE"))
+                    .andExpect(status().isNoContent())
                     .andDo(document("department-status-update",
                             pathParameters(parameterWithName("department-id").description("부서 ID")),
-                            requestFields(fieldWithPath("status").type(STRING).description("부서 상태")),
-                            responseFields(responseFields)));
+                            requestFields(fieldWithPath("status").type(STRING).description("부서 상태"))
+                    ));
 
             verify(departmentService).updateDepartmentStatus(request, 1L);
         }
@@ -288,28 +329,17 @@ class DepartmentControllerTest extends SupportControllerTest {
         @DisplayName("성공")
         void success() throws Exception {
             DepartmentUpdateRequest request = new DepartmentUpdateRequest("정형외과", "기획 부서");
-            DepartmentInfoResponse response = new DepartmentInfoResponse(
-                    1L, "정형외과",
-                    "부서 설명", DepartmentStatus.INACTIVE, LocalDateTime.now()
-            );
-
-            given(departmentService.updateDepartment(request, 1L)).willReturn(response);
-
-            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(departmentInfoResponseFields());
 
             mockMvc.perform(put("/api/core/departments/{department-id}", 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.name").value("정형외과"))
+                    .andExpect(status().isNoContent())
                     .andDo(document("department-update",
                             pathParameters(parameterWithName("department-id").description("부서 ID")),
                             requestFields(
                                     fieldWithPath("name").type(STRING).description("부서 이름"),
-                                    fieldWithPath("description").type(STRING).description("부서 설명").optional()),
-                            responseFields(responseFields)));
+                                    fieldWithPath("description").type(STRING).description("부서 설명").optional())
+                            ));
 
             verify(departmentService).updateDepartment(request, 1L);
         }

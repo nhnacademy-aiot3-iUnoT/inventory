@@ -4,7 +4,6 @@ import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,7 +16,9 @@ public interface InvitationRepository extends JpaRepository<Invitation, Long>, I
                 delete from Invitation i
                 where i.organization.id = :organizationId
             """)
-    void deleteByOrganizationId(@Param("organizationId") Long organizationId);
+    void deleteByOrganizationId(Long organizationId);
+
+    void deleteByOrganizationIdAndEmail(Long organizationId, String email);
 
     Optional<Invitation> findFirstByOrganizationIdAndInvitedByAdminTrueOrderByCreatedAtDesc(Long organizationId);
 

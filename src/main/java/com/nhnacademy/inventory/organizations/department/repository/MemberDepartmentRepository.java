@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface MemberDepartmentRepository extends JpaRepository<MemberDepartment, Long> {
 
     @Modifying
@@ -13,4 +16,12 @@ public interface MemberDepartmentRepository extends JpaRepository<MemberDepartme
         where md.organizationMember.organization.id = :organizationId
     """)
     void deleteByOrganizationId(Long organizationId);
+
+    void deleteByOrganizationMemberId(Long organizationMemberId);
+
+    List<MemberDepartment> findAllByOrganizationMemberId(Long organizationMemberId);
+
+    boolean existsByOrganizationMemberIdAndDepartmentId(Long orgMemberId, Long departmentId);
+
+    Optional<MemberDepartment> findByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 }

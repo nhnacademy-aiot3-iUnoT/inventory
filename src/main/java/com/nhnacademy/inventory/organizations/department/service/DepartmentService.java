@@ -1,8 +1,8 @@
 package com.nhnacademy.inventory.organizations.department.service;
 
-import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.department.domain.Department;
+import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentCreateRequest;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentStatusUpdateRequest;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentUpdateRequest;
@@ -15,12 +15,14 @@ import com.nhnacademy.inventory.organizations.department.repository.DepartmentRe
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -28,17 +30,14 @@ public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final OrganizationMemberService orgMemberService;
+    private final OrganizationService organizationService;
 
     /**
      * 생성
      */
     @Transactional
     public DepartmentCreateResponse createDepartment(DepartmentCreateRequest request) {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
-
-        checkOwner(member);
-
-        Organization organization = member.getOrganization();
+        Organization organization = organizationService.getOrgAfterValidateOwnerOrBoss();
 
         if(departmentRepository.existsByOrganizationIdAndName(organization.getId(), request.name())) {
             throw new DepartmentAlreadyExistsException();
@@ -48,6 +47,7 @@ public class DepartmentService {
 
         Department savedDepartment = departmentRepository.save(department);
 
+        log.info("부서({}) : {} 생성", savedDepartment.getId(), savedDepartment.getName());
         return DepartmentCreateResponse.from(savedDepartment);
     }
 
@@ -69,14 +69,14 @@ public class DepartmentService {
     public DepartmentInfoResponse getDepartment(Long departmentId) {
         OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
 
-        Organization organization = member.getOrganization();
-
-        Department department = departmentRepository.findByIdAndOrganizationId(
-                        departmentId,
-                        organization.getId()
-        ).orElseThrow(DepartmentNotFoundException::new);
+        Department department = getDepartmentById(departmentId, member.getOrganization().getId());
 
         return DepartmentInfoResponse.from(department);
+    }
+
+    public Department getDepartmentById(Long departmentId, Long organizationId) {
+        return departmentRepository.findByIdAndOrganizationId(departmentId, organizationId)
+                .orElseThrow(DepartmentNotFoundException::new);
     }
 
     /**
@@ -84,16 +84,10 @@ public class DepartmentService {
      */
     @Transactional
     public DepartmentInfoResponse updateDepartmentStatus(DepartmentStatusUpdateRequest request, Long departmentId) {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+        Organization organization = organizationService.getOrgAfterValidateOwnerOrBoss();
 
-        checkOwner(member);
-
-        Organization organization = member.getOrganization();
-
-        Department department = departmentRepository.findByIdAndOrganizationId(
-                        departmentId,
-                        organization.getId()
-                ).orElseThrow(DepartmentNotFoundException::new);
+        Department department = departmentRepository.findByIdAndOrganizationId(departmentId, organization.getId())
+                .orElseThrow(DepartmentNotFoundException::new);
 
         department.updateStatus(request.status());
 
@@ -102,16 +96,10 @@ public class DepartmentService {
 
     @Transactional
     public DepartmentInfoResponse updateDepartment(DepartmentUpdateRequest request, Long departmentId) {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+        Organization organization = organizationService.getOrgAfterValidateOwnerOrBoss();
 
-        checkOwner(member);
-
-        Organization organization = member.getOrganization();
-
-        Department department = departmentRepository.findByIdAndOrganizationId(
-                        departmentId,
-                        organization.getId()
-        ).orElseThrow(DepartmentNotFoundException::new);
+        Department department = departmentRepository.findByIdAndOrganizationId(departmentId, organization.getId())
+                .orElseThrow(DepartmentNotFoundException::new);
 
         if(departmentRepository.existsByOrganizationIdAndNameAndIdNot(organization.getId(), request.name(), departmentId)) {
             throw new DepartmentAlreadyExistsException();
@@ -127,27 +115,11 @@ public class DepartmentService {
      */
     @Transactional
     public void deleteDepartment(Long departmentId) {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+        Organization organization = organizationService.getOrgAfterValidateOwnerOrBoss();
 
-        checkOwner(member);
-
-        Organization organization = member.getOrganization();
-
-        Department department = departmentRepository.findByIdAndOrganizationId(
-                        departmentId,
-                        organization.getId()
-        ).orElseThrow(DepartmentNotFoundException::new);
+        Department department = departmentRepository.findByIdAndOrganizationId(departmentId, organization.getId())
+                .orElseThrow(DepartmentNotFoundException::new);
 
         departmentRepository.delete(department);
     }
-
-    /**
-     * OWNER 권한 확인
-     */
-    private void checkOwner(OrganizationMember member) {
-        if (!member.isOwner()) {
-            throw new ForbiddenException();
-        }
-    }
-
 }

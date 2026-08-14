@@ -20,5 +20,21 @@ public interface OrganizationMemberRepository extends JpaRepository<Organization
     """)
     void deleteByOrganizationId(Long organizationId);
 
-    List<OrganizationMember> findByOrganizationIdAndOrganizationRole(Long organizationId, OrganizationRole organizationRole);
+    List<OrganizationMember> findAllByOrganizationId(Long organizationId);
+
+    Optional<OrganizationMember> findByAccountUuidAndOrganizationId(UUID accountUuid, Long organizationId);
+
+    Optional<OrganizationMember> findByIdAndOrganizationId(Long memberId, Long organizationId);
+
+    @Query("""
+        select om
+        from OrganizationMember om
+        where om.organization.id = :organizationId
+        and not exists (
+            select md
+            from MemberDepartment md
+            where md.organizationMember.id = om.id
+        )
+    """)
+    List<OrganizationMember> findAllWithoutDepartment(Long organizationId);
 }

@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.organizations.department.repository.DepartmentRe
 import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
 import com.nhnacademy.inventory.organizations.department.repository.StorageDepartmentRepository;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
@@ -41,11 +42,21 @@ public class OrganizationDeletionService {
         invitationRepository.deleteByOrganizationId(id);
 
         organization.suspended();
+
+        // TODO Account에 멤버 탈퇴 요청 ?
     }
 
     public void deletePendingRelations(Long organizationId) {
         orgMemberRepository.deleteByOrganizationId(organizationId);
 
         invitationRepository.deleteByOrganizationId(organizationId);
+    }
+
+    public void deleteMember(OrganizationMember member) {
+        String email = "임시"; // TODO Account에 회원 삭제 요청 후 받아오기
+
+        orgMemberRepository.delete(member);
+        invitationRepository.deleteByOrganizationIdAndEmail(member.getOrganization().getId(), email);
+        memberDepartmentRepository.deleteByOrganizationMemberId(member.getId());
     }
 }
