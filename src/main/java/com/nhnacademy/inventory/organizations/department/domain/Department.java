@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "departments",
@@ -44,12 +46,36 @@ public class Department {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Builder
+    @OneToMany(mappedBy = "department", cascade = CascadeType.REMOVE)
+    private List<MemberDepartment> memberDepartments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "department", cascade = CascadeType.REMOVE)
+    private List<StorageDepartment> storageDepartments = new ArrayList<>();
+
+    @Builder(access = AccessLevel.PRIVATE)
     private Department(Organization organization, String name, String description, DepartmentStatus status) {
         this.organization = organization;
         this.name = name;
         this.description = description;
         this.status = status;
+    }
+
+    public static Department create(Organization organization, String name, String description) {
+        return Department.builder()
+                .organization(organization)
+                .name(name)
+                .description(description)
+                .status(DepartmentStatus.ACTIVE)
+                .build();
+    }
+
+    public void updateStatus(DepartmentStatus status) {
+        this.status = status;
+    }
+
+    public void update(String name, String description) {
+        this.name = name;
+        this.description = description;
     }
 
     @PrePersist

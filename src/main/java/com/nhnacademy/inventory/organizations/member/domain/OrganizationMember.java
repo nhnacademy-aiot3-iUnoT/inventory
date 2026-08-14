@@ -59,6 +59,10 @@ public class OrganizationMember {
     }
 
 
+    public boolean isOwner() {
+        return this.organizationRole == OrganizationRole.ORG_OWNER;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.joinedAt = LocalDateTime.now();

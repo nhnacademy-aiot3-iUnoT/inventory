@@ -43,7 +43,10 @@ public enum OrganizationErrorCode implements ErrorCode {
     INVITATION_ALREADY_EXISTS(HttpStatus.CONFLICT, "J002", "초대 내역이 이미 존재합니다."),
     INVITATION_EMAIL_MIS_MISMATCH(HttpStatus.BAD_REQUEST, "J003", "입력하신 이메일과 초대 받은 이메일이 일치하지 않습니다."),
     INVITATION_ALREADY_EXPIRED(HttpStatus.BAD_REQUEST, "J004", "이미 만료된 초대 토큰입니다."),
-    INVITATION_INVALID(HttpStatus.BAD_REQUEST, "J005", "유효하지 않거나 이미 처리된 초대입니다.");
+    INVITATION_INVALID(HttpStatus.BAD_REQUEST, "J005", "유효하지 않거나 이미 처리된 초대입니다."),
+
+    DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "부서를 찾을 수 없습니다."),
+    DEPARTMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "D002", "이미 존재하는 부서 입니다.");
 
     private final HttpStatus status;
     private final String code;
