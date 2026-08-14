@@ -6,7 +6,7 @@ import com.nhnacademy.inventory.medicines.medicine.domain.SearchType;
 
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageSearchResponse;
-import com.nhnacademy.inventory.medicines.medicine.dto.MedicineSearchRequest;
+import com.nhnacademy.inventory.medicines.medicine.dto.request.MedicineSearchRequest;
 import com.nhnacademy.inventory.medicines.medicine.exception.*;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,19 +28,18 @@ public class MedicineSearchService {
 
     // 의약품 정보 검색
     @Transactional(readOnly = true)
-    public Page<MedicinePackageSearchResponse> searchMedicines(MedicineSearchRequest request, Pageable pageable){
+    public Page<MedicinePackageSearchResponse> getMedicines(MedicineSearchRequest request, Pageable pageable){
 
         log.info("==== 의약품 정보 검색 시작 ====");
 
-
-
         String trimmed = request.search().trim();
+
         Page<MedicinePackageSearchResponse> searchResponse;
 
         if(request.searchType() == SearchType.PRODUCT_NAME){
 
             searchResponse = packageUnitRepository.findAllWithMedicineByProductName(trimmed,pageable);
-            log.info("product name : {} , searchResponse : {}",trimmed,searchResponse);
+            log.info("product name : {} , searchResponse : {}",trimmed,searchResponse.getContent());
 
         }
 
@@ -50,8 +49,9 @@ public class MedicineSearchService {
                 throw new ItemCodeInvalidException();
             }
 
+            // 빈 리스트 반환
             searchResponse = packageUnitRepository.findAllWithMedicineByItemCode(trimmed,pageable);
-            log.info("item code : {} , searchResponse : {}",request.search(),searchResponse);
+            log.info("item code : {} , searchResponse : {}",request.search(),searchResponse.getContent());
 
         }
 
@@ -70,7 +70,7 @@ public class MedicineSearchService {
 
         MedicinePackageDetailResponse detailResponse = packageUnitRepository.
                 findDetailMedicine(medicinePackageUnitId)
-                .orElseThrow(MedicineNotFoundException::new);
+                .orElseThrow(PackUnitNotFoundException::new);
 
         log.info("detail response: {}", detailResponse);
 

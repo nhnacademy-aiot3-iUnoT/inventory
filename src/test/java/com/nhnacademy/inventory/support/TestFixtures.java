@@ -89,12 +89,17 @@ public class TestFixtures {
     }
 
     public static Medicine createMedicine(String itemCode, String productName) {
-        return Medicine.builder()
-                .itemCode(itemCode)
-                .productName(productName)
-                .storageMethod("실온보관")
-                .companyName("한국얀센")
-                .build();
+        return Medicine.create(
+                itemCode,
+                productName,
+                        "실온보관",
+                        "한국얀센",
+                null,
+                        "company"
+
+
+                );
+
     }
 
     public static MedicinePackageUnit createPackageUnit(Medicine medicine) {

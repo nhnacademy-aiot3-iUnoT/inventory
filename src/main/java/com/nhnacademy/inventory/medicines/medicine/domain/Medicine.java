@@ -1,7 +1,6 @@
 package com.nhnacademy.inventory.medicines.medicine.domain;
 
-
-import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
+import com.nhnacademy.inventory.medicines.medicine.dto.MedicineResponse;
 import com.nhnacademy.inventory.medicines.medicine.exception.CompanyNameRequiredException;
 import com.nhnacademy.inventory.medicines.medicine.exception.ItemCodeRequiredException;
 import com.nhnacademy.inventory.medicines.medicine.exception.ProductNameRequiredException;
@@ -49,7 +48,7 @@ public class Medicine {
     private LocalDateTime updatedAt;
 
 
-    @Builder
+    @Builder(access = AccessLevel.PRIVATE)
     private Medicine(String itemCode, String productName, String storageMethod, String validityPeriod,
                      String narcoticKindCode,
                      String companyName) {
@@ -83,19 +82,22 @@ public class Medicine {
         this.updatedAt = LocalDateTime.now();
     }
 
-//    public static Medicine create(String itemCode, String productName, String storageMethod, String validityPeriod,
-//                         String ingredientContent, String narcoticKindCode,
-//                         String companyName){
-//
-//        return new Medicine(
-//                itemCode,
-//                productName,
-//                storageMethod,
-//                validityPeriod,
-//                ingredientContent,
-//                narcoticKindCode,
-//                companyName);
-//    }
-
+    public static Medicine create(
+            String itemCode,
+            String productName,
+            String storageMethod,
+            String validityPeriod,
+            String narcoticKindCode,
+            String companyName
+    ) {
+        return Medicine.builder()
+                .itemCode(itemCode)
+                .productName(productName)
+                .storageMethod(storageMethod)
+                .validityPeriod(validityPeriod)
+                .narcoticKindCode(narcoticKindCode)
+                .companyName(companyName)
+                .build();
+    }
 
 }

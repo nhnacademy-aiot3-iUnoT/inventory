@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.medicines.enviroment.domain;
 
 import com.nhnacademy.inventory.medicines.enviroment.exception.EnvironmentRangeInvalidException;
+import com.nhnacademy.inventory.medicines.enviroment.exception.EnvironmentRangeRequiredException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -50,7 +51,14 @@ public class MedicineEnvironmentType {
                                     EnvironmentType environmentType, BigDecimal min, BigDecimal max) {
 
 
-        validateRange(min,max);
+        if(min == null || max == null){
+            throw new EnvironmentRangeRequiredException();
+        }
+
+        if(min.compareTo(max) >= 0){
+            throw new EnvironmentRangeInvalidException();
+
+        }
 
         this.medicineEnvironmentStandard = medicineEnvironmentStandard;
         this.environmentType = environmentType;
@@ -67,16 +75,6 @@ public class MedicineEnvironmentType {
         return new MedicineEnvironmentType(medicineEnvironmentStandard,environmentType,min,max);
 
     }
-
-    private static void validateRange(BigDecimal min, BigDecimal max){
-
-        if(min.compareTo(max) >= 0){
-            throw new EnvironmentRangeInvalidException();
-
-        }
-
-    }
-
 
 
 

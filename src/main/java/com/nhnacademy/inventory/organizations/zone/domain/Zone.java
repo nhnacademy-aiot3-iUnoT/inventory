@@ -45,7 +45,7 @@ public class Zone {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Builder
+    @Builder()
     private Zone(Storage storage, String name, String description, ZoneStatus status, EnvStatus envStatus) {
         this.storage = storage;
         this.name = name;
@@ -86,6 +86,10 @@ public class Zone {
             throw new ZoneNotAvailableException();
         }
     }
+
+
+
+
 
 
 }

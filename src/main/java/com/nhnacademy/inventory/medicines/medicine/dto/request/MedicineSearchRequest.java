@@ -1,4 +1,4 @@
-package com.nhnacademy.inventory.medicines.medicine.dto;
+package com.nhnacademy.inventory.medicines.medicine.dto.request;
 
 import com.nhnacademy.inventory.medicines.medicine.domain.SearchType;
 import jakarta.validation.constraints.NotBlank;
