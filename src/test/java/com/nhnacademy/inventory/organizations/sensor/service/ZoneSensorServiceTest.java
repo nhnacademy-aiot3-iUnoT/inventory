@@ -75,7 +75,7 @@ class ZoneSensorServiceTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "생성 테스트 디바이스", "생성 센서 이름", "테스트 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.existsByDeviceEui(request.deviceEui()))
                     .willReturn(false);
@@ -101,7 +101,7 @@ class ZoneSensorServiceTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "생성 테스트 디바이스", "생성 센서 이름", "테스트 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -120,7 +120,7 @@ class ZoneSensorServiceTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "생성 테스트 디바이스", "생성 센서 이름", "테스트 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.existsByDeviceEui(request.deviceEui()))
                     .willReturn(true);
@@ -224,7 +224,7 @@ class ZoneSensorServiceTest {
         void success() {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 센서 이름", "수정된 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.of(zoneSensor));
@@ -248,7 +248,7 @@ class ZoneSensorServiceTest {
         void fail_Forbidden() {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 센서 이름", "수정된 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -261,7 +261,7 @@ class ZoneSensorServiceTest {
         void fail_NotFound() {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 센서 이름", "수정된 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.empty());
@@ -279,7 +279,7 @@ class ZoneSensorServiceTest {
         @Test
         @DisplayName("성공 테스트")
         void success() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.of(zoneSensor));
@@ -292,7 +292,7 @@ class ZoneSensorServiceTest {
         @Test
         @DisplayName("실패 - 권한없음")
         void fail_Forbidden() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -303,7 +303,7 @@ class ZoneSensorServiceTest {
         @Test
         @DisplayName("실패 - 존재하지 않는 센서")
         void fail_NotFound() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.empty());

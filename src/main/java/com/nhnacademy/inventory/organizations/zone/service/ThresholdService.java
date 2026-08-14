@@ -18,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -36,7 +34,7 @@ public class ThresholdService {
     public ThresholdInfoResponse saveThreshold(Long zoneId, ThresholdSaveRequest request){
         validateRange(request.minValue(), request.maxValue());
 
-        Zone zone = zoneService.validateMemberAndGetZone(zoneId);
+        Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
 
         SensorType sensorType = sensorTypeRepository.findById(request.sensorTypeId())
                 .orElseThrow(SensorTypeNotFoundException::new);
@@ -69,6 +67,12 @@ public class ThresholdService {
                 .toList();
     }
 
+    public ThresholdInfoResponse getThreshold(Long zoneId, Long thresholdId){
+        ZoneThreshold threshold = findByIdAndValidateMember(zoneId, thresholdId);
+
+        return ThresholdInfoResponse.from(threshold);
+    }
+
     public List<ThresholdSpecResponse> internalGetThresholds(Long zoneId){
         List<ZoneThreshold> zoneThreshold = thresholdRepository.findAllByZoneId(zoneId);
 
@@ -79,12 +83,19 @@ public class ThresholdService {
 
     @Transactional
     public void deleteThreshold(Long zoneId, Long thresholdId){
-        ZoneThreshold threshold = findByIdAndValidate(zoneId, thresholdId);
+        ZoneThreshold threshold = findByIdAndValidateOwner(zoneId, thresholdId);
 
         thresholdRepository.delete(threshold);
     }
 
-    private ZoneThreshold findByIdAndValidate(Long zoneId, Long thresholdId){
+    private ZoneThreshold findByIdAndValidateOwner(Long zoneId, Long thresholdId){
+        Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
+
+        return thresholdRepository.findByZoneThresholdIdAndZone(thresholdId, zone)
+                .orElseThrow(ThresholdNotFoundException::new);
+    }
+
+    private ZoneThreshold findByIdAndValidateMember(Long zoneId, Long thresholdId){
         Zone zone = zoneService.validateMemberAndGetZone(zoneId);
 
         return thresholdRepository.findByZoneThresholdIdAndZone(thresholdId, zone)

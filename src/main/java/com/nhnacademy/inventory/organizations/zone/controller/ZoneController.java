@@ -40,6 +40,16 @@ public class ZoneController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
+    @GetMapping("/storages/{storage-id}/zones/{zone-id}")
+    public ResponseEntity<ApiResponse<ZoneInfoResponse>> getZone(
+            @PathVariable(name = "storage-id") Long storageId,
+            @PathVariable(name = "zone-id") Long zoneId
+    ){
+        ZoneInfoResponse response = zoneService.getZone(storageId, zoneId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PutMapping("/storages/{storage-id}/zones/{zone-id}")
     public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneInfo(
             @PathVariable(name = "storage-id") Long storageId,

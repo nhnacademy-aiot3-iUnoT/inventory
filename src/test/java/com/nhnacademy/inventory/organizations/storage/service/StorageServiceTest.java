@@ -71,7 +71,6 @@ class StorageServiceTest {
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
         StorageInfoResponse response = storageService.createStorage(
-                organization.getId(),
                 request
         );
 
@@ -97,7 +96,7 @@ class StorageServiceTest {
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
         List<StorageInfoResponse> responses = storageService
-                .getStorages(organization.getId());
+                .getStorages();
 
         assertAll(
                 () -> assertEquals(1, responses.size()),
@@ -123,7 +122,7 @@ class StorageServiceTest {
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
         StorageInfoResponse response = storageService.updateStorage(
-                organization.getId(), storage.getId(), request
+                storage.getId(), request
         );
 
         assertAll(
@@ -149,7 +148,7 @@ class StorageServiceTest {
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
         StorageInfoResponse response = storageService.updateStorageStatus(
-                organization.getId(), storage.getId(), request
+                storage.getId(), request
         );
 
         assertAll(
@@ -171,7 +170,7 @@ class StorageServiceTest {
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-        storageService.closeStorage(organization.getId(), storage.getId());
+        storageService.closeStorage(storage.getId());
 
         assertEquals(StorageStatus.CLOSED, storage.getStatus());
 

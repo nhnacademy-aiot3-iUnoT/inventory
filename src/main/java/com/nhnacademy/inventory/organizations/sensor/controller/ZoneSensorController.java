@@ -41,6 +41,16 @@ public class ZoneSensorController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
+    @GetMapping("/zones/{zone-id}/zone-sensors/{zone-sensor-id}")
+    public ResponseEntity<ApiResponse<ZoneSensorInfoResponse>> getZoneSensor(
+            @PathVariable(name = "zone-id") Long zoneId,
+            @PathVariable(name = "zone-sensor-id") Long zoneSensorId
+    ){
+        ZoneSensorInfoResponse response = zoneSensorService.getZoneSensor(zoneId, zoneSensorId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PutMapping("/zones/{zone-id}/zone-sensors/{zone-sensor-id}")
     public ResponseEntity<ApiResponse<ZoneSensorInfoResponse>> updateZoneSensorInfo(
             @PathVariable(name = "zone-id") Long zoneId,

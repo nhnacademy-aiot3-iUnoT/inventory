@@ -32,8 +32,8 @@ public class StorageService {
     private final OrganizationMemberRepository memberRepository;
 
     @Transactional
-    public StorageInfoResponse createStorage(Long organizationId, StorageCreateRequest request){
-        Organization organization = validateOrganizationOwner(organizationId);
+    public StorageInfoResponse createStorage(StorageCreateRequest request){
+        Organization organization = validateOrganizationOwner();
 
         validateDuplicateStorageName(organization, request.name());
 
@@ -48,8 +48,8 @@ public class StorageService {
         return StorageInfoResponse.from(saved);
     }
 
-    public List<StorageInfoResponse> getStorages(Long organizationId){
-        Organization organization = validateOrganizationMember(organizationId);
+    public List<StorageInfoResponse> getStorages(){
+        Organization organization = validateOrganizationMember();
 
         List<Storage> storages = storageRepository.findAllByOrganizationAndStatusNot(organization, StorageStatus.CLOSED);
 
@@ -58,9 +58,15 @@ public class StorageService {
                 .toList();
     }
 
+    public StorageInfoResponse getStorage(Long storageId){
+        Storage storage = findByIdAndValidateMember(storageId);
+
+        return StorageInfoResponse.from(storage);
+    }
+
     @Transactional
-    public StorageInfoResponse updateStorage(Long organizationId, Long storageId, StorageUpdateRequest request){
-        Storage storage = findByIdAndValidateOwner(organizationId, storageId);
+    public StorageInfoResponse updateStorage(Long storageId, StorageUpdateRequest request){
+        Storage storage = findByIdAndValidateOwner(storageId);
 
         validateDuplicateStorageName(storage.getOrganization(), request.name(), storage.getId());
 
@@ -70,8 +76,8 @@ public class StorageService {
     }
 
     @Transactional
-    public StorageInfoResponse updateStorageStatus(Long organizationId, Long storageId, StorageStatusUpdateRequest request){
-        Storage storage = findByIdAndValidateOwner(organizationId, storageId);
+    public StorageInfoResponse updateStorageStatus(Long storageId, StorageStatusUpdateRequest request){
+        Storage storage = findByIdAndValidateOwner(storageId);
 
         storage.changeStatus(request.status());
 
@@ -79,8 +85,8 @@ public class StorageService {
     }
 
     @Transactional
-    public void closeStorage(Long organizationId, Long storageId){
-        Storage storage = findByIdAndValidateOwner(organizationId, storageId);
+    public void closeStorage(Long storageId){
+        Storage storage = findByIdAndValidateOwner(storageId);
 
         storage.close();
     }
@@ -114,31 +120,33 @@ public class StorageService {
         return storage;
     }
 
-    private Organization validateOrganizationMember(Long organizationId){
+    private Organization validateOrganizationMember(){
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        if(!Objects.equals(member.getOrganization().getId(), organizationId)){
+        return member.getOrganization();
+    }
+
+    private Organization validateOrganizationOwner(){
+        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
+                .orElseThrow(ForbiddenException::new);
+
+        if(member.getOrganizationRole() != OrganizationRole.ORG_OWNER){
             throw new ForbiddenException();
         }
 
         return member.getOrganization();
     }
 
-    private Organization validateOrganizationOwner(Long organizationId){
-        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
-                .orElseThrow(ForbiddenException::new);
+    private Storage findByIdAndValidateOwner(Long storageId){
+        Organization organization = validateOrganizationOwner();
 
-        if(!Objects.equals(member.getOrganization().getId(), organizationId) ||
-            member.getOrganizationRole() != OrganizationRole.ORG_OWNER){
-            throw new ForbiddenException();
-        }
-
-        return member.getOrganization();
+        return storageRepository.findByIdAndOrganization(storageId, organization)
+                .orElseThrow(StorageNotFoundException::new);
     }
 
-    private Storage findByIdAndValidateOwner(Long organizationId, Long storageId){
-        Organization organization = validateOrganizationOwner(organizationId);
+    private Storage findByIdAndValidateMember(Long storageId){
+        Organization organization = validateOrganizationMember();
 
         return storageRepository.findByIdAndOrganization(storageId, organization)
                 .orElseThrow(StorageNotFoundException::new);

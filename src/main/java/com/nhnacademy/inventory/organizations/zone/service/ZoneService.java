@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.zone.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
@@ -57,6 +58,12 @@ public class ZoneService {
         return zones.stream()
                 .map(ZoneInfoResponse::from)
                 .toList();
+    }
+
+    public ZoneInfoResponse getZone(Long storageId, Long zoneId){
+        Zone zone = findByIdAndValidateMember(storageId, zoneId);
+
+        return ZoneInfoResponse.from(zone);
     }
 
     @Transactional
@@ -117,8 +124,30 @@ public class ZoneService {
         return zone;
     }
 
+    public Zone validateOwnerAndGetZone(Long zoneId){
+        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
+                .orElseThrow(ForbiddenException::new);
+
+        Zone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
+
+        if (!Objects.equals(member.getOrganization().getId(), zone.getStorage().getOrganization().getId()) ||
+            member.getOrganizationRole() != OrganizationRole.ORG_OWNER){
+            throw new ForbiddenException();
+        }
+
+        return zone;
+    }
+
     private Zone findByIdAndValidateOwner(Long storageId, Long zoneId){
         Storage storage = storageService.validateOwnerAndGetStorage(storageId);
+
+        return zoneRepository.findByIdAndStorage(zoneId, storage)
+                .orElseThrow(ZoneNotFoundException::new);
+    }
+
+    private Zone findByIdAndValidateMember(Long storageId, Long zoneId){
+        Storage storage = storageService.validateMemberAndGetStorage(storageId);
 
         return zoneRepository.findByIdAndStorage(zoneId, storage)
                 .orElseThrow(ZoneNotFoundException::new);

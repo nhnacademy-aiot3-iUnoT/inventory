@@ -104,7 +104,7 @@ class ThresholdServiceTest {
                     5
             );
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(sensorTypeRepository.findById(sensorType.getSensorTypeId()))
                     .willReturn(Optional.of(sensorType));
@@ -139,7 +139,7 @@ class ThresholdServiceTest {
                     5
             );
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(sensorTypeRepository.findById(sensorType.getSensorTypeId()))
                     .willReturn(Optional.of(sensorType));
@@ -172,7 +172,7 @@ class ThresholdServiceTest {
                     5
             );
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willThrow(new ForbiddenException());
 
             UserContext.setUserUuid(UUID.randomUUID());
@@ -297,7 +297,7 @@ class ThresholdServiceTest {
         @Test
         @DisplayName("성공 테스트")
         void success() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(thresholdRepository.findByZoneThresholdIdAndZone(threshold.getZoneThresholdId(), zone))
                     .willReturn(Optional.of(threshold));
@@ -314,7 +314,7 @@ class ThresholdServiceTest {
         @Test
         @DisplayName("실패 - 권한없음")
         void fail_Forbidden() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willThrow(new ForbiddenException());
 
             UserContext.setUserUuid(UUID.randomUUID());
@@ -327,7 +327,7 @@ class ThresholdServiceTest {
         @Test
         @DisplayName("실패 - 존재하지않는 임계값아이디")
         void fail_NotFoundThreshold() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(thresholdRepository.findByZoneThresholdIdAndZone(anyLong(), any()))
                     .willReturn(Optional.empty());

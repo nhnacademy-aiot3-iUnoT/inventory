@@ -60,7 +60,7 @@ class ThresholdControllerTest extends SupportControllerTest {
     }
 
     @Nested
-    @DisplayName("임계값 저장 POST /api/core/zones/{zoneId}/zone-threshold")
+    @DisplayName("임계값 저장 POST /api/core/zones/{zoneId}/zone-thresholds")
     class saveZoneThreshold {
         @Test
         @DisplayName("정상 처리 테스트")
@@ -69,6 +69,7 @@ class ThresholdControllerTest extends SupportControllerTest {
                     111L, BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5);
             ThresholdInfoResponse response = new ThresholdInfoResponse(
                     1L, 11L, 111L,
+                    "온도", "센서타입 설명",
                     BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5
             );
 
@@ -77,7 +78,7 @@ class ThresholdControllerTest extends SupportControllerTest {
 
             given(thresholdService.saveThreshold(11L, request)).willReturn(response);
 
-            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -108,7 +109,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             ThresholdSaveRequest request = new ThresholdSaveRequest(
                     null, BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5);
 
-            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -125,7 +126,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.saveThreshold(11L, request))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -142,7 +143,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.saveThreshold(11L, request))
                     .willThrow(new ZoneNotFoundException());
 
-            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -159,7 +160,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.saveThreshold(11L, request))
                     .willThrow(new ThresholdInvalidRangeException());
 
-            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -169,7 +170,7 @@ class ThresholdControllerTest extends SupportControllerTest {
     }
 
     @Nested
-    @DisplayName("임계값 목록 조회 GET /api/core/zones/{zoneId}/zone-threshold")
+    @DisplayName("임계값 목록 조회 GET /api/core/zones/{zoneId}/zone-thresholds")
     class getZoneThresholds {
 
         @Test
@@ -177,6 +178,7 @@ class ThresholdControllerTest extends SupportControllerTest {
         void success() throws Exception {
             ThresholdInfoResponse response = new ThresholdInfoResponse(
                     1L, 11L, 111L,
+                    "온도", "센서타입 설명",
                     BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5
             );
             List<ThresholdInfoResponse> responseList = List.of(response);
@@ -187,7 +189,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(thresholdInfoResponseFields("data[]."));
 
-            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -211,7 +213,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.getThresholds(11L))
                     .willReturn(List.of());
 
-            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -224,7 +226,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.getThresholds(11L))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
@@ -237,7 +239,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.getThresholds(11L))
                     .willThrow(new ZoneNotFoundException());
 
-            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-threshold", 11L)
+            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 11L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
@@ -245,13 +247,13 @@ class ThresholdControllerTest extends SupportControllerTest {
     }
 
     @Nested
-    @DisplayName("임계값 삭제 DELETE /api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}")
+    @DisplayName("임계값 삭제 DELETE /api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}")
     class deleteZoneThreshold {
 
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}", 11L, 1L)
+            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 11L, 1L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isNoContent())
                     .andDo(document("threshold-delete",
@@ -271,7 +273,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             willThrow(new ForbiddenException()).given(thresholdService)
                     .deleteThreshold(11L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}", 11L, 1L)
+            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 11L, 1L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
@@ -283,7 +285,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             willThrow(new ZoneNotFoundException()).given(thresholdService)
                     .deleteThreshold(11L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}", 11L, 1L)
+            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 11L, 1L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
@@ -295,7 +297,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             willThrow(new ThresholdNotFoundException()).given(thresholdService)
                     .deleteThreshold(11L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-threshold/{zoneThresholdId}", 11L, 1L)
+            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 11L, 1L)
                             .header("X-USER-ID", accountUuid.toString()))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
@@ -362,6 +364,8 @@ class ThresholdControllerTest extends SupportControllerTest {
                 fieldWithPath(prefix + "zoneThresholdId").type(JsonFieldType.NUMBER).description("임계값 ID"),
                 fieldWithPath(prefix + "zoneId").type(JsonFieldType.NUMBER).description("구역 ID"),
                 fieldWithPath(prefix + "sensorTypeId").type(JsonFieldType.NUMBER).description("센서 타입 ID"),
+                fieldWithPath(prefix + "sensorTypeName").type(JsonFieldType.STRING).description("센서 타입 이름"),
+                fieldWithPath(prefix + "sensorTypeDescription").type(JsonFieldType.STRING).description("센서 타입 설명").optional(),
                 fieldWithPath(prefix + "minValue").type(JsonFieldType.NUMBER).description("최소 임계값").optional(),
                 fieldWithPath(prefix + "maxValue").type(JsonFieldType.NUMBER).description("최대 임계값").optional(),
                 fieldWithPath(prefix + "alertDuration").type(JsonFieldType.NUMBER).description("경고 지속 시간 (초)")
