@@ -15,6 +15,9 @@ public interface ZoneRepository extends JpaRepository<Zone, Long> {
 
     Optional<Zone> findByIdAndStorage(Long id, Storage storage);
 
+    List<Zone> findAllByStorage(Storage storage);
+
+
     boolean existsByStorageAndNameAndStatusNotAndIdNot(Storage storage, String name, ZoneStatus status, Long id);
 
     boolean existsByStorageAndNameAndStatusNot(Storage storage, String name, ZoneStatus status);
@@ -26,4 +29,7 @@ public interface ZoneRepository extends JpaRepository<Zone, Long> {
         where z.storage.organization.id = :organizationId
     """)
     void closeByOrganizationId(Long organizationId);
+
+
+    Long storage(Storage storage);
 }

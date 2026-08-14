@@ -13,4 +13,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
         where d.organization.id = :organizationId
     """)
     void deleteByOrganizationId(Long organizationId);
+
+
+
+
 }
+
