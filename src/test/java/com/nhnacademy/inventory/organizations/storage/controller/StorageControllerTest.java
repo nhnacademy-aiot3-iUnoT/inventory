@@ -2,10 +2,7 @@ package com.nhnacademy.inventory.organizations.storage.controller;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageCreateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageInfoResponse;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageStatusUpdateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageUpdateRequest;
+import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNameAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
@@ -53,16 +50,16 @@ class StorageControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             StorageCreateRequest request = new StorageCreateRequest("테스트 저장소" , "테스트 설명");
-            StorageInfoResponse response = new StorageInfoResponse(
+            StorageDetailResponse response = new StorageDetailResponse(
                     1L, 11L,
-                    "테스트 저장소", "테스트 설명", StorageStatus.ACTIVE,
-                    LocalDateTime.now(), null
+                    "테스트 조직", "테스트 저장소", "테스트 설명",
+                    StorageStatus.ACTIVE, LocalDateTime.now(), null
             );
 
             given(storageService.createStorage(request)).willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(storageInfoResponseFields("data."));
+            responseFields.addAll(storageDetailResponseFields("data."));
 
             mockMvc.perform(post("/api/core/storages")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -135,8 +132,7 @@ class StorageControllerTest extends SupportControllerTest {
         void success() throws Exception {
             StorageInfoResponse response = new StorageInfoResponse(
                     1L, 11L,
-                    "테스트 저장소", "테스트 설명", StorageStatus.ACTIVE,
-                    LocalDateTime.now(), null
+                    "테스트 조직", "테스트 저장소", StorageStatus.ACTIVE
             );
 
             given(storageService.getStorages())
@@ -150,7 +146,6 @@ class StorageControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(1))
                     .andExpect(jsonPath("$.data[0].name").value("테스트 저장소"))
-                    .andExpect(jsonPath("$.data[0].description").value("테스트 설명"))
                     .andExpect(jsonPath("$.data[0].status").value("ACTIVE"))
                     .andDo(document("storage-get-list",
                             responseFields(
@@ -191,17 +186,17 @@ class StorageControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             StorageUpdateRequest request = new StorageUpdateRequest("수정된 저장소", "수정된 설명");
-            StorageInfoResponse response = new StorageInfoResponse(
+            StorageDetailResponse response = new StorageDetailResponse(
                     1L, 11L,
-                    "수정된 저장소", "수정된 설명", StorageStatus.ACTIVE,
-                    LocalDateTime.now(), LocalDateTime.now()
+                    "테스트 조직", "수정된 저장소", "수정된 설명",
+                    StorageStatus.ACTIVE, LocalDateTime.now(), LocalDateTime.now()
             );
 
             given(storageService.updateStorage(1L, request))
                     .willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(storageInfoResponseFields("data."));
+            responseFields.addAll(storageDetailResponseFields("data."));
 
             mockMvc.perform(put("/api/core/storages/{storage-id}", 1L)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -291,17 +286,17 @@ class StorageControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             StorageStatusUpdateRequest request = new StorageStatusUpdateRequest(StorageStatus.INACTIVE);
-            StorageInfoResponse response = new StorageInfoResponse(
+            StorageDetailResponse response = new StorageDetailResponse(
                     1L, 11L,
-                    "테스트 저장소", "테스트 설명", StorageStatus.INACTIVE,
-                    LocalDateTime.now(), LocalDateTime.now()
+                    "테스트 조직", "테스트 저장소", "테스트 설명",
+                    StorageStatus.INACTIVE, LocalDateTime.now(), LocalDateTime.now()
             );
 
             given(storageService.updateStorageStatus(1L, request))
                     .willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(storageInfoResponseFields("data."));
+            responseFields.addAll(storageDetailResponseFields("data."));
 
             mockMvc.perform(put("/api/core/storages/{storage-id}/status", 1L)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -412,6 +407,17 @@ class StorageControllerTest extends SupportControllerTest {
         return List.of(
                 fieldWithPath(prefix + "storageId").type(JsonFieldType.NUMBER).description("저장소 ID"),
                 fieldWithPath(prefix + "organizationId").type(JsonFieldType.NUMBER).description("조직 ID"),
+                fieldWithPath(prefix + "organizationName").type(JsonFieldType.STRING).description("조직 이름"),
+                fieldWithPath(prefix + "name").type(JsonFieldType.STRING).description("저장소 이름"),
+                fieldWithPath(prefix + "status").type(JsonFieldType.STRING).description("저장소 상태")
+        );
+    }
+
+    private List<FieldDescriptor> storageDetailResponseFields(String prefix){
+        return List.of(
+                fieldWithPath(prefix + "storageId").type(JsonFieldType.NUMBER).description("저장소 ID"),
+                fieldWithPath(prefix + "organizationId").type(JsonFieldType.NUMBER).description("조직 ID"),
+                fieldWithPath(prefix + "organizationName").type(JsonFieldType.STRING).description("상위 조직 이름"),
                 fieldWithPath(prefix + "name").type(JsonFieldType.STRING).description("저장소 이름"),
                 fieldWithPath(prefix + "description").type(JsonFieldType.STRING).description("저장소 설명").optional(),
                 fieldWithPath(prefix + "status").type(JsonFieldType.STRING).description("저장소 상태"),

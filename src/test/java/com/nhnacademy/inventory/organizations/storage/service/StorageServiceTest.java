@@ -7,10 +7,7 @@ import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemb
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageCreateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageInfoResponse;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageStatusUpdateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageUpdateRequest;
+import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +67,7 @@ class StorageServiceTest {
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-        StorageInfoResponse response = storageService.createStorage(
+        StorageDetailResponse response = storageService.createStorage(
                 request
         );
 
@@ -121,7 +118,7 @@ class StorageServiceTest {
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-        StorageInfoResponse response = storageService.updateStorage(
+        StorageDetailResponse response = storageService.updateStorage(
                 storage.getId(), request
         );
 
@@ -147,7 +144,7 @@ class StorageServiceTest {
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-        StorageInfoResponse response = storageService.updateStorageStatus(
+        StorageDetailResponse response = storageService.updateStorageStatus(
                 storage.getId(), request
         );
 

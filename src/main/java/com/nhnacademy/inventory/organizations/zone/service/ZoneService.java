@@ -32,7 +32,7 @@ public class ZoneService {
     private final StorageService storageService;
 
     @Transactional
-    public ZoneInfoResponse createZone(Long storageId, ZoneCreateRequest request){
+    public ZoneDetailResponse createZone(Long storageId, ZoneCreateRequest request){
         Storage storage = storageService.validateOwnerAndGetStorage(storageId);
 
         validateDuplicateZoneName(storage, request.name());
@@ -47,7 +47,7 @@ public class ZoneService {
 
         Zone saved = zoneRepository.save(zone);
 
-        return ZoneInfoResponse.from(saved);
+        return ZoneDetailResponse.from(saved);
     }
 
     public List<ZoneInfoResponse> getZones(Long storageId){
@@ -60,39 +60,39 @@ public class ZoneService {
                 .toList();
     }
 
-    public ZoneInfoResponse getZone(Long storageId, Long zoneId){
+    public ZoneDetailResponse getZone(Long storageId, Long zoneId){
         Zone zone = findByIdAndValidateMember(storageId, zoneId);
 
-        return ZoneInfoResponse.from(zone);
+        return ZoneDetailResponse.from(zone);
     }
 
     @Transactional
-    public ZoneInfoResponse updateZone(Long storageId, Long zoneId, ZoneUpdateRequest request){
+    public ZoneDetailResponse updateZone(Long storageId, Long zoneId, ZoneUpdateRequest request){
         Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
         validateDuplicateZoneName(zone.getStorage(), request.name(), zone.getId());
 
         zone.updateInfo(request.name(), request.description());
 
-        return ZoneInfoResponse.from(zone);
+        return ZoneDetailResponse.from(zone);
     }
 
     @Transactional
-    public ZoneInfoResponse updateZoneStatus(Long storageId, Long zoneId, ZoneStatusUpdateRequest request){
+    public ZoneDetailResponse updateZoneStatus(Long storageId, Long zoneId, ZoneStatusUpdateRequest request){
         Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
         zone.changeStatus(request.status());
 
-        return ZoneInfoResponse.from(zone);
+        return ZoneDetailResponse.from(zone);
     }
 
     @Transactional
-    public ZoneInfoResponse updateZoneEnvStatus(Long storageId, Long zoneId, ZoneEnvStatusUpdateRequest request){
+    public ZoneDetailResponse updateZoneEnvStatus(Long storageId, Long zoneId, ZoneEnvStatusUpdateRequest request){
         Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
         zone.changeEnvStatus(request.envStatus());
 
-        return ZoneInfoResponse.from(zone);
+        return ZoneDetailResponse.from(zone);
     }
 
     @Transactional

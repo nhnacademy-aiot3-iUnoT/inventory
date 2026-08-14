@@ -8,10 +8,7 @@ import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemb
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageCreateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageInfoResponse;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageStatusUpdateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageUpdateRequest;
+import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNameAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
@@ -32,7 +29,7 @@ public class StorageService {
     private final OrganizationMemberRepository memberRepository;
 
     @Transactional
-    public StorageInfoResponse createStorage(StorageCreateRequest request){
+    public StorageDetailResponse createStorage(StorageCreateRequest request){
         Organization organization = validateOrganizationOwner();
 
         validateDuplicateStorageName(organization, request.name());
@@ -45,7 +42,7 @@ public class StorageService {
                 .build();
 
         Storage saved = storageRepository.save(storage);
-        return StorageInfoResponse.from(saved);
+        return StorageDetailResponse.from(saved);
     }
 
     public List<StorageInfoResponse> getStorages(){
@@ -58,30 +55,30 @@ public class StorageService {
                 .toList();
     }
 
-    public StorageInfoResponse getStorage(Long storageId){
+    public StorageDetailResponse getStorage(Long storageId){
         Storage storage = findByIdAndValidateMember(storageId);
 
-        return StorageInfoResponse.from(storage);
+        return StorageDetailResponse.from(storage);
     }
 
     @Transactional
-    public StorageInfoResponse updateStorage(Long storageId, StorageUpdateRequest request){
+    public StorageDetailResponse updateStorage(Long storageId, StorageUpdateRequest request){
         Storage storage = findByIdAndValidateOwner(storageId);
 
         validateDuplicateStorageName(storage.getOrganization(), request.name(), storage.getId());
 
         storage.updateInfo(request.name(), request.description());
 
-        return StorageInfoResponse.from(storage);
+        return StorageDetailResponse.from(storage);
     }
 
     @Transactional
-    public StorageInfoResponse updateStorageStatus(Long storageId, StorageStatusUpdateRequest request){
+    public StorageDetailResponse updateStorageStatus(Long storageId, StorageStatusUpdateRequest request){
         Storage storage = findByIdAndValidateOwner(storageId);
 
         storage.changeStatus(request.status());
 
-        return StorageInfoResponse.from(storage);
+        return StorageDetailResponse.from(storage);
     }
 
     @Transactional

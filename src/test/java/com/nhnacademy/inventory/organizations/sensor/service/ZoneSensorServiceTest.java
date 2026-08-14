@@ -3,10 +3,7 @@ package com.nhnacademy.inventory.organizations.sensor.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.sensor.domain.ZoneSensor;
-import com.nhnacademy.inventory.organizations.sensor.dto.DeviceLocationResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorCreateRequest;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorInfoResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorUpdateRequest;
+import com.nhnacademy.inventory.organizations.sensor.dto.*;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorNotFoundException;
 import com.nhnacademy.inventory.organizations.sensor.repository.ZoneSensorRepository;
@@ -82,7 +79,7 @@ class ZoneSensorServiceTest {
             given(zoneSensorRepository.save(any(ZoneSensor.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
-            ZoneSensorInfoResponse response = zoneSensorService.createZoneSensor(
+            ZoneSensorDetailResponse response = zoneSensorService.createZoneSensor(
                     zone.getId(),
                     request
             );
@@ -229,7 +226,7 @@ class ZoneSensorServiceTest {
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.of(zoneSensor));
 
-            ZoneSensorInfoResponse response = zoneSensorService.updateZoneSensorInfo(
+            ZoneSensorDetailResponse response = zoneSensorService.updateZoneSensorInfo(
                     zone.getId(),
                     zoneSensor.getId(),
                     request

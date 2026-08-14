@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.zone.service;
 import com.nhnacademy.inventory.organizations.zone.domain.SensorType;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneThreshold;
+import com.nhnacademy.inventory.organizations.zone.dto.ThresholdDetailResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSaveRequest;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSpecResponse;
@@ -31,7 +32,7 @@ public class ThresholdService {
     private static final BigDecimal MIN_RANGE_GAP = BigDecimal.valueOf(5);
 
     @Transactional
-    public ThresholdInfoResponse saveThreshold(Long zoneId, ThresholdSaveRequest request){
+    public ThresholdDetailResponse saveThreshold(Long zoneId, ThresholdSaveRequest request){
         validateRange(request.minValue(), request.maxValue());
 
         Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
@@ -54,7 +55,7 @@ public class ThresholdService {
                                 .build()
                 ));
 
-        return ThresholdInfoResponse.from(threshold);
+        return ThresholdDetailResponse.from(threshold);
     }
 
     public List<ThresholdInfoResponse> getThresholds(Long zoneId){
@@ -67,10 +68,10 @@ public class ThresholdService {
                 .toList();
     }
 
-    public ThresholdInfoResponse getThreshold(Long zoneId, Long thresholdId){
+    public ThresholdDetailResponse getThreshold(Long zoneId, Long thresholdId){
         ZoneThreshold threshold = findByIdAndValidateMember(zoneId, thresholdId);
 
-        return ThresholdInfoResponse.from(threshold);
+        return ThresholdDetailResponse.from(threshold);
     }
 
     public List<ThresholdSpecResponse> internalGetThresholds(Long zoneId){

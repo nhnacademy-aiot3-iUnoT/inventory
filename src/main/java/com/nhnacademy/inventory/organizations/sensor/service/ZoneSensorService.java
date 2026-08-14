@@ -1,10 +1,7 @@
 package com.nhnacademy.inventory.organizations.sensor.service;
 
 import com.nhnacademy.inventory.organizations.sensor.domain.ZoneSensor;
-import com.nhnacademy.inventory.organizations.sensor.dto.DeviceLocationResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorCreateRequest;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorInfoResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorUpdateRequest;
+import com.nhnacademy.inventory.organizations.sensor.dto.*;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorNotFoundException;
 import com.nhnacademy.inventory.organizations.sensor.repository.ZoneSensorRepository;
@@ -27,7 +24,7 @@ public class ZoneSensorService {
     private final ZoneService zoneService;
 
     @Transactional
-    public ZoneSensorInfoResponse createZoneSensor(Long zoneId, ZoneSensorCreateRequest request){
+    public ZoneSensorDetailResponse createZoneSensor(Long zoneId, ZoneSensorCreateRequest request){
         Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
 
         if(zoneSensorRepository.existsByDeviceEui(request.deviceEui())){
@@ -43,7 +40,7 @@ public class ZoneSensorService {
                         .build()
         );
 
-        return ZoneSensorInfoResponse.from(saved);
+        return ZoneSensorDetailResponse.from(saved);
     }
 
     public List<ZoneSensorInfoResponse> getZoneSensors(Long zoneId){
@@ -56,13 +53,13 @@ public class ZoneSensorService {
                 .toList();
     }
 
-    public ZoneSensorInfoResponse getZoneSensor(Long zoneId, Long zoneSensorId){
+    public ZoneSensorDetailResponse getZoneSensor(Long zoneId, Long zoneSensorId){
         Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
 
         ZoneSensor zoneSensor = zoneSensorRepository.findByIdAndZone(zoneSensorId, zone)
                 .orElseThrow(ZoneSensorNotFoundException::new);
 
-        return ZoneSensorInfoResponse.from(zoneSensor);
+        return ZoneSensorDetailResponse.from(zoneSensor);
     }
 
     public DeviceLocationResponse getDeviceLocation(String deviceEui){
@@ -73,7 +70,7 @@ public class ZoneSensorService {
     }
 
     @Transactional
-    public ZoneSensorInfoResponse updateZoneSensorInfo(Long zoneId, Long zoneSensorId, ZoneSensorUpdateRequest request){
+    public ZoneSensorDetailResponse updateZoneSensorInfo(Long zoneId, Long zoneSensorId, ZoneSensorUpdateRequest request){
         Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
 
         ZoneSensor zoneSensor = zoneSensorRepository.findByIdAndZone(zoneSensorId, zone)
@@ -81,7 +78,7 @@ public class ZoneSensorService {
 
         zoneSensor.updateInfo(request.name(), request.description());
 
-        return ZoneSensorInfoResponse.from(zoneSensor);
+        return ZoneSensorDetailResponse.from(zoneSensor);
     }
 
     @Transactional

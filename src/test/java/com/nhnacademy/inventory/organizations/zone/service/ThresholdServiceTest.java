@@ -8,6 +8,7 @@ import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.zone.domain.SensorType;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneThreshold;
+import com.nhnacademy.inventory.organizations.zone.dto.ThresholdDetailResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSaveRequest;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSpecResponse;
@@ -115,7 +116,7 @@ class ThresholdServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            ThresholdInfoResponse response = thresholdService.saveThreshold(zone.getId(), request);
+            ThresholdDetailResponse response = thresholdService.saveThreshold(zone.getId(), request);
 
             assertAll(
                     () -> assertNotEquals(1L, response.zoneThresholdId()),
@@ -148,7 +149,7 @@ class ThresholdServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            ThresholdInfoResponse response = thresholdService.saveThreshold(zone.getId(), request);
+            ThresholdDetailResponse response = thresholdService.saveThreshold(zone.getId(), request);
 
             assertAll(
                     () -> assertEquals(1L, response.zoneThresholdId()),

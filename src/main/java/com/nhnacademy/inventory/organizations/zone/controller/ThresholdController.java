@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
+import com.nhnacademy.inventory.organizations.zone.dto.ThresholdDetailResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSaveRequest;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSpecResponse;
@@ -20,11 +21,11 @@ public class ThresholdController {
     private final ThresholdService thresholdService;
 
     @PostMapping("/zones/{zone-id}/zone-thresholds")
-    public ResponseEntity<ApiResponse<ThresholdInfoResponse>> saveZoneThreshold(
+    public ResponseEntity<ApiResponse<ThresholdDetailResponse>> saveZoneThreshold(
             @PathVariable(name = "zone-id") Long zoneId,
             @RequestBody @Valid ThresholdSaveRequest request
     ){
-        ThresholdInfoResponse response = thresholdService.saveThreshold(zoneId, request);
+        ThresholdDetailResponse response = thresholdService.saveThreshold(zoneId, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -41,11 +42,11 @@ public class ThresholdController {
     }
 
     @GetMapping("/zones/{zone-id}/zone-thresholds/{zone-threshold-id}")
-    public ResponseEntity<ApiResponse<ThresholdInfoResponse>> getZoneThreshold(
+    public ResponseEntity<ApiResponse<ThresholdDetailResponse>> getZoneThreshold(
             @PathVariable(name = "zone-id") Long zoneId,
             @PathVariable(name = "zone-threshold-id") Long zoneThresholdId
     ){
-        ThresholdInfoResponse response = thresholdService.getThreshold(zoneId, zoneThresholdId);
+        ThresholdDetailResponse response = thresholdService.getThreshold(zoneId, zoneThresholdId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

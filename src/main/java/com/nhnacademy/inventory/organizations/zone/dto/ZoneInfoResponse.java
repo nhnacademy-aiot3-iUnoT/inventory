@@ -10,15 +10,11 @@ public record ZoneInfoResponse (
         Long zoneId,
         Long storageId,
         String name,
-        String description,
         ZoneStatus status,
-        EnvStatus envStatus,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        EnvStatus envStatus
 ){
     public static ZoneInfoResponse from(Zone zone){
         return new ZoneInfoResponse(zone.getId(), zone.getStorage().getId(),
-                zone.getName(), zone.getDescription(), zone.getStatus(),
-                zone.getEnvStatus(), zone.getCreatedAt(), zone.getUpdatedAt());
+                zone.getName(), zone.getStatus(), zone.getEnvStatus());
     }
 }
