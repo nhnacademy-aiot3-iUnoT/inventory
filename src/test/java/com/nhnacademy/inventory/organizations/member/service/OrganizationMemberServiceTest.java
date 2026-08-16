@@ -3,7 +3,6 @@ package com.nhnacademy.inventory.organizations.member.service;
 import com.nhnacademy.inventory.global.cient.AccountClient;
 import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationMemberSearchRequest;
@@ -13,6 +12,7 @@ import com.nhnacademy.inventory.organizations.member.exception.OrgMemberNotFound
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationDeletionService;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,16 +36,14 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class OrganizationMemberServiceTest {
+
     @Mock
     private OrganizationMemberRepository orgMemberRepository;
 
@@ -54,6 +52,9 @@ class OrganizationMemberServiceTest {
 
     @Mock
     private OrganizationDeletionService orgDeletionService;
+
+    @Mock
+    private OrganizationAccessService orgAccessService;
 
     @InjectMocks
     private OrganizationMemberService orgMemberService;
@@ -81,17 +82,17 @@ class OrganizationMemberServiceTest {
     @Nested
     @DisplayName("부서 지정 조직원 목록 조회")
     class GetMembers {
+
         @Test
         @DisplayName("성공 - email 검색")
         void success_email_search() {
-            UserContext.setUserUuid(owner.getAccountUuid());
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest("test", OrganizationRole.ORG_OWNER);
             AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
-            given(orgMemberRepository.findByAccountUuid(owner.getAccountUuid())).willReturn(Optional.of(owner));
+            given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
             given(accountClient.searchByEmail("test")).willReturn(List.of(accountResponse));
             given(orgMemberRepository.findMembers(organization.getId(), List.of(accountUuid), OrganizationRole.ORG_OWNER, true, pageable)).willReturn(memberPage);
 
@@ -101,6 +102,7 @@ class OrganizationMemberServiceTest {
             assertEquals("test@email.com", response.getContent().getFirst().email());
             assertEquals(OrganizationRole.ORG_OWNER, response.getContent().getFirst().role());
 
+            verify(orgAccessService).requireOwnerOrBoss();
             verify(accountClient).searchByEmail("test");
             verify(orgMemberRepository).findMembers(organization.getId(), List.of(accountUuid), OrganizationRole.ORG_OWNER, true, pageable);
         }
@@ -108,14 +110,13 @@ class OrganizationMemberServiceTest {
         @Test
         @DisplayName("성공 - email 검색 없음")
         void success_without_email_search() {
-            UserContext.setUserUuid(owner.getAccountUuid());
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest(null, OrganizationRole.ORG_OWNER);
             AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
-            given(orgMemberRepository.findByAccountUuid(owner.getAccountUuid())).willReturn(Optional.of(owner));
+            given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
             given(orgMemberRepository.findMembers(organization.getId(), null, OrganizationRole.ORG_OWNER, true, pageable)).willReturn(memberPage);
             given(accountClient.findByUuids(List.of(accountUuid))).willReturn(List.of(accountResponse));
 
@@ -125,6 +126,7 @@ class OrganizationMemberServiceTest {
             assertEquals("test@email.com", response.getContent().getFirst().email());
             assertEquals(OrganizationRole.ORG_OWNER, response.getContent().getFirst().role());
 
+            verify(orgAccessService).requireOwnerOrBoss();
             verify(accountClient).findByUuids(List.of(accountUuid));
             verify(accountClient, never()).searchByEmail(anyString());
             verify(orgMemberRepository).findMembers(organization.getId(), null, OrganizationRole.ORG_OWNER, true, pageable);
@@ -133,17 +135,17 @@ class OrganizationMemberServiceTest {
         @Test
         @DisplayName("성공 - email 검색 결과 없음")
         void success_email_search_empty() {
-            UserContext.setUserUuid(owner.getAccountUuid());
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest("test", OrganizationRole.ORG_OWNER);
 
-            given(orgMemberRepository.findByAccountUuid(owner.getAccountUuid())).willReturn(Optional.of(owner));
+            given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
             given(accountClient.searchByEmail("test")).willReturn(List.of());
 
             Page<OrganizationMemberResponse> response = orgMemberService.findMembers(request, true, pageable);
 
             assertTrue(response.isEmpty());
 
+            verify(orgAccessService).requireOwnerOrBoss();
             verify(accountClient).searchByEmail("test");
             verify(orgMemberRepository, never()).findMembers(anyLong(), any(), any(), anyBoolean(), any(Pageable.class));
         }
@@ -151,16 +153,14 @@ class OrganizationMemberServiceTest {
         @Test
         @DisplayName("실패 - OWNER, BOSS가 아님")
         void forbidden() {
-            OrganizationMember member = TestFixtures.createOrganizationMember(organization);
-            ReflectionTestUtils.setField(member, "id", 1L);
-            UserContext.setUserUuid(member.getAccountUuid());
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest(null, OrganizationRole.ORG_OWNER);
 
-            given(orgMemberRepository.findByAccountUuid(member.getAccountUuid())).willReturn(Optional.of(member));
+            given(orgAccessService.requireOwnerOrBoss()).willThrow(new ForbiddenException());
 
             assertThrows(ForbiddenException.class, () -> orgMemberService.findMembers(request, true, pageable));
 
+            verify(orgAccessService).requireOwnerOrBoss();
             verify(accountClient, never()).searchByEmail(anyString());
             verify(orgMemberRepository, never()).findMembers(anyLong(), any(), any(), anyBoolean(), any(Pageable.class));
         }
@@ -169,17 +169,17 @@ class OrganizationMemberServiceTest {
     @Nested
     @DisplayName("부서 미지정 조직원 목록 조회")
     class GetMembersWithoutDepartment {
+
         @Test
         @DisplayName("성공 - email 검색")
         void success_email_search() {
-            UserContext.setUserUuid(owner.getAccountUuid());
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest("test", null);
             AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
-            given(orgMemberRepository.findByAccountUuid(owner.getAccountUuid())).willReturn(Optional.of(owner));
+            given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
             given(accountClient.searchByEmail("test")).willReturn(List.of(accountResponse));
             given(orgMemberRepository.findMembers(organization.getId(), List.of(accountUuid), null, false, pageable)).willReturn(memberPage);
 
@@ -189,6 +189,7 @@ class OrganizationMemberServiceTest {
             assertEquals("test@email.com", response.getContent().getFirst().email());
             assertEquals(OrganizationRole.ORG_OWNER, response.getContent().getFirst().role());
 
+            verify(orgAccessService).requireOwnerOrBoss();
             verify(accountClient).searchByEmail("test");
             verify(orgMemberRepository).findMembers(organization.getId(), List.of(accountUuid), null, false, pageable);
         }
@@ -196,14 +197,13 @@ class OrganizationMemberServiceTest {
         @Test
         @DisplayName("성공 - email 검색 없음")
         void success_without_email_search() {
-            UserContext.setUserUuid(owner.getAccountUuid());
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest(null, null);
             AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
-            given(orgMemberRepository.findByAccountUuid(owner.getAccountUuid())).willReturn(Optional.of(owner));
+            given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
             given(orgMemberRepository.findMembers(organization.getId(), null, null, false, pageable)).willReturn(memberPage);
             given(accountClient.findByUuids(List.of(accountUuid))).willReturn(List.of(accountResponse));
 
@@ -213,6 +213,7 @@ class OrganizationMemberServiceTest {
             assertEquals("test@email.com", response.getContent().getFirst().email());
             assertEquals(OrganizationRole.ORG_OWNER, response.getContent().getFirst().role());
 
+            verify(orgAccessService).requireOwnerOrBoss();
             verify(accountClient).findByUuids(List.of(accountUuid));
             verify(accountClient, never()).searchByEmail(anyString());
             verify(orgMemberRepository).findMembers(organization.getId(), null, null, false, pageable);
@@ -221,148 +222,111 @@ class OrganizationMemberServiceTest {
         @Test
         @DisplayName("성공 - email 검색 결과 없음")
         void success_email_search_empty() {
-            UserContext.setUserUuid(owner.getAccountUuid());
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest("test", null);
 
-            given(orgMemberRepository.findByAccountUuid(owner.getAccountUuid())).willReturn(Optional.of(owner));
+            given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
             given(accountClient.searchByEmail("test")).willReturn(List.of());
 
             Page<OrganizationMemberResponse> response = orgMemberService.findMembers(request, false, pageable);
 
             assertTrue(response.isEmpty());
 
+            verify(orgAccessService).requireOwnerOrBoss();
             verify(accountClient).searchByEmail("test");
             verify(orgMemberRepository, never()).findMembers(anyLong(), any(), any(), anyBoolean(), any(Pageable.class));
         }
     }
 
     @Nested
-    @DisplayName("현재 조직원 조회")
-    class GetCurrentMember {
-        @Test
-        @DisplayName("성공")
-        void success() {
-            UserContext.setUserUuid(owner.getAccountUuid());
-
-            given(orgMemberRepository.findByAccountUuid(owner.getAccountUuid())).willReturn(Optional.of(owner));
-
-            OrganizationMember response = orgMemberService.getCurrentOrganizationMember(owner.getAccountUuid());
-
-            assertEquals(owner, response);
-            verify(orgMemberRepository).findByAccountUuid(owner.getAccountUuid());
-        }
-
-        @Test
-        @DisplayName("실패 - 소속된 조직 없음")
-        void not_found() {
-            UUID accountUuid = UUID.randomUUID();
-
-            given(orgMemberRepository.findByAccountUuid(accountUuid)).willReturn(Optional.empty());
-
-            assertThrows(UserOrgNotFoundException.class, () -> orgMemberService.getCurrentOrganizationMember(accountUuid));
-
-            verify(orgMemberRepository).findByAccountUuid(accountUuid);
-        }
-    }
-
-    @Nested
     @DisplayName("조직원 Role 수정")
     class UpdateRole {
+
         @Test
         @DisplayName("성공 - OWNER로 변경")
         void success_owner() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-
             OrganizationRoleUpdateRequest request = new OrganizationRoleUpdateRequest(OrganizationRole.ORG_OWNER);
 
-            given(orgMemberRepository.findByAccountUuid(boss.getAccountUuid())).willReturn(Optional.of(boss));
+            given(orgAccessService.requireBoss()).willReturn(boss);
             given(orgMemberRepository.findByIdAndOrganizationId(3L, organization.getId())).willReturn(Optional.of(member));
 
             orgMemberService.updateRole(3L, request);
 
             assertEquals(OrganizationRole.ORG_OWNER, member.getOrganizationRole());
-            verify(orgMemberRepository).findByAccountUuid(boss.getAccountUuid());
+            verify(orgAccessService).requireBoss();
             verify(orgMemberRepository).findByIdAndOrganizationId(3L, organization.getId());
         }
 
         @Test
         @DisplayName("성공 - MEMBER로 변경")
         void success_member() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-
             OrganizationRoleUpdateRequest request = new OrganizationRoleUpdateRequest(OrganizationRole.ORG_MEMBER);
 
-            given(orgMemberRepository.findByAccountUuid(boss.getAccountUuid())).willReturn(Optional.of(boss));
+            given(orgAccessService.requireBoss()).willReturn(boss);
             given(orgMemberRepository.findByIdAndOrganizationId(2L, organization.getId())).willReturn(Optional.of(owner));
 
             orgMemberService.updateRole(2L, request);
 
             assertEquals(OrganizationRole.ORG_MEMBER, owner.getOrganizationRole());
-            verify(orgMemberRepository).findByAccountUuid(boss.getAccountUuid());
+            verify(orgAccessService).requireBoss();
             verify(orgMemberRepository).findByIdAndOrganizationId(2L, organization.getId());
         }
 
         @Test
         @DisplayName("성공 - 이미 OWNER인 조직원을 OWNER로 변경")
         void success_same_role() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-
             OrganizationRoleUpdateRequest request = new OrganizationRoleUpdateRequest(OrganizationRole.ORG_OWNER);
 
-            given(orgMemberRepository.findByAccountUuid(boss.getAccountUuid())).willReturn(Optional.of(boss));
+            given(orgAccessService.requireBoss()).willReturn(boss);
             given(orgMemberRepository.findByIdAndOrganizationId(2L, organization.getId())).willReturn(Optional.of(owner));
 
             orgMemberService.updateRole(2L, request);
 
             assertEquals(OrganizationRole.ORG_OWNER, owner.getOrganizationRole());
+            verify(orgAccessService).requireBoss();
         }
 
         @Test
         @DisplayName("실패 - BOSS가 아님")
         void forbidden() {
-            UserContext.setUserUuid(member.getAccountUuid());
-
             OrganizationRoleUpdateRequest request = new OrganizationRoleUpdateRequest(OrganizationRole.ORG_OWNER);
 
-            given(orgMemberRepository.findByAccountUuid(member.getAccountUuid())).willReturn(Optional.of(member));
+            given(orgAccessService.requireBoss()).willThrow(new ForbiddenException());
 
             assertThrows(ForbiddenException.class, () -> orgMemberService.updateRole(2L, request));
 
+            verify(orgAccessService).requireBoss();
             verify(orgMemberRepository, never()).findByIdAndOrganizationId(anyLong(), anyLong());
         }
 
         @Test
         @DisplayName("실패 - 존재하지 않는 조직원")
         void member_not_found() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-
             OrganizationRoleUpdateRequest request = new OrganizationRoleUpdateRequest(OrganizationRole.ORG_MEMBER);
 
-            given(orgMemberRepository.findByAccountUuid(boss.getAccountUuid())).willReturn(Optional.of(boss));
+            given(orgAccessService.requireBoss()).willReturn(boss);
             given(orgMemberRepository.findByIdAndOrganizationId(2L, organization.getId())).willReturn(Optional.empty());
 
             assertThrows(OrgMemberNotFoundException.class, () -> orgMemberService.updateRole(2L, request));
 
+            verify(orgAccessService).requireBoss();
             verify(orgMemberRepository).findByIdAndOrganizationId(2L, organization.getId());
         }
-
     }
 
     @Nested
     @DisplayName("조직원 삭제")
     class DeleteOrgMember {
+
         @Test
         @DisplayName("성공")
         void success() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-
-            given(orgMemberRepository.findByAccountUuid(boss.getAccountUuid())).willReturn(Optional.of(boss));
+            given(orgAccessService.requireBoss()).willReturn(boss);
             given(orgMemberRepository.findByIdAndOrganizationId(3L, organization.getId())).willReturn(Optional.of(member));
 
             orgMemberService.deleteMember(3L);
 
-            verify(orgMemberRepository).findByAccountUuid(boss.getAccountUuid());
+            verify(orgAccessService).requireBoss();
             verify(orgMemberRepository).findByIdAndOrganizationId(3L, organization.getId());
             verify(orgDeletionService).deleteMember(member);
         }
@@ -370,13 +334,11 @@ class OrganizationMemberServiceTest {
         @Test
         @DisplayName("실패 - BOSS가 아님")
         void forbidden() {
-            UserContext.setUserUuid(member.getAccountUuid());
-
-            given(orgMemberRepository.findByAccountUuid(member.getAccountUuid())).willReturn(Optional.of(member));
+            given(orgAccessService.requireBoss()).willThrow(new ForbiddenException());
 
             assertThrows(ForbiddenException.class, () -> orgMemberService.deleteMember(3L));
 
-            verify(orgMemberRepository).findByAccountUuid(member.getAccountUuid());
+            verify(orgAccessService).requireBoss();
             verify(orgMemberRepository, never()).findByIdAndOrganizationId(anyLong(), anyLong());
             verify(orgDeletionService, never()).deleteMember(any());
         }
@@ -384,15 +346,12 @@ class OrganizationMemberServiceTest {
         @Test
         @DisplayName("실패 - 조직원이 존재하지 않음")
         void notFound() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-
-            given(orgMemberRepository.findByAccountUuid(boss.getAccountUuid())).willReturn(Optional.of(boss));
-            given(orgMemberRepository.findByIdAndOrganizationId(4L, organization.getId()))
-                    .willThrow(OrgMemberNotFoundException.class);
+            given(orgAccessService.requireBoss()).willReturn(boss);
+            given(orgMemberRepository.findByIdAndOrganizationId(4L, organization.getId())).willReturn(Optional.empty());
 
             assertThrows(OrgMemberNotFoundException.class, () -> orgMemberService.deleteMember(4L));
 
-            verify(orgMemberRepository).findByAccountUuid(boss.getAccountUuid());
+            verify(orgAccessService).requireBoss();
             verify(orgMemberRepository).findByIdAndOrganizationId(4L, organization.getId());
             verify(orgDeletionService, never()).deleteMember(any());
         }
@@ -401,29 +360,26 @@ class OrganizationMemberServiceTest {
     @Nested
     @DisplayName("조직원 자진 탈퇴")
     class LeaveOrganization {
+
         @Test
         @DisplayName("성공")
         void success() {
-            UserContext.setUserUuid(member.getAccountUuid());
-
-            given(orgMemberRepository.findByAccountUuid(member.getAccountUuid())).willReturn(Optional.of(member));
+            given(orgAccessService.getCurrentMember()).willReturn(member);
 
             orgMemberService.leaveOrganization();
 
-            verify(orgMemberRepository).findByAccountUuid(member.getAccountUuid());
+            verify(orgAccessService).getCurrentMember();
             verify(orgDeletionService).deleteMember(member);
         }
 
         @Test
         @DisplayName("실패 - 조직에 속하지 않았음")
         void notFound() {
-            UserContext.setUserUuid(member.getAccountUuid());
-
-            given(orgMemberRepository.findByAccountUuid(member.getAccountUuid())).willReturn(Optional.empty());
+            given(orgAccessService.getCurrentMember()).willThrow(new UserOrgNotFoundException());
 
             assertThrows(UserOrgNotFoundException.class, () -> orgMemberService.leaveOrganization());
 
-            verify(orgMemberRepository).findByAccountUuid(member.getAccountUuid());
+            verify(orgAccessService).getCurrentMember();
             verify(orgDeletionService, never()).deleteMember(any());
         }
     }

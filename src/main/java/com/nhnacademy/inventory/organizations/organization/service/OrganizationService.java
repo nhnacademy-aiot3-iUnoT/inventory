@@ -1,13 +1,9 @@
 package com.nhnacademy.inventory.organizations.organization.service;
 
-import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
-import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.*;
@@ -32,8 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final InvitationService invitationService;
-    private final OrganizationMemberService orgMemberService;
     private final OrganizationDeletionService orgDeletionService;
+    private final OrganizationAccessService orgAccessService;
 
     private final InvitationRepository invitationRepository;
 
@@ -65,7 +61,7 @@ public class OrganizationService {
      */
     @Transactional
     public void setupOrganization(OrganizationSetupRequest request) {
-        Organization organization = getOrgAfterValidateBoss();
+        Organization organization = orgAccessService.requireBossOrganization();
 
         if (organization.getStatus() != OrganizationStatus.PENDING) {
             throw new AlreadySetupOrganization();
@@ -92,7 +88,7 @@ public class OrganizationService {
     }
 
     public OrgDetailResponse getOrganizationForUser() {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+        OrganizationMember member = orgAccessService.getCurrentMember();
 
         return OrgDetailResponse.from(member.getOrganization(), member.getOrganizationRole());
     }
@@ -102,7 +98,7 @@ public class OrganizationService {
      */
     @Transactional
     public void updateOrganizationStatus(OrgStatusUpdateRequest request) {
-        Organization organization = getOrgAfterValidateBoss();
+        Organization organization = orgAccessService.requireBossOrganization();
 
         OrganizationStatus previousStatus = organization.getStatus();
 
@@ -113,7 +109,7 @@ public class OrganizationService {
 
     @Transactional
     public void updateOrganization(OrgUpdateRequest request) {
-        Organization organization = getOrgAfterValidateBoss();
+        Organization organization = orgAccessService.requireBossOrganization();
 
         organization.update(
                 request.roadAddress(),
@@ -141,46 +137,5 @@ public class OrganizationService {
         }
         // 조직 Active 상태
         orgDeletionService.softDelete(organization);
-    }
-
-    /**
-     * Role : ORG_OWNER 검증 후 조직 반환
-     */
-    public Organization getOrgAfterValidateOwner() {
-        OrganizationMember organizationMember = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
-
-        if(organizationMember.getOrganizationRole() != OrganizationRole.ORG_OWNER) {
-            throw new ForbiddenException();
-        }
-
-        return organizationMember.getOrganization();
-    }
-
-    /**
-     * Role : ORG_BOSS 검증 후 조직 반환
-     */
-    public Organization getOrgAfterValidateBoss() {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
-
-        if(!member.isBoss()) {
-           throw new ForbiddenException();
-        }
-
-        return member.getOrganization();
-    }
-
-    /**
-     * Role : ORG_OWNER, ORG_BOSS 검증 후 조직 반환
-     */
-    public Organization getOrgAfterValidateOwnerOrBoss() {
-        OrganizationMember organizationMember = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
-
-        OrganizationRole role = organizationMember.getOrganizationRole();
-
-        if(role != OrganizationRole.ORG_OWNER && role != OrganizationRole.ORG_BOSS) {
-            throw new ForbiddenException();
-        }
-
-        return organizationMember.getOrganization();
     }
 }

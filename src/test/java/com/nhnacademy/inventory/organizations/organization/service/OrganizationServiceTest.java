@@ -1,18 +1,15 @@
 package com.nhnacademy.inventory.organizations.organization.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.dto.request.*;
 import com.nhnacademy.inventory.organizations.organization.dto.response.AdminOrgDetailResponse;
-import com.nhnacademy.inventory.organizations.organization.dto.response.OrgCreateResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgDetailResponse;
 import com.nhnacademy.inventory.organizations.organization.dto.response.OrgSearchResponse;
 import com.nhnacademy.inventory.organizations.organization.exception.*;
@@ -49,28 +46,24 @@ class OrganizationServiceTest {
     private InvitationService invitationService;
 
     @Mock
-    private OrganizationMemberService organizationMemberService;
-
-    @Mock
     private OrganizationDeletionService orgDeletionService;
 
-    @InjectMocks
-    private OrganizationService organizationService;
+    @Mock
+    private OrganizationAccessService orgAccessService;
 
     @Mock
     private InvitationRepository invitationRepository;
 
+    @InjectMocks
+    private OrganizationService organizationService;
+
     private Organization organization;
-    private OrganizationMember boss;
-    private OrganizationMember owner;
     private OrganizationMember member;
 
     @BeforeEach
     void setUp() {
         organization = TestFixtures.createOrganization("테스트 조직", "1234567890");
 
-        boss = TestFixtures.createOrganizationBoss(organization);
-        owner = TestFixtures.createOrganizationOwner(organization);
         member = TestFixtures.createOrganizationMember(organization);
     }
 
@@ -112,18 +105,19 @@ class OrganizationServiceTest {
     @Nested
     @DisplayName("조직 초기화")
     class SetupOrganizationTest {
+
         @Test
         @DisplayName("성공")
         void success() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(boss);
+            given(orgAccessService.requireBossOrganization())
+                    .willReturn(organization);
 
             OrganizationSetupRequest request = new OrganizationSetupRequest(
                     "12345",
                     "광주시 남구",
                     "101호",
-                    "이 조직은 테스트 조직이다.");
+                    "이 조직은 테스트 조직이다."
+            );
 
             organizationService.setupOrganization(request);
 
@@ -131,14 +125,14 @@ class OrganizationServiceTest {
             assertEquals("12345", organization.getZipCode());
             assertEquals("광주시 남구", organization.getRoadAddress());
             assertEquals("이 조직은 테스트 조직이다.", organization.getDescription());
+
+            verify(orgAccessService).requireBossOrganization();
         }
 
         @Test
         @DisplayName("조직 초기화 실패 - BOSS 아님")
         void forbidden() {
-            UserContext.setUserUuid(owner.getAccountUuid());
-
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+            given(orgAccessService.requireBossOrganization()).willThrow(new ForbiddenException());
 
             OrganizationSetupRequest request = new OrganizationSetupRequest(
                     "12345",
@@ -152,11 +146,13 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("조직 초기화 실패 - PENDING 상태의 조직이 아님")
         void alreadySetup() {
-            UserContext.setUserUuid(boss.getAccountUuid());
+            organization.complete(
+                    "12345",
+                    "광주시 남구",
+                    "101호",
+                    "조직을 이미 초기화된 상태로 바꾸는 중");
 
-            organization.complete("12345", "광주시 남구", "101호", "조직을 이미 초기화된 상태로 바꾸는 중");
-
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(boss);
+            given(orgAccessService.requireBossOrganization()).willReturn(organization);
 
             OrganizationSetupRequest request = new OrganizationSetupRequest(
                     "12345",
@@ -252,36 +248,40 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("유저 조직 단건 조회 성공")
         void getOrganizationForUser_success() {
-            UserContext.setUserUuid(member.getAccountUuid());
-
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            given(orgAccessService.getCurrentMember()).willReturn(member);
 
             OrgDetailResponse response = organizationService.getOrganizationForUser();
 
             assertEquals(organization.getName(), response.name());
-            verify(organizationMemberService).getCurrentOrganizationMember(member.getAccountUuid());
+            verify(orgAccessService).getCurrentMember();
         }
     }
 
     @Nested
     @DisplayName("조직 상태 변경")
     class UpdateOrganizationStatusTest {
+
         @BeforeEach
         void setUpBoss() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(boss);
+            given(orgAccessService.requireBossOrganization()).willReturn(organization);
         }
 
         @Test
         @DisplayName("성공 ACTIVE -> INACTIVE")
         void updateOrganizationStatus_success() {
-            organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
+            organization.complete(
+                    "12345",
+                    "광주시 남구",
+                    "101호",
+                    "테스트 조직"
+            );
 
             OrgStatusUpdateRequest request = new OrgStatusUpdateRequest(OrganizationStatus.INACTIVE);
 
             organizationService.updateOrganizationStatus(request);
 
             assertEquals(OrganizationStatus.INACTIVE, organization.getStatus());
+            verify(orgAccessService).requireBossOrganization();
         }
 
         @Test
@@ -305,10 +305,7 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("조직 상태 변경 실패 - BOSS 아님")
         void updateOrganizationStatus_forbidden() {
-            UserContext.setUserUuid(owner.getAccountUuid());
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
-
-            organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
+            given(orgAccessService.requireBossOrganization()).willThrow(new ForbiddenException());
 
             OrgStatusUpdateRequest request = new OrgStatusUpdateRequest(OrganizationStatus.INACTIVE);
 
@@ -322,9 +319,7 @@ class OrganizationServiceTest {
         @Test
         @DisplayName("조직 정보 수정 성공")
         void success() {
-            UserContext.setUserUuid(boss.getAccountUuid());
-
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(boss);
+            given(orgAccessService.requireBossOrganization()).willReturn(organization);
 
             OrgUpdateRequest request = new OrgUpdateRequest(
                     "도로명주소",
@@ -337,13 +332,13 @@ class OrganizationServiceTest {
 
             assertEquals("도로명주소", organization.getRoadAddress());
             assertEquals("12345", organization.getZipCode());
+            verify(orgAccessService).requireBossOrganization();
         }
 
         @Test
         @DisplayName("조직 정보 수정 실패 - Boss 아님")
         void forbidden() {
-            UserContext.setUserUuid(owner.getAccountUuid());
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+            given(orgAccessService.requireBossOrganization()).willThrow(new ForbiddenException());
 
             OrgUpdateRequest request = new OrgUpdateRequest(
                     "도로명주소",

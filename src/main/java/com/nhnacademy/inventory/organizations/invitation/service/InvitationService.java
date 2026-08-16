@@ -1,7 +1,6 @@
 package com.nhnacademy.inventory.organizations.invitation.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
@@ -15,6 +14,7 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +36,7 @@ public class InvitationService {
     private final InvitationRepository invitationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final OrganizationMemberService orgMemberService;
+    private final OrganizationAccessService organizationAccessService;
 
     @Value("${app.invitation-url}")
     private String invitationUrl;
@@ -112,11 +113,7 @@ public class InvitationService {
      * 초대 목록 조회
      */
     public Page<InvitationSearchResponse> getInvitations(InvitationSearchRequest request, Pageable pageable) {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
-
-        if(member.getOrganizationRole() != OrganizationRole.ORG_OWNER) {
-            throw new ForbiddenException();
-        }
+        OrganizationMember member = organizationAccessService.requireOwnerOrBoss();
 
         return invitationRepository.search(member.getOrganization().getId(), request, pageable);
     }
@@ -136,7 +133,6 @@ public class InvitationService {
         findInvitation(token).markEmailSent();
     }
 
-
     /**
      * 재전송 (ACTIVE + 만료 전)
      */
@@ -144,7 +140,8 @@ public class InvitationService {
     public void resendInvitation(Long invitationId) {
         Invitation invitation = findInvitationById(invitationId);
 
-        validateOwnerAccess(invitation);
+        organizationAccessService.requireOwnerOrBossOf(invitation.getOrganization().getId());
+
         resend(invitation);
     }
 
@@ -164,7 +161,8 @@ public class InvitationService {
     public void cancelInvitation(Long invitationId) {
         Invitation invitation = findInvitationById(invitationId);
 
-        validateOwnerAccess(invitation);
+       organizationAccessService.requireOwnerOrBossOf(invitation.getOrganization().getId());
+
         cancel(invitation);
     }
 
@@ -184,7 +182,7 @@ public class InvitationService {
     public void reissueInvitation(Long invitationId) {
         Invitation invitation = findInvitationById(invitationId);
 
-        validateOwnerAccess(invitation);
+        organizationAccessService.requireOwnerOrBossOf(invitation.getOrganization().getId());
 
         reissue(invitation);
     }
@@ -223,24 +221,6 @@ public class InvitationService {
             throw new InvitationExpiredException();
         }
         log.info("초대({}) 토큰 유효", invitation.getId());
-    }
-
-    /**
-     * owner가 자기 조직의 초대만 조작하도록 권한 검증
-     */
-    private void validateOwnerAccess(Invitation invitation) {
-        OrganizationMember currentMember = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
-
-        if (currentMember.getOrganizationRole() != OrganizationRole.ORG_OWNER) {
-            throw new ForbiddenException();
-        }
-
-        Long currentOrganizationId = currentMember.getOrganization().getId();
-        Long invitationOrganizationId = invitation.getOrganization().getId();
-
-        if (!currentOrganizationId.equals(invitationOrganizationId)) {
-            throw new ForbiddenException();
-        }
     }
 
     private void validateAdminInvitationAccess(Long organizationId, Invitation invitation) {

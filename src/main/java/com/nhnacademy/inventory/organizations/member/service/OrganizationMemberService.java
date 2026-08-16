@@ -13,6 +13,7 @@ import com.nhnacademy.inventory.organizations.member.exception.OrgMemberNotFound
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationDeletionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class OrganizationMemberService {
     private final OrganizationMemberRepository orgMemberRepository;
     private final AccountClient accountClient;
     private final OrganizationDeletionService orgDeletionService;
+    private final OrganizationAccessService orgAccessService;
 
     /**
      * 조직원 생성
@@ -51,10 +53,7 @@ public class OrganizationMemberService {
 
     @Transactional
     public void compensateMember(UUID accountUuid) {
-        Organization organization = getCurrentOrganizationMember(accountUuid).getOrganization();
-
-        OrganizationMember member = orgMemberRepository
-                .findByAccountUuidAndOrganizationId(accountUuid, organization.getId())
+        OrganizationMember member = orgMemberRepository.findByAccountUuid(accountUuid)
                 .orElseThrow(UserOrgNotFoundException::new);
 
         orgMemberRepository.delete(member);
@@ -67,10 +66,7 @@ public class OrganizationMemberService {
         List<AccountResponse> accounts = null;
         List<UUID> accountUuids = null;
 
-        // BOSS, OWNER만 조회 가능
-        OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
-
-        checkOwnerOrBoss(currentMember);
+        OrganizationMember currentMember = orgAccessService.requireOwnerOrBoss();
 
         Long organizationId = currentMember.getOrganization().getId();
 
@@ -99,8 +95,7 @@ public class OrganizationMemberService {
     @Transactional
     public void updateRole(Long memberId, OrganizationRoleUpdateRequest roleUpdateRequest) {
         // Boss만 변경 가능
-        OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
-        checkBoss(currentMember);
+        OrganizationMember currentMember = orgAccessService.requireBoss();
 
         // Owner <-> Member
         OrganizationMember changeMember = getMemberById(memberId, currentMember.getOrganization().getId());
@@ -110,8 +105,7 @@ public class OrganizationMemberService {
     @Transactional
     public void deleteMember(Long memberId) {
         // Boss만 변경 가능
-        OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
-        checkBoss(currentMember);
+        OrganizationMember currentMember = orgAccessService.requireBoss();
 
         OrganizationMember deleteMember = getMemberById(memberId, currentMember.getOrganization().getId());
         orgDeletionService.deleteMember(deleteMember);
@@ -119,7 +113,7 @@ public class OrganizationMemberService {
 
     @Transactional
     public void leaveOrganization() {
-        OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
+        OrganizationMember currentMember = orgAccessService.getCurrentMember();
 
         orgDeletionService.deleteMember(currentMember);
     }
@@ -135,24 +129,6 @@ public class OrganizationMemberService {
     public OrganizationMember getCurrentOrganizationMember(UUID userId) {
         return orgMemberRepository.findByAccountUuid(userId)
                 .orElseThrow(UserOrgNotFoundException::new);
-    }
-
-    /**
-     * OWNER, BOSS
-     */
-    private void checkOwnerOrBoss(OrganizationMember member) {
-        if (!(member.isOwner() || member.isBoss())) {
-            throw new ForbiddenException();
-        }
-    }
-
-    /**
-     * BOSS
-     */
-    private void checkBoss(OrganizationMember member) {
-        if(!member.isBoss()) {
-            throw new ForbiddenException();
-        }
     }
 
     /**

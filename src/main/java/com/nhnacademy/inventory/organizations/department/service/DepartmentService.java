@@ -1,8 +1,6 @@
 package com.nhnacademy.inventory.organizations.department.service;
 
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.department.domain.Department;
-import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentCreateRequest;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentStatusUpdateRequest;
 import com.nhnacademy.inventory.organizations.department.dto.request.DepartmentUpdateRequest;
@@ -12,10 +10,8 @@ import com.nhnacademy.inventory.organizations.department.dto.response.Department
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentNotFoundException;
 import com.nhnacademy.inventory.organizations.department.repository.DepartmentRepository;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,17 +25,13 @@ import java.util.List;
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
-    private final OrganizationMemberService orgMemberService;
-    private final OrganizationService organizationService;
+    private final OrganizationAccessService orgAccessService;
 
-    /**
-     * 생성
-     */
     @Transactional
     public DepartmentCreateResponse createDepartment(DepartmentCreateRequest request) {
-        Organization organization = organizationService.getOrgAfterValidateOwnerOrBoss();
+        Organization organization = orgAccessService.requireOwnerOrBossOrganization();
 
-        if(departmentRepository.existsByOrganizationIdAndName(organization.getId(), request.name())) {
+        if (departmentRepository.existsByOrganizationIdAndName(organization.getId(), request.name())) {
             throw new DepartmentAlreadyExistsException();
         }
 
@@ -51,13 +43,8 @@ public class DepartmentService {
         return DepartmentCreateResponse.from(savedDepartment);
     }
 
-    /**
-     * 조회 (목록, 단건)
-     */
     public List<DepartmentListResponse> getDepartments() {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
-
-        Organization organization = member.getOrganization();
+        Organization organization = orgAccessService.getCurrentMember().getOrganization();
 
         return departmentRepository
                 .findAllByOrganizationId(organization.getId())
@@ -67,9 +54,9 @@ public class DepartmentService {
     }
 
     public DepartmentInfoResponse getDepartment(Long departmentId) {
-        OrganizationMember member = orgMemberService.getCurrentOrganizationMember(UserContext.getUserUuid());
+        Organization organization = orgAccessService.getCurrentMember().getOrganization();
 
-        Department department = getDepartmentById(departmentId, member.getOrganization().getId());
+        Department department = getDepartmentById(departmentId, organization.getId());
 
         return DepartmentInfoResponse.from(department);
     }
@@ -79,15 +66,11 @@ public class DepartmentService {
                 .orElseThrow(DepartmentNotFoundException::new);
     }
 
-    /**
-     * 수정 (상태, 정보)
-     */
     @Transactional
     public DepartmentInfoResponse updateDepartmentStatus(DepartmentStatusUpdateRequest request, Long departmentId) {
-        Organization organization = organizationService.getOrgAfterValidateOwnerOrBoss();
+        Organization organization = orgAccessService.requireOwnerOrBossOrganization();
 
-        Department department = departmentRepository.findByIdAndOrganizationId(departmentId, organization.getId())
-                .orElseThrow(DepartmentNotFoundException::new);
+        Department department = getDepartmentById(departmentId, organization.getId());
 
         department.updateStatus(request.status());
 
@@ -96,12 +79,11 @@ public class DepartmentService {
 
     @Transactional
     public DepartmentInfoResponse updateDepartment(DepartmentUpdateRequest request, Long departmentId) {
-        Organization organization = organizationService.getOrgAfterValidateOwnerOrBoss();
+        Organization organization = orgAccessService.requireOwnerOrBossOrganization();
 
-        Department department = departmentRepository.findByIdAndOrganizationId(departmentId, organization.getId())
-                .orElseThrow(DepartmentNotFoundException::new);
+        Department department = getDepartmentById(departmentId, organization.getId());
 
-        if(departmentRepository.existsByOrganizationIdAndNameAndIdNot(organization.getId(), request.name(), departmentId)) {
+        if (departmentRepository.existsByOrganizationIdAndNameAndIdNot(organization.getId(), request.name(), departmentId)) {
             throw new DepartmentAlreadyExistsException();
         }
 
@@ -110,15 +92,11 @@ public class DepartmentService {
         return DepartmentInfoResponse.from(department);
     }
 
-    /**
-     * 삭제
-     */
     @Transactional
     public void deleteDepartment(Long departmentId) {
-        Organization organization = organizationService.getOrgAfterValidateOwnerOrBoss();
+        Organization organization = orgAccessService.requireOwnerOrBossOrganization();
 
-        Department department = departmentRepository.findByIdAndOrganizationId(departmentId, organization.getId())
-                .orElseThrow(DepartmentNotFoundException::new);
+        Department department = getDepartmentById(departmentId, organization.getId());
 
         departmentRepository.delete(department);
     }
