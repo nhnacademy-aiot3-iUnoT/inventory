@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.reports.report.dto.ReportCreateRequest;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
 import com.nhnacademy.inventory.reports.report.usecase.ReportCreateFacade;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class ReportController {
     @PostMapping("/organizations/{organization-id}/reports/weekly")
     public ResponseEntity<ApiResponse<ReportInfoResponse>> createWeeklyReport(
             @PathVariable(name = "organization-id") Long organizationId,
-            @RequestBody ReportCreateRequest request
+            @Valid @RequestBody ReportCreateRequest request
     ) {
         ReportInfoResponse response = reportCreateFacade.createWeeklyReport(organizationId, request.periodStart());
 

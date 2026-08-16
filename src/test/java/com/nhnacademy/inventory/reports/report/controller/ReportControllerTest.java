@@ -61,4 +61,12 @@ class ReportControllerTest extends SupportControllerTest {
                 .andExpect(jsonPath("$.data.aiSummary").doesNotExist());
     }
 
+    @Test
+    @DisplayName("periodStart가 없으면 400을 반환한다")
+    void createWeeklyReport_WhenPeriodStartIsNull_ReturnsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/core/organizations/1/reports/weekly")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
 }
