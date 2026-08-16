@@ -8,7 +8,6 @@ import org.springframework.resilience.annotation.EnableResilientMethods;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
-@EnableResilientMethods
 @EnableAsync
 @EnableConfigurationProperties(JwtProperties.class)
 public class InventoryApplication {
