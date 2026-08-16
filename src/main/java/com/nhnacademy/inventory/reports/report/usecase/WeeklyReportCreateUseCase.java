@@ -1,7 +1,9 @@
 package com.nhnacademy.inventory.reports.report.usecase;
 
+import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
+import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
-import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 import com.nhnacademy.inventory.reports.report.dto.ReportCreatedEvent;
@@ -16,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -24,10 +28,8 @@ public class WeeklyReportCreateUseCase {
 
     private final ReportService reportService;
     private final OrganizationMemberValidator memberValidator;
+    private final StockTransactionService stockTransactionService;
     private final ApplicationEventPublisher eventPublisher;
-
-    // 더미 생성용 임시 의존성
-    private final MedicinePackageUnitRepository medicinePackageUnitRepository;
 
     // 주간 리포트를 생성한다. 이미 주간 리포트가 있으면 그걸 반환하고, 없으면 생성한다.
     @Transactional
@@ -52,27 +54,23 @@ public class WeeklyReportCreateUseCase {
         return saved;
     }
 
-    /**
-     * TODO: 더미값 -> StockTransaction 집계로 교체
-     *  - 사용량: transactionType == OUTBOUND (TRANSFER_OUT, INFO_CORRECTION_OUT 은 실제 소비가 아니므로 제외함)
-     *  - 폐기량: transactionType == DISPOSAL
-     *  - 기간: processedAt이 report.getPeriodStart() ~ report.getPeriodEnd() 사이인 경우
-     *  - 조직: zone.storage.organization.id == report.getOrganizationId()
-     */
     private void collectReportItems(Report report) {
-        List<MedicinePackageUnit> units = medicinePackageUnitRepository.findAll().stream()
-                .limit(6)
-                .toList();
+        List<StockTransaction> transactions = stockTransactionService.findTransactionsForReport(
+                report.getOrganizationId(),
+                List.of(TransactionType.OUTBOUND, TransactionType.DISPOSAL),
+                report.getPeriodStart(),
+                report.getPeriodEnd());
 
-        int[] usageQuantities = {320, 45, 30, 22, 15, 7};
-        int[] disposalQuantities = {24, 3, 1, 0, 0, 3};
+        sumByUnit(transactions, TransactionType.OUTBOUND)
+                .forEach(report::addUsage);
 
-        for (int i = 0; i < units.size(); i++) {
-            report.addUsage(units.get(i), usageQuantities[i]);
+        sumByUnit(transactions, TransactionType.DISPOSAL)
+                .forEach(report::addDisposal);
+    }
 
-            if (disposalQuantities[i] > 0) {
-                report.addDisposal(units.get(i), disposalQuantities[i]);
-            }
-        }
+    private Map<MedicinePackageUnit, Integer> sumByUnit(List<StockTransaction> transactions, TransactionType type) {
+        return transactions.stream()
+                .filter(t -> t.getTransactionType() == type)
+                .collect(Collectors.groupingBy(StockTransaction::getMedicinePackageUnit, Collectors.summingInt(StockTransaction::getQuantity)));
     }
 }

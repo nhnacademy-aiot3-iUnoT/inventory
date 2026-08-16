@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.inventories.transaction.service;
 
 import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchCondition;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchResponse;
@@ -11,6 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -38,5 +42,13 @@ public class StockTransactionService {
             Long zoneId, StockTransactionSearchCondition condition, Pageable pageable
     ){
         return stockTransactionRepository.searchByCondition(zoneId, condition, pageable);
+    }
+
+    public List<StockTransaction> findTransactionsForReport(Long organizationId, List<TransactionType> types, LocalDate start, LocalDate end) {
+        return stockTransactionRepository.findAllForReport(
+                organizationId,
+                types,
+                start.atStartOfDay(),
+                end.plusDays(1).atStartOfDay());
     }
 }

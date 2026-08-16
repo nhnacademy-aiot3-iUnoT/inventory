@@ -1,13 +1,20 @@
 package com.nhnacademy.inventory.reports.report.usecase;
 
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
+import com.nhnacademy.inventory.inventories.transaction.repository.StockTransactionRepository;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
+import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicineRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
+import com.nhnacademy.inventory.organizations.storage.domain.Storage;
+import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
+import com.nhnacademy.inventory.organizations.zone.domain.Zone;
+import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportItemType;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
@@ -23,8 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -35,7 +42,9 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest
 class ReportCreateIntegrationTest {
 
-    private static final LocalDate PERIOD_START = LocalDate.of(2026, Month.AUGUST, 10);
+    // StockTransaction의 processedAt이 @PrePersist로 now()가 되므로,
+    // 픽스처가 집계 대상에 들어오도록 '이번 주 월요일'을 기간 시작으로 사용한다.
+    private static final LocalDate PERIOD_START = LocalDate.now().with(DayOfWeek.MONDAY);
 
     @Autowired
     private ReportCreateFacade reportCreateFacade;
@@ -55,6 +64,15 @@ class ReportCreateIntegrationTest {
     @Autowired
     private MedicinePackageUnitRepository medicinePackageUnitRepository;
 
+    @Autowired
+    private StorageRepository storageRepository;
+
+    @Autowired
+    private ZoneRepository zoneRepository;
+
+    @Autowired
+    private StockTransactionRepository stockTransactionRepository;
+
     private long organizationId;
 
     @BeforeEach
@@ -67,7 +85,17 @@ class ReportCreateIntegrationTest {
         organizationMemberRepository.save(member);
 
         Medicine medicine = medicineRepository.save(TestFixtures.createMedicine("A001", "타이레놀정"));
-        medicinePackageUnitRepository.save(TestFixtures.createPackageUnit(medicine, "10정"));
+        MedicinePackageUnit packageUnit = medicinePackageUnitRepository.save(TestFixtures.createPackageUnit(medicine, "10정"));
+
+        Storage storage = storageRepository.save(TestFixtures.createStorage(organization));
+        Zone zone = zoneRepository.save(TestFixtures.createZone(storage));
+
+        stockTransactionRepository.save(
+                TestFixtures.createStockTransaction(packageUnit, zone, TransactionType.OUTBOUND, 30));
+        stockTransactionRepository.save(
+                TestFixtures.createStockTransaction(packageUnit, zone, TransactionType.OUTBOUND, 12));
+        stockTransactionRepository.save(
+                TestFixtures.createStockTransaction(packageUnit, zone, TransactionType.DISPOSAL, 5));
 
         UserContext.setUserUuid(accountUuid);
     }
@@ -78,6 +106,9 @@ class ReportCreateIntegrationTest {
 
         // report_items 가 reports 를 참조하므로 벌크 삭제 대신 엔티티 단위로 삭제
         reportRepository.deleteAll();
+        stockTransactionRepository.deleteAllInBatch();
+        zoneRepository.deleteAllInBatch();
+        storageRepository.deleteAllInBatch();
         medicinePackageUnitRepository.deleteAllInBatch();
         medicineRepository.deleteAllInBatch();
         organizationMemberRepository.deleteAllInBatch();
@@ -95,7 +126,6 @@ class ReportCreateIntegrationTest {
                 .isEqualTo(PERIOD_START);
         assertThat(response.periodEnd())
                 .isEqualTo(PERIOD_START.plusDays(6));
-
         assertThat(response.items())
                 .isNotEmpty()
                 .allSatisfy(item -> {
@@ -103,17 +133,20 @@ class ReportCreateIntegrationTest {
                             .isEqualTo("타이레놀정");
                     assertThat(item.packUnit())
                             .isEqualTo("10정");
-                    assertThat(item.quantity())
-                            .isPositive();
                 });
-
+        assertThat(response.items())
+                .filteredOn(item -> item.reportItemType() == ReportItemType.USAGE)
+                .singleElement()
+                .satisfies(item -> assertThat(item.quantity()).isEqualTo(42));
         assertThat(response.items())
                 .extracting(ReportItemResponse::reportItemType)
                 .contains(ReportItemType.USAGE);
 
         // 저장까지 실제로 됐는지 (cascade 확인)
-        Report saved = reportRepository.findByIdWithItems(response.reportId()).orElseThrow();
-        assertThat(saved.getReportItems()).hasSameSizeAs(response.items());
+        Report saved = reportRepository.findByIdWithItems(response.reportId())
+                .orElseThrow();
+        assertThat(saved.getReportItems())
+                .hasSameSizeAs(response.items());
     }
 
     @Test

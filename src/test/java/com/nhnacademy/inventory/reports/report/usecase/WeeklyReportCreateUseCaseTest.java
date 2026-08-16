@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.reports.report.usecase;
 
-import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
+import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 import com.nhnacademy.inventory.reports.report.dto.ReportCreatedEvent;
@@ -22,7 +23,6 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,10 +35,10 @@ class WeeklyReportCreateUseCaseTest {
     private OrganizationMemberValidator organizationMemberValidator;
 
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private StockTransactionService stockTransactionService;
 
     @Mock
-    private MedicinePackageUnitRepository medicinePackageUnitRepository;
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private WeeklyReportCreateUseCase weeklyReportCreateUseCase;
@@ -72,13 +72,17 @@ class WeeklyReportCreateUseCaseTest {
         // given
         long organizationId = 1L;
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
-        Report report = mock(Report.class);
+        Report report = Report.weeklyOf(organizationId, periodStart);
 
         given(reportService.find(organizationId, ReportType.WEEKLY, periodStart))
                 .willReturn(Optional.empty());
         given(reportService.register(any(Report.class)))
                 .willReturn(report);
-        given(medicinePackageUnitRepository.findAll())
+        given(stockTransactionService.findTransactionsForReport(
+                organizationId,
+                List.of(TransactionType.OUTBOUND, TransactionType.DISPOSAL),
+                report.getPeriodStart(),
+                report.getPeriodEnd()))
                 .willReturn(List.of());
 
         // when
