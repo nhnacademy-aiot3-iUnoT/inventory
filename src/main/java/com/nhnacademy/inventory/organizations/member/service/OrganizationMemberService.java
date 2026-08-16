@@ -1,11 +1,15 @@
 package com.nhnacademy.inventory.organizations.member.service;
 
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
+import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,5 +24,41 @@ public class OrganizationMemberService {
     public OrganizationMember getCurrentOrganizationMember(UUID userId) {
         return orgMemberRepository.findByAccountUuid(userId)
                 .orElseThrow(UserOrgNotFoundException::new);
+    }
+
+    /**
+     * 조직원 생성
+     */
+    @Transactional
+    public OrganizationMember createMember(Organization organization, UUID accountUuid) {
+        OrganizationMember member = OrganizationMember.createMember(
+                organization,
+                accountUuid
+        );
+        return orgMemberRepository.save(member);
+    }
+
+    @Transactional
+    public OrganizationMember createOwner(Organization organization, UUID accountUuid) {
+        OrganizationMember owner = OrganizationMember.createOwner(
+                organization,
+                accountUuid
+        );
+        return orgMemberRepository.save(owner);
+    }
+
+    @Transactional
+    public void deleteOrganizationMember(UUID accountUuid) {
+        OrganizationMember member = orgMemberRepository.findByAccountUuid(accountUuid)
+                .orElseThrow(UserOrgNotFoundException::new);
+
+        orgMemberRepository.delete(member);
+    }
+
+    /**
+     * Owner 목록
+     */
+    public List<OrganizationMember> getOwners(Long organizationId) {
+        return orgMemberRepository.findByOrganizationIdAndOrganizationRole(organizationId, OrganizationRole.ORG_OWNER);
     }
 }

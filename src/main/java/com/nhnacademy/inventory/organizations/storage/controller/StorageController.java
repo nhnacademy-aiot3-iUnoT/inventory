@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/core")
@@ -21,62 +20,57 @@ import java.util.UUID;
 public class StorageController {
     private final StorageService storageService;
 
-    @PostMapping("/organizations/{organizationId}/storages")
+    @PostMapping("/organizations/{organization-id}/storages")
     public ResponseEntity<ApiResponse<StorageInfoResponse>> createStorage(
-            @PathVariable Long organizationId,
+            @PathVariable(name = "organization-id") Long organizationId,
             @RequestBody @Valid StorageCreateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        StorageInfoResponse response = storageService.createStorage(organizationId, uuid, request);
+        StorageInfoResponse response = storageService.createStorage(organizationId, request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
     }
 
-    @GetMapping("/organizations/{organizationId}/storages")
+    @GetMapping("/organizations/{organization-id}/storages")
     public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorages(
-            @PathVariable Long organizationId
+            @PathVariable(name = "organization-id") Long organizationId
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        List<StorageInfoResponse> responses = storageService.getStorages(organizationId, uuid);
+        List<StorageInfoResponse> responses = storageService.getStorages(organizationId);
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-    @PutMapping("/organizations/{organizationId}/storages/{storageId}")
+    @PutMapping("/organizations/{organization-id}/storages/{storage-id}")
     public ResponseEntity<ApiResponse<StorageInfoResponse>> updateStorage(
-            @PathVariable Long organizationId,
-            @PathVariable Long storageId,
+            @PathVariable(name = "organization-id") Long organizationId,
+            @PathVariable(name = "storage-id") Long storageId,
             @RequestBody @Valid StorageUpdateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        StorageInfoResponse response = storageService.updateStorage(organizationId, storageId, uuid, request);
+        StorageInfoResponse response = storageService.updateStorage(organizationId, storageId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PutMapping("/organizations/{organizationId}/storages/{storageId}/status")
+    @PutMapping("/organizations/{organization-id}/storages/{storage-id}/status")
     public ResponseEntity<ApiResponse<StorageInfoResponse>> updateStorageStatus(
-            @PathVariable Long organizationId,
-            @PathVariable Long storageId,
+            @PathVariable(name = "organization-id") Long organizationId,
+            @PathVariable(name = "storage-id") Long storageId,
             @RequestBody @Valid StorageStatusUpdateRequest request
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        StorageInfoResponse response = storageService.updateStorageStatus(organizationId, storageId, uuid, request);
+        StorageInfoResponse response = storageService.updateStorageStatus(organizationId, storageId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @DeleteMapping("/organizations/{organizationId}/storages/{storageId}")
+    @DeleteMapping("/organizations/{organization-id}/storages/{storage-id}")
     public ResponseEntity<Void> deleteStorage(
-            @PathVariable Long organizationId,
-            @PathVariable Long storageId
+            @PathVariable(name = "organization-id") Long organizationId,
+            @PathVariable(name = "storage-id") Long storageId
     ){
-        UUID uuid = new UUID(0L, 0L); // 임시 uuid
 
-        storageService.closeStorage(organizationId, storageId, uuid);
+        storageService.closeStorage(organizationId, storageId);
 
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.noContent().build();
     }
 }

@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.zone.controller;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSaveRequest;
+import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSpecResponse;
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdInvalidRangeException;
 import com.nhnacademy.inventory.organizations.zone.exception.ThresholdNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundException;
@@ -169,7 +170,7 @@ class ThresholdControllerTest extends SupportControllerTest {
 
     @Nested
     @DisplayName("임계값 목록 조회 GET /api/core/zones/{zoneId}/zone-threshold")
-    class getZoneThreshold {
+    class getZoneThresholds {
 
         @Test
         @DisplayName("정상 처리 테스트")
@@ -278,7 +279,7 @@ class ThresholdControllerTest extends SupportControllerTest {
 
         @Test
         @DisplayName("실패 - 구역 없음")
-        void fail_NotFoundStorage() throws Exception {
+        void fail_NotFoundZone() throws Exception {
             willThrow(new ZoneNotFoundException()).given(thresholdService)
                     .deleteThreshold(11L, 1L);
 
@@ -289,8 +290,8 @@ class ThresholdControllerTest extends SupportControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 구역 없음")
-        void fail_NotFoundZone() throws Exception {
+        @DisplayName("실패 - 구역 임계값 없음")
+        void fail_NotFoundZoneThreshold() throws Exception {
             willThrow(new ThresholdNotFoundException()).given(thresholdService)
                     .deleteThreshold(11L, 1L);
 
@@ -301,6 +302,61 @@ class ThresholdControllerTest extends SupportControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("구역 임계값 조회 내부 api GET /api/core/internal/zones/{zone-id}/zone-threshold")
+    class internalGetThresholds {
+
+        @Test
+        @DisplayName("정상 처리 테스트")
+        void success() throws Exception {
+            ThresholdSpecResponse response = new ThresholdSpecResponse(
+                    1L, 11L, "온도",
+                    BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5
+            );
+
+            given(thresholdService.internalGetThresholds(1L))
+                    .willReturn(List.of(response));
+
+            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
+            responseFields.addAll(List.of(
+                    fieldWithPath("data[].zoneId").type(JsonFieldType.NUMBER).description("구역 ID"),
+                    fieldWithPath("data[].sensorTypeId").type(JsonFieldType.NUMBER).description("센서 타입 ID"),
+                    fieldWithPath("data[].sensorTypeName").type(JsonFieldType.STRING).description("센서 타입 이름"),
+                    fieldWithPath("data[].minValue").type(JsonFieldType.NUMBER).description("최소 임계값").optional(),
+                    fieldWithPath("data[].maxValue").type(JsonFieldType.NUMBER).description("최대 임계값").optional(),
+                    fieldWithPath("data[].alertDuration").type(JsonFieldType.NUMBER).description("경고 지속 시간 (초)")
+            ));
+
+            mockMvc.perform(get("/api/core/internal/zones/{zone-id}/zone-threshold", 1L))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].sensorTypeName").value("온도"))
+                    .andExpect(jsonPath("$.data[0].minValue").value(20))
+                    .andExpect(jsonPath("$.data[0].maxValue").value(30))
+                    .andDo(document("threshold-get-list-internal",
+                            pathParameters(
+                                    parameterWithName("zone-id").description("구역 ID")
+                            ),
+                            responseFields(
+                                    responseFields
+                            )
+                    ));
+        }
+
+        @Test
+        @DisplayName("정상 처리 테스트(빈 배열)")
+        void success_empty() throws Exception {
+            given(thresholdService.internalGetThresholds(1L))
+                    .willReturn(List.of());
+
+            mockMvc.perform(get("/api/core/internal/zones/{zone-id}/zone-threshold", 1L))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(0));
+        }
+    }
+
     private List<FieldDescriptor> thresholdInfoResponseFields(String prefix){
         return List.of(
                 fieldWithPath(prefix + "zoneThresholdId").type(JsonFieldType.NUMBER).description("임계값 ID"),
@@ -308,7 +364,7 @@ class ThresholdControllerTest extends SupportControllerTest {
                 fieldWithPath(prefix + "sensorTypeId").type(JsonFieldType.NUMBER).description("센서 타입 ID"),
                 fieldWithPath(prefix + "minValue").type(JsonFieldType.NUMBER).description("최소 임계값").optional(),
                 fieldWithPath(prefix + "maxValue").type(JsonFieldType.NUMBER).description("최대 임계값").optional(),
-                fieldWithPath(prefix + "alertDuration").type(JsonFieldType.NUMBER).description("경고 지속 시간 (초)").optional()
+                fieldWithPath(prefix + "alertDuration").type(JsonFieldType.NUMBER).description("경고 지속 시간 (초)")
         );
     }
 }

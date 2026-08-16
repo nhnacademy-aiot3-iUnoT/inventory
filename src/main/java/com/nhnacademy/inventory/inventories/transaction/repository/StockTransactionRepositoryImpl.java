@@ -1,11 +1,13 @@
 package com.nhnacademy.inventory.inventories.transaction.repository;
 
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
+import com.nhnacademy.inventory.inventories.transaction.dto.QStockTransactionSearchResponse;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchCondition;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -14,24 +16,20 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory.medicineInventory;
 import static com.nhnacademy.inventory.inventories.transaction.domain.QStockTransaction.stockTransaction;
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicine.medicine;
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit.medicinePackageUnit;
 
+@RequiredArgsConstructor
 public class StockTransactionRepositoryImpl implements StockTransactionRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
-
-    public StockTransactionRepositoryImpl(JPAQueryFactory queryFactory){
-        this.queryFactory = queryFactory;
-    }
 
     @Override
     public Page<StockTransactionSearchResponse> searchByCondition(Long zoneId, StockTransactionSearchCondition condition, Pageable pageable) {
 
         List<StockTransactionSearchResponse> responseList = queryFactory
-                .select(Projections.constructor(StockTransactionSearchResponse.class,
+                .select(new QStockTransactionSearchResponse(
                         stockTransaction.id,
                         medicine.productName,
                         medicinePackageUnit.packUnit,
