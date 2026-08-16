@@ -1,6 +1,6 @@
 package com.nhnacademy.inventory.organizations.member.domain;
 
-import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
+import com.nhnacademy.inventory.organizations.member.exception.OrgMemberRoleChangeNotAllowedException;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -9,8 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -53,7 +51,6 @@ public class OrganizationMember {
                 .build();
     }
 
-
     public boolean isOwner() {
         return this.organizationRole == OrganizationRole.ORG_OWNER;
     }
@@ -62,12 +59,16 @@ public class OrganizationMember {
         return this.organizationRole == OrganizationRole.ORG_BOSS;
     }
 
+    public void updateRole(OrganizationRole changeRole) {
+        if(changeRole == OrganizationRole.ORG_BOSS) {
+            throw new OrgMemberRoleChangeNotAllowedException();
+        }
+        this.organizationRole = changeRole;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.joinedAt = LocalDateTime.now();
     }
 
-    public void changeRole(OrganizationRole role) {
-        this.organizationRole = role;
-    }
 }

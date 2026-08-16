@@ -1,8 +1,12 @@
 package com.nhnacademy.inventory.organizations.member.service;
 
+import com.nhnacademy.inventory.global.cient.AccountClient;
+import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
-import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberListResponse;
+import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationMemberSearchRequest;
+import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRoleUpdateRequest;
+import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.exception.OrgMemberNotFoundException;
@@ -12,11 +16,15 @@ import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotF
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationDeletionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -24,6 +32,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class OrganizationMemberService {
     private final OrganizationMemberRepository orgMemberRepository;
+    private final AccountClient accountClient;
     private final OrganizationDeletionService orgDeletionService;
 
     /**
@@ -52,28 +61,67 @@ public class OrganizationMemberService {
     }
 
     /**
-     * OWNER 권한 확인
-     */
-    private void checkOwner(OrganizationMember member) {
-        if (!member.isOwner()) {
-            throw new ForbiddenException();
-        }
-    }
-
-    /**
      * 조회 (목록, 단건)
      */
-    public List<OrganizationMemberListResponse> getMembers() {
+    public Page<OrganizationMemberResponse> findMembers(OrganizationMemberSearchRequest request, boolean hasDepartment, Pageable pageable) {
+        List<AccountResponse> accounts = null;
+        List<UUID> accountUuids = null;
+
+        // BOSS, OWNER만 조회 가능
         OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
 
-        checkOwner(currentMember);
+        checkOwnerOrBoss(currentMember);
 
-        Organization organization = currentMember.getOrganization();
+        Long organizationId = currentMember.getOrganization().getId();
 
-        return orgMemberRepository.findAllByOrganizationId(organization.getId())
-                .stream()
-                .map(OrganizationMemberListResponse::from)
-                .toList();
+        // email 검색 O
+        if(request.email() != null && !request.email().isBlank()) {
+            accounts = accountClient.searchByEmail(request.email());
+
+            if(accounts.isEmpty()) {
+                return Page.empty(pageable);
+            }
+
+            accountUuids = accounts.stream()
+                    .map(AccountResponse::accountUuid)
+                    .toList();
+        }
+
+        Page<OrganizationMember> members = orgMemberRepository.findMembers(organizationId, accountUuids, hasDepartment ? request.role() : null, hasDepartment, pageable);
+
+        if(accounts != null) {
+            return toResponse(members, accounts);
+        }
+
+        return toResponse(members);
+    }
+
+    @Transactional
+    public void updateRole(Long memberId, OrganizationRoleUpdateRequest roleUpdateRequest) {
+        // Boss만 변경 가능
+        OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
+        checkBoss(currentMember);
+
+        // Owner <-> Member
+        OrganizationMember changeMember = getMemberById(memberId, currentMember.getOrganization().getId());
+        changeMember.updateRole(roleUpdateRequest.role());
+    }
+
+    @Transactional
+    public void deleteMember(Long memberId) {
+        // Boss만 변경 가능
+        OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
+        checkBoss(currentMember);
+
+        OrganizationMember deleteMember = getMemberById(memberId, currentMember.getOrganization().getId());
+        orgDeletionService.deleteMember(deleteMember);
+    }
+
+    @Transactional
+    public void leaveOrganization() {
+        OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
+
+        orgDeletionService.deleteMember(currentMember);
     }
 
     public OrganizationMember getMemberById(Long memberId, Long organizationId) {
@@ -89,17 +137,53 @@ public class OrganizationMemberService {
                 .orElseThrow(UserOrgNotFoundException::new);
     }
 
+    /**
+     * OWNER, BOSS
+     */
+    private void checkOwnerOrBoss(OrganizationMember member) {
+        if (!(member.isOwner() || member.isBoss())) {
+            throw new ForbiddenException();
+        }
+    }
 
-    public List<OrganizationMemberListResponse> getMembersWithoutDepartment() {
-        OrganizationMember currentMember = getCurrentOrganizationMember(UserContext.getUserUuid());
+    /**
+     * BOSS
+     */
+    private void checkBoss(OrganizationMember member) {
+        if(!member.isBoss()) {
+            throw new ForbiddenException();
+        }
+    }
 
-        checkOwner(currentMember);
+    /**
+     * 조직원 목록 조회 응답값 조립
+     */
+    private Page<OrganizationMemberResponse> toResponse(Page<OrganizationMember> members, List<AccountResponse> accounts) {
+        Map<UUID, String> emailMap = accounts.stream()
+                .collect(Collectors.toMap(AccountResponse::accountUuid, AccountResponse::email));
 
-        Long organizationId = currentMember.getOrganization().getId();
+        return members.map(member ->
+                new OrganizationMemberResponse(
+                        member.getId(),
+                        emailMap.get(member.getAccountUuid()),
+                        member.getOrganizationRole(),
+                        member.getJoinedAt()
+                )
+        );
+    }
 
-        return orgMemberRepository.findAllWithoutDepartment(organizationId)
+    private Page<OrganizationMemberResponse> toResponse(Page<OrganizationMember> members) {
+        if (members.isEmpty()) {
+            return Page.empty(members.getPageable());
+        }
+
+        List<UUID> accountUuids = members.getContent()
                 .stream()
-                .map(OrganizationMemberListResponse::from)
+                .map(OrganizationMember::getAccountUuid)
                 .toList();
+
+        List<AccountResponse> accounts = accountClient.findByUuids(accountUuids);
+
+        return toResponse(members, accounts);
     }
 }
