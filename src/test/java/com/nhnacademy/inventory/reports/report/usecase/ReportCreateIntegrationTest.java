@@ -73,15 +73,14 @@ class ReportCreateIntegrationTest {
     @Autowired
     private StockTransactionRepository stockTransactionRepository;
 
-    private long organizationId;
+    private UUID accountUuid;
 
     @BeforeEach
     void setUp() {
         Organization organization = organizationRepository.save(Organization.create("1000010000", "테스트"));
-        organizationId = organization.getId();
 
         OrganizationMember member = TestFixtures.createOrganizationMember(organization);
-        UUID accountUuid = member.getAccountUuid();
+        accountUuid = member.getAccountUuid();
         organizationMemberRepository.save(member);
 
         Medicine medicine = medicineRepository.save(TestFixtures.createMedicine("A001", "타이레놀정"));
@@ -119,7 +118,7 @@ class ReportCreateIntegrationTest {
     @DisplayName("리포트를 생성하면 의약품 항목이 함께 저장된다")
     void createWeeklyReport_SavesReportItems() {
         // when
-        ReportInfoResponse response = reportCreateFacade.createWeeklyReport(organizationId, PERIOD_START);
+        ReportInfoResponse response = reportCreateFacade.createWeeklyReport(accountUuid, PERIOD_START);
 
         // then
         assertThat(response.periodStart())
@@ -153,10 +152,10 @@ class ReportCreateIntegrationTest {
     @DisplayName("이미 생성된 기간을 다시 요청하면 기존 리포트를 그대로 반환한다")
     void createWeeklyReport_WhenAlreadyExists_ReturnsSameReport() {
         // given
-        ReportInfoResponse first = reportCreateFacade.createWeeklyReport(organizationId, PERIOD_START);
+        ReportInfoResponse first = reportCreateFacade.createWeeklyReport(accountUuid, PERIOD_START);
 
         // when
-        ReportInfoResponse second = reportCreateFacade.createWeeklyReport(organizationId, PERIOD_START);
+        ReportInfoResponse second = reportCreateFacade.createWeeklyReport(accountUuid, PERIOD_START);
 
         // then
         assertThat(second.reportId())
@@ -170,7 +169,7 @@ class ReportCreateIntegrationTest {
     @DisplayName("리포트 생성 후 AI 요약이 비동기로 채워진다")
     void createWeeklyReport_FillsAiSummaryAsynchronously() {
         // when
-        ReportInfoResponse response = reportCreateFacade.createWeeklyReport(organizationId, PERIOD_START);
+        ReportInfoResponse response = reportCreateFacade.createWeeklyReport(accountUuid, PERIOD_START);
 
         // then: 응답 시점에는 아직 요약이 없음
         assertThat(response.aiSummary())

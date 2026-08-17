@@ -46,14 +46,11 @@ class ReportCreateConcurrencyIntegrationTest {
 
     private ExecutorService threadPool;
 
-    private long organizationId;
-
     private UUID accountUuid;
 
     @BeforeEach
     void setUp() {
         Organization organization = organizationRepository.save(Organization.create("1000010000", "테스트"));
-        organizationId = organization.getId();
         OrganizationMember member = TestFixtures.createOrganizationMember(organization);
         accountUuid = member.getAccountUuid();
         organizationMemberRepository.save(member);
@@ -96,7 +93,7 @@ class ReportCreateConcurrencyIntegrationTest {
                 }
 
                 try {
-                    return reportCreateFacade.createWeeklyReport(organizationId, LocalDate.of(2026, Month.AUGUST, 10));
+                    return reportCreateFacade.createWeeklyReport(accountUuid, LocalDate.of(2026, Month.AUGUST, 10));
                 } finally {
                     UserContext.clear();
                 }

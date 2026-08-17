@@ -7,6 +7,7 @@ import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -17,7 +18,7 @@ public class ReportCreateFacade {
             includes = {DataIntegrityViolationException.class},
             maxRetries = 1
     )
-    public ReportInfoResponse createWeeklyReport(Long organizationId, LocalDate periodStart) {
-        return weeklyReportCreateUseCase.execute(organizationId, periodStart);
+    public ReportInfoResponse createWeeklyReport(UUID accountUuid, LocalDate periodStart) {
+        return weeklyReportCreateUseCase.execute(accountUuid, periodStart);
     }
 }
