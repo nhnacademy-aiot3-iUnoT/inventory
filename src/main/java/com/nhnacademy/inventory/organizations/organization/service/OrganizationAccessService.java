@@ -53,23 +53,9 @@ public class OrganizationAccessService {
         return member;
     }
 
-    public OrganizationMember requireOwner() {
-        OrganizationMember member = getCurrentMember();
-
-        if (!member.isOwner()) {
-            throw new ForbiddenException();
-        }
-
-        return member;
-    }
-
     /**
      * 검증 후 조직 반환
      */
-    public Organization requireOwnerOrganization() {
-        return requireOwner().getOrganization();
-    }
-
     public Organization requireBossOrganization() {
         return requireBoss().getOrganization();
     }

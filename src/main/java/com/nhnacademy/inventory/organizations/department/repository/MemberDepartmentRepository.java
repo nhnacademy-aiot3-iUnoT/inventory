@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface MemberDepartmentRepository extends JpaRepository<MemberDepartment, Long> {
 
@@ -21,7 +20,4 @@ public interface MemberDepartmentRepository extends JpaRepository<MemberDepartme
 
     List<MemberDepartment> findAllByOrganizationMemberId(Long organizationMemberId);
 
-    boolean existsByOrganizationMemberIdAndDepartmentId(Long orgMemberId, Long departmentId);
-
-    Optional<MemberDepartment> findByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 }

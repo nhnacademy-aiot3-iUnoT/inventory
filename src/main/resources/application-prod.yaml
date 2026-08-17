@@ -5,6 +5,10 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_DEFAULT_ZONE}
 
+clients:
+  account:
+    base-url: ${ACCOUNT_BASE_URL:http://account}
+
 logging:
   level:
     com.nhnacademy.inventory: INFO
@@ -26,4 +30,3 @@ app:
 security:
   jwt:
     jwk-set-uri: https://iunot.cloud/.well-known/jwks.json
-

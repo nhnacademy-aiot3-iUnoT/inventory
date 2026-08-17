@@ -27,9 +27,19 @@ public interface InvitationRepository extends JpaRepository<Invitation, Long>, I
             from Invitation i
             where i.organization.id = :organizationId
               and i.email = :email
-              and i.invitationStatus = 'ACTIVE'
+              and (i.invitationStatus = 'ACTIVE' or i.invitationStatus ='USED')
               and i.expiredAt > :now
         """)
-    boolean existsActiveInvitation(Long organizationId, String email, LocalDateTime now);
+    boolean existsInvitationBy(Long organizationId, String email, LocalDateTime now);
+
+    @Modifying
+    @Query("""
+           update Invitation i
+           set i.invitationStatus = 'REISSUED'
+           where i.organization.id = :organizationId
+             and i.email = :email
+             and i.invitationStatus = 'CANCELED'
+    """)
+    void updateInvitationReissued(Long organizationId, String email);
 
 }

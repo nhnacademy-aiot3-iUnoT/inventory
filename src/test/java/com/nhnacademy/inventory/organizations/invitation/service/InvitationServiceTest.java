@@ -61,7 +61,6 @@ class InvitationServiceTest {
     private Organization organization;
     private Invitation invitation;
     private OrganizationMember owner;
-    private OrganizationMember member;
 
     @BeforeEach
     void setUp() {
@@ -70,7 +69,6 @@ class InvitationServiceTest {
 
         invitation = TestFixtures.createInvitationOwner(organization, "test@test.com");
         owner = TestFixtures.createOrganizationOwner(organization);
-        member = TestFixtures.createOrganizationMember(organization);
     }
 
     @Test
@@ -78,14 +76,14 @@ class InvitationServiceTest {
     void createInvitation_success() {
         String email = "test@test.com";
 
-        given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(false);
+        given(invitationRepository.existsInvitationBy(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(false);
         given(invitationRepository.save(any(Invitation.class))).willReturn(invitation);
 
         Invitation result = invitationService.createInvitation(organization, email, true);
 
         assertNotNull(result);
         assertEquals(invitation, result);
-        verify(invitationRepository).existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class));
+        verify(invitationRepository).existsInvitationBy(eq(organization.getId()), eq(email), any(LocalDateTime.class));
         verify(invitationRepository).save(any(Invitation.class));
         verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
     }
@@ -95,10 +93,11 @@ class InvitationServiceTest {
     void createInvitation_duplicate() {
         String email = "test@test.com";
 
-        given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(true);
+        given(invitationRepository.existsInvitationBy(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(true);
 
         assertThrows(InvitationAlreadyExistsException.class, () -> invitationService.createInvitation(organization, email, true));
 
+        verify(invitationRepository, never()).updateInvitationReissued(any(), any());
         verify(invitationRepository, never()).save(any());
         verify(applicationEventPublisher, never()).publishEvent(any());
     }
@@ -397,7 +396,7 @@ class InvitationServiceTest {
 
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(oldInvitation));
             given(orgAccessService.requireOwnerOrBossOf(organization.getId())).willReturn(owner);
-            given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq("member@test.com"), any(LocalDateTime.class))).willReturn(false);
+            given(invitationRepository.existsInvitationBy(eq(organization.getId()), eq("member@test.com"), any(LocalDateTime.class))).willReturn(false);
             given(invitationRepository.save(any(Invitation.class))).willReturn(newInvitation);
 
             invitationService.reissueInvitation(invitationId);
@@ -525,7 +524,7 @@ class InvitationServiceTest {
             Invitation newInvitation = TestFixtures.createInvitationOwner(organization, invitation.getEmail());
 
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
-            given(invitationRepository.existsActiveInvitation(eq(organizationId), eq(invitation.getEmail()), any(LocalDateTime.class))).willReturn(false);
+            given(invitationRepository.existsInvitationBy(eq(organizationId), eq(invitation.getEmail()), any(LocalDateTime.class))).willReturn(false);
             given(invitationRepository.save(any(Invitation.class))).willReturn(newInvitation);
 
             invitationService.reissueInvitationForAdmin(organizationId, invitationId);

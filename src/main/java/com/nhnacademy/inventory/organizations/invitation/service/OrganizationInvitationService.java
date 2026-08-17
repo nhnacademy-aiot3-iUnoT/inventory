@@ -20,7 +20,7 @@ public class OrganizationInvitationService {
 
     @Transactional
     public void inviteMember(InvitationCreateRequest request) {
-        Organization organization = orgAccessService.requireOwnerOrganization();
+        Organization organization = orgAccessService.requireOwnerOrBossOrganization();
 
         if (organization.getStatus() == OrganizationStatus.PENDING) {
             throw new OrganizationNotActiveException();

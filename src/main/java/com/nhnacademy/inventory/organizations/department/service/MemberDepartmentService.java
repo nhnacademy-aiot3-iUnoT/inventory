@@ -3,9 +3,8 @@ package com.nhnacademy.inventory.organizations.department.service;
 import com.nhnacademy.inventory.organizations.department.domain.Department;
 import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.department.dto.response.DepartmentListResponse;
+import com.nhnacademy.inventory.organizations.department.dto.request.MemberDepartmentUpdateRequest;
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentNotFoundException;
-import com.nhnacademy.inventory.organizations.department.exception.MemberDepartmentAlreadyExistsException;
-import com.nhnacademy.inventory.organizations.department.exception.MemberDepartmentNotInException;
 import com.nhnacademy.inventory.organizations.department.repository.DepartmentRepository;
 import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
@@ -16,7 +15,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,34 +42,48 @@ public class MemberDepartmentService {
                 .toList();
     }
 
-    @Transactional
-    public void assignDepartment(Long memberId, Long departmentId) {
+    public List<DepartmentListResponse> getMemberDepartments(Long memberId) {
         Organization organization = orgAccessService.requireOwnerOrBossOrganization();
-
-        if (memberDepartmentRepository.existsByOrganizationMemberIdAndDepartmentId(memberId, departmentId)) {
-            throw new MemberDepartmentAlreadyExistsException();
-        }
-
         OrganizationMember member = orgMemberService.getMemberById(memberId, organization.getId());
 
-        Department department = departmentRepository.findByIdAndOrganizationId(departmentId, organization.getId())
-                        .orElseThrow(DepartmentNotFoundException::new);
-
-        memberDepartmentRepository.save(MemberDepartment.create(member, department));
+        return memberDepartmentRepository
+                .findAllByOrganizationMemberId(member.getId())
+                .stream()
+                .map(MemberDepartment::getDepartment)
+                .map(DepartmentListResponse::from)
+                .toList();
     }
 
     @Transactional
-    public void removeDepartment(Long memberId, Long departmentId) {
+    public void updateMemberDepartments(Long memberId, MemberDepartmentUpdateRequest request) {
         Organization organization = orgAccessService.requireOwnerOrBossOrganization();
-
         OrganizationMember member = orgMemberService.getMemberById(memberId, organization.getId());
 
-        Department department = departmentRepository.findByIdAndOrganizationId(departmentId, organization.getId())
-                .orElseThrow(DepartmentNotFoundException::new);
+        // 사용자가 선택한 부서 ID 목록
+        Set<Long> requestedDepartmentIds = request.departmentIds() == null ? Set.of() : new HashSet<>(request.departmentIds());
 
-        MemberDepartment memberDepartment = memberDepartmentRepository.findByDepartmentIdAndOrganizationMemberId(department.getId(), member.getId())
-                .orElseThrow(MemberDepartmentNotInException::new);
+        List<Department> requestedDepartments = requestedDepartmentIds.isEmpty() ? List.of()
+                : departmentRepository.findAllByIdInAndOrganizationId(List.copyOf(requestedDepartmentIds), organization.getId());
 
-        memberDepartmentRepository.delete(memberDepartment);
+        // 조직에 존재하지 않는 부서가 포함되어 있음
+        if (requestedDepartments.size() != requestedDepartmentIds.size()) {
+            throw new DepartmentNotFoundException();
+        }
+
+        List<MemberDepartment> currentAssignments = memberDepartmentRepository.findAllByOrganizationMemberId(member.getId());
+        // 기존 배정 부서 중 선택에서 제외된 부서 연결 제거
+        memberDepartmentRepository.deleteAll(currentAssignments.stream()
+                .filter(assignment -> !requestedDepartmentIds.contains(assignment.getDepartment().getId()))
+                .toList());
+
+        Set<Long> existingDepartmentIds = currentAssignments.stream()
+                .map(assignment -> assignment.getDepartment().getId())
+                .collect(Collectors.toSet());
+
+        // 새로 선택된 부서만 연결 생성
+        memberDepartmentRepository.saveAll(requestedDepartments.stream()
+                .filter(department -> !existingDepartmentIds.contains(department.getId()))
+                .map(department -> MemberDepartment.create(member, department))
+                .toList());
     }
 }

@@ -49,12 +49,12 @@ class OrganizationInvitationServiceTest {
 
         organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
 
-        given(orgAccessService.requireOwnerOrganization()).willReturn(organization);
+        given(orgAccessService.requireOwnerOrBossOrganization()).willReturn(organization);
         given(invitationService.createInvitation(organization, request.email(), false)).willReturn(invitation);
 
         organizationInvitationService.inviteMember(request);
 
-        verify(orgAccessService).requireOwnerOrganization();
+        verify(orgAccessService).requireOwnerOrBossOrganization();
         verify(invitationService).createInvitation(organization, request.email(), false);
     }
 
@@ -63,7 +63,7 @@ class OrganizationInvitationServiceTest {
     void inviteMember_pendingOrganization() {
         InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
 
-        given(orgAccessService.requireOwnerOrganization()).willReturn(organization);
+        given(orgAccessService.requireOwnerOrBossOrganization()).willReturn(organization);
 
         assertThrows(OrganizationNotActiveException.class, () -> organizationInvitationService.inviteMember(request));
 
@@ -75,7 +75,7 @@ class OrganizationInvitationServiceTest {
     void inviteMember_forbidden() {
         InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
 
-        given(orgAccessService.requireOwnerOrganization()).willThrow(new ForbiddenException());
+        given(orgAccessService.requireOwnerOrBossOrganization()).willThrow(new ForbiddenException());
 
         assertThrows(ForbiddenException.class, () -> organizationInvitationService.inviteMember(request));
 

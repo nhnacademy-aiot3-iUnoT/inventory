@@ -17,6 +17,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     void deleteByOrganizationId(Long organizationId);
 
     List<Department> findAllByOrganizationId(Long organizationId);
+    List<Department> findAllByIdInAndOrganizationId(List<Long> departmentIds, Long organizationId);
     Optional<Department> findByIdAndOrganizationId(Long departmentId, Long organizationId);
 
     boolean existsByOrganizationIdAndName(Long organizationId, String name);

@@ -1,46 +1,52 @@
 package com.nhnacademy.inventory.global.cient;
 
 import com.nhnacademy.inventory.global.dto.account.AccountResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.UUID;
 
+// account 연동 확인 후 수정
 @Component
-@RequiredArgsConstructor
 public class AccountClient {
+    private static final String ACCOUNT_SERVER = "/api/accounts/internal";
+
     private final RestClient restClient;
-    private final String ACCOUNT_SERVER = "/api/core/internal/accounts";
+
+    public AccountClient(@Qualifier("accountRestClient") RestClient restClient) {
+        this.restClient = restClient;
+    }
 
     public List<AccountResponse> searchByEmail(String email) {
         return restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(ACCOUNT_SERVER + "/search")
+                .uri(UriComponentsBuilder
+                        .fromPath(ACCOUNT_SERVER + "/search")
                         .queryParam("email", email)
-                        .build())
+                        .toUriString())
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<AccountResponse>>() {});
     }
 
     public List<AccountResponse> findByUuids(List<UUID> accountUuids) {
         return restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(ACCOUNT_SERVER)
+                .uri(UriComponentsBuilder
+                        .fromPath(ACCOUNT_SERVER)
                         .queryParam("uuids", accountUuids)
-                        .build())
+                        .toUriString())
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<AccountResponse>>() {});
     }
 
     public AccountResponse deleteAccount(UUID accountUuid) {
         return restClient.delete()
-                .uri(uriBuilder -> uriBuilder
-                        .path(ACCOUNT_SERVER)
+                .uri(UriComponentsBuilder
+                        .fromPath(ACCOUNT_SERVER)
                         .queryParam("account-uuid", accountUuid)
-                        .build())
+                        .toUriString())
                 .retrieve()
                 .body(new ParameterizedTypeReference<AccountResponse>() {});
     }

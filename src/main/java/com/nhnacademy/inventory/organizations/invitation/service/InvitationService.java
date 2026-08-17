@@ -46,12 +46,15 @@ public class InvitationService {
      */
     @Transactional
     public Invitation createInvitation(Organization organization, String email, boolean invitedByAdmin) {
-        // 진행중인 초대 내역 존재
-        boolean duplicated = invitationRepository.existsActiveInvitation(organization.getId(), email, LocalDateTime.now());
+        // 초대가 존재하거나, 이미 조직에 가입된 이메일
+        boolean duplicated = invitationRepository.existsInvitationBy(organization.getId(), email, LocalDateTime.now());
 
         if (duplicated) {
             throw new InvitationAlreadyExistsException();
         }
+
+        // 남아있는 취소 -> 재발급
+        invitationRepository.updateInvitationReissued(organization.getId(), email);
 
         Invitation invitation = invitationRepository.save(Invitation.create(organization, email, invitedByAdmin));
         log.info("조직({}) : {} 초대 생성 완료. invitationId={}", organization.getBusinessNumber(), invitedByAdmin, invitation.getId());
