@@ -18,6 +18,8 @@ spring:
     google:
       genai:
         api-key: dummy
+  flyway:
+    enabled: false
 
 eureka:
   client:
