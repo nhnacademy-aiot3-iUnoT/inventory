@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.inventories.inventory.domain;
 
+import com.nhnacademy.inventory.inventories.inventory.exception.InsufficientStockException;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import jakarta.persistence.*;
@@ -13,19 +14,19 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-    name = "medicine_inventorys",
-    uniqueConstraints = {@UniqueConstraint(
-            name = "uk_medicine_inventory",
-            columnNames = {
-                    "medicine_package_unit_id",
-                    "zone_id",
-                    "lot_number",
-                    "expiration_date"
-            }
+        name = "medicine_inventorys",
+        uniqueConstraints = {@UniqueConstraint(
+                name = "uk_medicine_inventory",
+                columnNames = {
+                        "medicine_package_unit_id",
+                        "zone_id",
+                        "lot_number",
+                        "expiration_date"
+                }
 
         )
 
-    }
+        }
 
 )
 @Getter
@@ -92,7 +93,7 @@ public class MedicineInventory {
     }
 
 
-    public static MedicineInventory create(MedicinePackageUnit medicinePackageUnit, Zone zone, String lotNumber, LocalDate expirationDate, int quantity){
+    public static MedicineInventory create(MedicinePackageUnit medicinePackageUnit, Zone zone, String lotNumber, LocalDate expirationDate, int quantity) {
 
         return MedicineInventory.builder()
                 .medicinePackageUnit(medicinePackageUnit)
@@ -105,11 +106,34 @@ public class MedicineInventory {
 
     }
 
-    public void increaseQuantity(int quantity){
+    public void increaseQuantity(int quantity) {
 
         this.currentQuantity += quantity;
     }
 
+    public void decreaseQuantity(int quantity) {
+        if (this.currentQuantity < quantity) {
+            throw new InsufficientStockException();
+        }
+
+        this.currentQuantity -= quantity;
+        if (this.currentQuantity == 0) {
+            this.managementStatus = ManagementStatus.DEPLETED;
+        }
+    }
+
+    public void disposeQuantity(int quantity) {
+
+        if (this.currentQuantity < quantity) {
+            throw new InsufficientStockException();
+        }
+
+        this.currentQuantity -= quantity;
+
+        if (this.currentQuantity == 0) {
+            this.managementStatus = ManagementStatus.DISPOSAL;
+        }
+    }
 
 
 }
