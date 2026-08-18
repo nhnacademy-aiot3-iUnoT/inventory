@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.repository;
 
+import com.nhnacademy.inventory.inventories.alert.dto.InventoryQuantityResponse;
+import com.nhnacademy.inventory.inventories.alert.dto.QInventoryQuantityResponse;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory;
@@ -12,8 +14,8 @@ import com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.department.domain.QStorageDepartment;
 import com.nhnacademy.inventory.organizations.storage.domain.QStorage;
 import com.nhnacademy.inventory.organizations.zone.domain.QZone;
-import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.BooleanExpression;
+
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.LockModeType;
@@ -61,36 +63,41 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     //        String productName,
     //        String itemCode,
     //        String packUnit,
-    //        String lotNumber,
     //        LocalDate expirationDate,
     //        String storageName,
     //        Integer totalQuantity
 
     @Override
-    public Page<InventoriesResponse> findAllInventories(List<Long> departmentIds, Pageable pageable) {
+    public Page<InventoriesResponse> findAllInventories(String search,Long storageId, List<Long> departmentIds, Pageable pageable) {
 
 
-        // 검토중 인 재고만 빼고 합산
-        NumberExpression<Integer> availableQuantity =
-                new CaseBuilder()
-                        .when(inventory.managementStatus.in(
-                                ManagementStatus.NORMAL,
-                                ManagementStatus.LOW_STOCK,
-                                ManagementStatus.NEAR_EXPIRATION
-                        ))
-                        .then(inventory.currentQuantity)
-                        .otherwise(0)
-                        .sum();
+        // 제품명 또는 품목기준코드로 조회
+        BooleanExpression searchCondition =
+                search == null || search.isBlank()
+                        ? null :
+                        medicine.productName
+                                .containsIgnoreCase(search.trim())
+                                .or(medicine.itemCode.containsIgnoreCase(search.trim()));
+
+
+        // 저장소 필터적용
+        BooleanExpression storageCondition =
+                storageId == null ?
+                        null :
+                        zone.storage.id.eq(storageId);
+
 
 
         List<InventoriesResponse> content = queryFactory.select(
                 new QInventoriesResponse(
+                        inventory.zone.storage.id,
+                        inventory.medicinePackageUnit.id,
                         inventory.medicinePackageUnit.medicine.productName,
                         inventory.medicinePackageUnit.medicine.itemCode,
                         inventory.medicinePackageUnit.packUnit,
                         inventory.expirationDate.min(),
                         inventory.zone.storage.name,
-                        availableQuantity
+                        inventory.currentQuantity.sum()
                 ))
                 .from(inventory)
                 .join(inventory.medicinePackageUnit,medicinePackageUnit)
@@ -111,7 +118,11 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                                 ManagementStatus.LOW_STOCK,
                                 ManagementStatus.NEAR_EXPIRATION,
                                 ManagementStatus.UNDER_REVIEW
-                        )
+                        ),
+
+                        searchCondition,
+                        storageCondition
+
                         )
                 .groupBy(storage.id,
                         medicinePackageUnit.id,
@@ -130,6 +141,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 .select(storage.id, medicinePackageUnit.id)
                 .from(inventory)
                 .join(inventory.medicinePackageUnit,medicinePackageUnit)
+                .join(medicinePackageUnit.medicine,medicine)
                 .join(inventory.zone,zone)
                 .join(zone.storage,storage)
                 .where(
@@ -147,7 +159,10 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                                 ManagementStatus.NEAR_EXPIRATION,
                                 ManagementStatus.UNDER_REVIEW
 
-                                )
+                                ),
+                        searchCondition,
+                        storageCondition
+
                 ).groupBy(
                         storage.id,medicinePackageUnit.id
                 ).fetch().size();

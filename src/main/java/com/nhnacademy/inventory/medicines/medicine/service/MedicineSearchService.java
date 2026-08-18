@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +64,8 @@ public class MedicineSearchService {
 
 
     }
+
+
 
 
     // 특정 의약품 조회

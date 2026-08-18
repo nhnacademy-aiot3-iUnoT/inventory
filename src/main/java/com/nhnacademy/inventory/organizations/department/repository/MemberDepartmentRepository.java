@@ -7,8 +7,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
-import java.util.Optional;
-
 
 public interface MemberDepartmentRepository extends JpaRepository<MemberDepartment, Long> {
 
@@ -22,5 +20,9 @@ public interface MemberDepartmentRepository extends JpaRepository<MemberDepartme
     List<MemberDepartment> findAllByOrganizationMember(OrganizationMember organizationMember);
 
 
-}
 
+    void deleteByOrganizationMemberId(Long organizationMemberId);
+
+    List<MemberDepartment> findAllByOrganizationMemberId(Long organizationMemberId);
+
+}

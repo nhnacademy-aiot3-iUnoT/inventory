@@ -61,10 +61,7 @@ public class MedicineSaveService {
         }
 
 
-
-
         log.info("의약품 페이지 저장 완료 요청= {}, 저장= {}, 건너뜀= {}",responses.size(),savedCount,failedCount);
-
 
 
     }

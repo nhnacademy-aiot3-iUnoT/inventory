@@ -26,11 +26,11 @@ public class StorageDepartment {
     private Long storageDepartmentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "storage_id")
+    @JoinColumn(name = "storage_id", nullable = false)
     private Storage storage;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id")
+    @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
     @Column(name = "created_at", nullable = false)

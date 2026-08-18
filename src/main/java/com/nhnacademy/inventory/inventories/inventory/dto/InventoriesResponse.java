@@ -7,6 +7,8 @@ import java.time.LocalDate;
 
 public record InventoriesResponse(
 
+        Long storageId,
+        Long packUnitId,
         String productName,
         String itemCode,
         String packUnit,
@@ -18,8 +20,10 @@ public record InventoriesResponse(
 ) {
 
     public static InventoriesResponse from(
-            String productName, String itemCode,String packUnit,LocalDate expirationDate,String storageName,Integer totalQuantity){
+            Long storageId, Long packUnitId,String productName, String itemCode,String packUnit,LocalDate expirationDate,String storageName,Integer totalQuantity){
         return new InventoriesResponse(
+                storageId,
+                packUnitId,
                 productName,
                 itemCode,
                 packUnit,

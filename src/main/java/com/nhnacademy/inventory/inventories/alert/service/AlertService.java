@@ -10,6 +10,7 @@ import com.nhnacademy.inventory.inventories.alert.dto.AlertCheckRequest;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertSearchCondition;
 import com.nhnacademy.inventory.inventories.alert.exception.AlertNotFoundException;
 import com.nhnacademy.inventory.inventories.alert.repository.AlertRepository;
+import com.nhnacademy.inventory.inventories.inventory.service.InventoryService;
 import com.nhnacademy.inventory.inventories.threshold.domain.StockThreshold;
 import com.nhnacademy.inventory.inventories.threshold.repository.StockThresholdRepository;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
@@ -60,7 +61,7 @@ public class AlertService {
             return;
         }
 
-        int totalQuantity = 30; // 인벤토리 레포 또는 서비스에서 개수조회 메서드 완성되면 교체하기
+        int totalQuantity = 30;// 인벤토리 레포 또는 서비스에서 개수조회 메서드 완성되면 교체하기
 
         if(totalQuantity >= stockThreshold.getThreshold()){
             return;

@@ -9,28 +9,37 @@ import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionComm
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 
 import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
+
 import com.nhnacademy.inventory.medicines.enviroment.service.MedicineEnvironmentService;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class InboundOperation {
 
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final StockTransactionService stockTransactionService;
     private final MedicineEnvironmentService medicineEnvironmentService;
 
+
     // 인벤토리에 저장
     public void inboundInventory(MedicinePackageUnit medicinePackageUnit, Zone zone,MedicineInventory inventory, MedicineInboundRequest request){
 
+
+        log.info("==== 입고 등록 시작====");
         //zone active 검증
         zone.validationStatus();
+
 
         if(inventory == null){
 
@@ -48,7 +57,7 @@ public class InboundOperation {
             inventory.increaseQuantity(request.quantity());
         }
 
-        // 환경기준 추가
+        // request 환경 기준 설정
         MedicineEnvironmentRequest environmentRequest = request.medicineEnvironmentRequest();
 
         if(environmentRequest != null){
@@ -67,7 +76,14 @@ public class InboundOperation {
 
         ));
 
+
+        log.info("=== 입고 완료 ===");
+
     }
+
+
+
+
 
 
 }

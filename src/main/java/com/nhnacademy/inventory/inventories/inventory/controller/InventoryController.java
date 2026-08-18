@@ -37,13 +37,15 @@ public class InventoryController {
 
     // 전체 입고 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<InventoriesResponse>>> getInventories(Pageable pageable){
+    public ResponseEntity<ApiResponse<PageResponse<InventoriesResponse>>> getInventories(@RequestParam(name= "search",required = false) String search,
+                                                                                         @RequestParam(name= "storage-id",required = false) Long storageId,
+                                                                                         Pageable pageable){
 
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(inventoriesSearchService.getInventories(pageable))));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(inventoriesSearchService.getInventories(search,storageId,pageable))));
 
     }
 
-    // 상세 의약품 조회
+
 
 
 

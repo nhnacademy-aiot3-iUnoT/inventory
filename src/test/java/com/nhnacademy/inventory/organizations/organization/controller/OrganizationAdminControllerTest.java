@@ -69,36 +69,17 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     "테스트 조직"
             );
 
-            OrgCreateResponse response = new OrgCreateResponse(
-                    1L,
-                    "테스트 조직"
-            );
-
-            given(organizationService.createOrganization(request)).willReturn(response);
-
-            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-
-            responseFields.addAll(List.of(
-                    fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("조직 ID"),
-                    fieldWithPath("data.name").type(JsonFieldType.STRING).description("조직 이름")
-            ));
-
             mockMvc.perform(post("/api/core/admin/organizations")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request))
                     )
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.id").value(1))
-                    .andExpect(jsonPath("$.data.name").value("테스트 조직"))
-
+                    .andExpect(status().isNoContent())
                     .andDo(document("organization-admin-create",
                             requestFields(
                                     fieldWithPath("businessNumber").type(JsonFieldType.STRING).description("사업자 번호"),
                                     fieldWithPath("email").type(JsonFieldType.STRING).description("Owner 이메일"),
                                     fieldWithPath("name").type(JsonFieldType.STRING).description("테스트 조직")
-                            ),
-                            responseFields(responseFields)
+                            )
                     ));
 
             verify(organizationService).createOrganization(request);
@@ -131,7 +112,7 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     "테스트 조직"
             );
 
-            given(organizationService.createOrganization(request)).willThrow(new ForbiddenException());
+            willThrow(new ForbiddenException()).given(organizationService).createOrganization(request);
 
             mockMvc.perform(post("/api/core/admin/organizations")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -227,7 +208,6 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
         }
     }
 
-
     @Nested
     @DisplayName("조직 상세 조회 GET /api/core/admin/organizations/{organization-id}")
     class getOrganizationInfo {
@@ -239,14 +219,12 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
             LocalDateTime emailSentAt = createdAt.plusMinutes(1);
 
             AdminInvitationResponse invitation = new AdminInvitationResponse(10L, "owner@test.com", InvitationStatus.ACTIVE, emailSentAt, createdAt.plusDays(1));
-            AdminOwnerResponse owner = new AdminOwnerResponse(UUID.randomUUID(), createdAt);
-            List<AdminOwnerResponse> owners = List.of(owner);
 
             AdminOrgDetailResponse response =
                     new AdminOrgDetailResponse(
                             1L, "1234567890", "테스트 조직",
                             "광주시 북구", "12345", "101호",
-                            OrganizationStatus.ACTIVE, createdAt, invitation, owners
+                            OrganizationStatus.ACTIVE, createdAt, invitation
 
                     );
 
@@ -268,10 +246,7 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     fieldWithPath("data.invitation.email").type(JsonFieldType.STRING).description("Owner 초대 이메일"),
                     fieldWithPath("data.invitation.status").type(JsonFieldType.STRING).description("Owner 초대 상태"),
                     fieldWithPath("data.invitation.emailSentAt").type(JsonFieldType.STRING).description("Owner 초대 메일 발송 일시"),
-                    fieldWithPath("data.invitation.expiredAt").type(JsonFieldType.STRING).description("Owner 초대 만료 일시"),
-
-                    fieldWithPath("data.owners[].accountUuid").type(JsonFieldType.STRING).description("계정 UUID"),
-                    fieldWithPath("data.owners[].joinedAt").type(JsonFieldType.STRING).description("조직 가입 일시")
+                    fieldWithPath("data.invitation.expiredAt").type(JsonFieldType.STRING).description("Owner 초대 만료 일시")
                 )
             );
 
@@ -283,9 +258,6 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.invitation.id").value(10))
                     .andExpect(jsonPath("$.data.invitation.email").value("owner@test.com"))
                     .andExpect(jsonPath("$.data.invitation.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.data.owners").isArray())
-                    .andExpect(jsonPath("$.data.owners[0].accountUuid").value(owner.accountUuid().toString()))
-                    .andExpect(jsonPath("$.data.owners[0].joinedAt").isNotEmpty())
                     .andDo(document("organization-admin-get",
                             pathParameters(parameterWithName("organization-id").description("조직 ID")),
                             responseFields(responseFields)
@@ -318,7 +290,6 @@ class OrganizationAdminControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.success").value(false));
         }
     }
-
 
     @Nested
     @DisplayName("조직 삭제 DELETE /api/core/admin/organizations/{organization-id}")

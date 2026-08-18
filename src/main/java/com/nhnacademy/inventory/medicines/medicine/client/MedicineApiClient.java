@@ -13,11 +13,9 @@ import org.springframework.web.client.RestClient;
 @Slf4j
 @RequiredArgsConstructor
 public class MedicineApiClient {
-
-    @Qualifier("medicineRestClient")
+//    @Qualifier("medicineRestClient")
     private final RestClient restClient;
     private final MedicineProperties medicineProperties;
-
 
     public String getJson(int pageNo, int numOfRows){
 

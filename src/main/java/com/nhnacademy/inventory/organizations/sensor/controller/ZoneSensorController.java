@@ -1,10 +1,7 @@
 package com.nhnacademy.inventory.organizations.sensor.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.DeviceLocationResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorCreateRequest;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorInfoResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorUpdateRequest;
+import com.nhnacademy.inventory.organizations.sensor.dto.*;
 import com.nhnacademy.inventory.organizations.sensor.service.ZoneSensorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +18,11 @@ public class ZoneSensorController {
     private final ZoneSensorService zoneSensorService;
 
     @PostMapping("/zones/{zone-id}/zone-sensors")
-    public ResponseEntity<ApiResponse<ZoneSensorInfoResponse>> createZoneSensor(
+    public ResponseEntity<ApiResponse<ZoneSensorDetailResponse>> createZoneSensor(
             @PathVariable(name = "zone-id") Long zoneId,
             @RequestBody @Valid ZoneSensorCreateRequest request
     ){
-        ZoneSensorInfoResponse response = zoneSensorService.createZoneSensor(zoneId, request);
+        ZoneSensorDetailResponse response = zoneSensorService.createZoneSensor(zoneId, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -41,13 +38,23 @@ public class ZoneSensorController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
+    @GetMapping("/zones/{zone-id}/zone-sensors/{zone-sensor-id}")
+    public ResponseEntity<ApiResponse<ZoneSensorDetailResponse>> getZoneSensor(
+            @PathVariable(name = "zone-id") Long zoneId,
+            @PathVariable(name = "zone-sensor-id") Long zoneSensorId
+    ){
+        ZoneSensorDetailResponse response = zoneSensorService.getZoneSensor(zoneId, zoneSensorId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PutMapping("/zones/{zone-id}/zone-sensors/{zone-sensor-id}")
-    public ResponseEntity<ApiResponse<ZoneSensorInfoResponse>> updateZoneSensorInfo(
+    public ResponseEntity<ApiResponse<ZoneSensorDetailResponse>> updateZoneSensorInfo(
             @PathVariable(name = "zone-id") Long zoneId,
             @PathVariable(name = "zone-sensor-id") Long zoneSensorId,
             @RequestBody @Valid ZoneSensorUpdateRequest request
     ){
-        ZoneSensorInfoResponse response = zoneSensorService.updateZoneSensorInfo(zoneId, zoneSensorId, request);
+        ZoneSensorDetailResponse response = zoneSensorService.updateZoneSensorInfo(zoneId, zoneSensorId, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

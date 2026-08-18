@@ -5,7 +5,7 @@ import com.nhnacademy.inventory.inventories.alert.dto.AlertInfoResponse;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertSearchCondition;
 import com.nhnacademy.inventory.inventories.alert.dto.QAlertInfoResponse;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.querydsl.core.types.Projections;
+
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

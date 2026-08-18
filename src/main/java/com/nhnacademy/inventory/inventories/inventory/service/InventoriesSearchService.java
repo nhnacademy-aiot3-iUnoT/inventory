@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.inventories.inventory.service;
 
+import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.FormatterClosedException;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,30 +30,37 @@ public class InventoriesSearchService {
     private final MemberDepartmentRepository memberDepartmentRepository;
 
 
+
     // 해당 부서 - 저장소에 해당하는 전체 인벤토리 조회
     @Transactional(readOnly = true)
-    public Page<InventoriesResponse> getInventories(Pageable pageable){
+    public Page<InventoriesResponse> getInventories(String search, Long storageId, Pageable pageable){
 
         UUID accountId = UserContext.getUserUuid();
         OrganizationMember member=  organizationMemberRepository.findByAccountUuid(accountId)
-                        .orElseThrow(UserOrgNotFoundException::new);
+                        .orElseThrow(ForbiddenException::new);
         List<MemberDepartment> memberDepartments = memberDepartmentRepository.findAllByOrganizationMember(member);
 
         if(memberDepartments.isEmpty()){
             return Page.empty();
         }
 
+
+        String trimmed = search == null ? null : search.trim();
+
         List<Long> departmentIds = memberDepartments.stream()
                         .map(md -> md.getDepartment().getId())
                                 .toList();
 
-        Page<InventoriesResponse> page = medicineInventoryRepository.findAllInventories(departmentIds,pageable);
+        Page<InventoriesResponse> page = medicineInventoryRepository.findAllInventories(trimmed,storageId,departmentIds,pageable);
 
         log.info("전체 재고 조회 : {} ",page);
 
         return page;
 
     }
+
+
+
 
 
 

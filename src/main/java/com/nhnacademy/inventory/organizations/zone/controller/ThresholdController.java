@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
+import com.nhnacademy.inventory.organizations.zone.dto.ThresholdDetailResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSaveRequest;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdSpecResponse;
@@ -19,20 +20,20 @@ import java.util.List;
 public class ThresholdController {
     private final ThresholdService thresholdService;
 
-    @PostMapping("/zones/{zone-id}/zone-threshold")
-    public ResponseEntity<ApiResponse<ThresholdInfoResponse>> saveZoneThreshold(
+    @PostMapping("/zones/{zone-id}/zone-thresholds")
+    public ResponseEntity<ApiResponse<ThresholdDetailResponse>> saveZoneThreshold(
             @PathVariable(name = "zone-id") Long zoneId,
             @RequestBody @Valid ThresholdSaveRequest request
     ){
-        ThresholdInfoResponse response = thresholdService.saveThreshold(zoneId, request);
+        ThresholdDetailResponse response = thresholdService.saveThreshold(zoneId, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
     }
 
-    @GetMapping("/zones/{zone-id}/zone-threshold")
-    public ResponseEntity<ApiResponse<List<ThresholdInfoResponse>>> getZoneThreshold(
+    @GetMapping("/zones/{zone-id}/zone-thresholds")
+    public ResponseEntity<ApiResponse<List<ThresholdInfoResponse>>> getZoneThresholds(
             @PathVariable(name = "zone-id") Long zoneId
     ){
         List<ThresholdInfoResponse> responses = thresholdService.getThresholds(zoneId);
@@ -40,7 +41,17 @@ public class ThresholdController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-    @DeleteMapping("/zones/{zone-id}/zone-threshold/{zone-threshold-id}")
+    @GetMapping("/zones/{zone-id}/zone-thresholds/{zone-threshold-id}")
+    public ResponseEntity<ApiResponse<ThresholdDetailResponse>> getZoneThreshold(
+            @PathVariable(name = "zone-id") Long zoneId,
+            @PathVariable(name = "zone-threshold-id") Long zoneThresholdId
+    ){
+        ThresholdDetailResponse response = thresholdService.getThreshold(zoneId, zoneThresholdId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @DeleteMapping("/zones/{zone-id}/zone-thresholds/{zone-threshold-id}")
     public ResponseEntity<Void> deleteZoneThreshold(
             @PathVariable(name = "zone-id") Long zoneId,
             @PathVariable(name = "zone-threshold-id") Long zoneThresholdId

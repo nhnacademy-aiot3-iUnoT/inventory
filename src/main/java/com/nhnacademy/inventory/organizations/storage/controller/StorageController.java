@@ -1,10 +1,7 @@
 package com.nhnacademy.inventory.organizations.storage.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageCreateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageInfoResponse;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageStatusUpdateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageUpdateRequest;
+import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,56 +17,58 @@ import java.util.List;
 public class StorageController {
     private final StorageService storageService;
 
-    @PostMapping("/organizations/{organization-id}/storages")
-    public ResponseEntity<ApiResponse<StorageInfoResponse>> createStorage(
-            @PathVariable(name = "organization-id") Long organizationId,
+    @PostMapping("/storages")
+    public ResponseEntity<ApiResponse<StorageDetailResponse>> createStorage(
             @RequestBody @Valid StorageCreateRequest request
     ){
+        StorageDetailResponse response = storageService.createStorage(request);
 
-        StorageInfoResponse response = storageService.createStorage(organizationId, request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
     }
 
-    @GetMapping("/organizations/{organization-id}/storages")
-    public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorages(
-            @PathVariable(name = "organization-id") Long organizationId
-    ){
+    @GetMapping("/storages")
+    public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorages(){
+        List<StorageInfoResponse> responses = storageService.getStorages();
 
-        List<StorageInfoResponse> responses = storageService.getStorages(organizationId);
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-    @PutMapping("/organizations/{organization-id}/storages/{storage-id}")
-    public ResponseEntity<ApiResponse<StorageInfoResponse>> updateStorage(
-            @PathVariable(name = "organization-id") Long organizationId,
+    @GetMapping("/storages/{storage-id}")
+    public ResponseEntity<ApiResponse<StorageDetailResponse>> getStorage(
+            @PathVariable(name = "storage-id") Long storageId
+    ){
+        StorageDetailResponse response = storageService.getStorage(storageId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PutMapping("/storages/{storage-id}")
+    public ResponseEntity<ApiResponse<StorageDetailResponse>> updateStorage(
             @PathVariable(name = "storage-id") Long storageId,
             @RequestBody @Valid StorageUpdateRequest request
     ){
+        StorageDetailResponse response = storageService.updateStorage(storageId, request);
 
-        StorageInfoResponse response = storageService.updateStorage(organizationId, storageId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PutMapping("/organizations/{organization-id}/storages/{storage-id}/status")
-    public ResponseEntity<ApiResponse<StorageInfoResponse>> updateStorageStatus(
-            @PathVariable(name = "organization-id") Long organizationId,
+    @PutMapping("/storages/{storage-id}/status")
+    public ResponseEntity<ApiResponse<StorageDetailResponse>> updateStorageStatus(
             @PathVariable(name = "storage-id") Long storageId,
             @RequestBody @Valid StorageStatusUpdateRequest request
     ){
+        StorageDetailResponse response = storageService.updateStorageStatus(storageId, request);
 
-        StorageInfoResponse response = storageService.updateStorageStatus(organizationId, storageId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @DeleteMapping("/organizations/{organization-id}/storages/{storage-id}")
+    @DeleteMapping("/storages/{storage-id}")
     public ResponseEntity<Void> deleteStorage(
-            @PathVariable(name = "organization-id") Long organizationId,
             @PathVariable(name = "storage-id") Long storageId
     ){
-
-        storageService.closeStorage(organizationId, storageId);
+        storageService.closeStorage(storageId);
 
         return ResponseEntity.noContent().build();
     }

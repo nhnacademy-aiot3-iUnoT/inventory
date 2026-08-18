@@ -7,10 +7,7 @@ import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemb
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageCreateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageInfoResponse;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageStatusUpdateRequest;
-import com.nhnacademy.inventory.organizations.storage.dto.StorageUpdateRequest;
+import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,8 +67,7 @@ class StorageServiceTest {
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-        StorageInfoResponse response = storageService.createStorage(
-                organization.getId(),
+        StorageDetailResponse response = storageService.createStorage(
                 request
         );
 
@@ -97,7 +93,7 @@ class StorageServiceTest {
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
         List<StorageInfoResponse> responses = storageService
-                .getStorages(organization.getId());
+                .getStorages();
 
         assertAll(
                 () -> assertEquals(1, responses.size()),
@@ -122,8 +118,8 @@ class StorageServiceTest {
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-        StorageInfoResponse response = storageService.updateStorage(
-                organization.getId(), storage.getId(), request
+        StorageDetailResponse response = storageService.updateStorage(
+                storage.getId(), request
         );
 
         assertAll(
@@ -148,8 +144,8 @@ class StorageServiceTest {
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-        StorageInfoResponse response = storageService.updateStorageStatus(
-                organization.getId(), storage.getId(), request
+        StorageDetailResponse response = storageService.updateStorageStatus(
+                storage.getId(), request
         );
 
         assertAll(
@@ -171,7 +167,7 @@ class StorageServiceTest {
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-        storageService.closeStorage(organization.getId(), storage.getId());
+        storageService.closeStorage(storage.getId());
 
         assertEquals(StorageStatus.CLOSED, storage.getStatus());
 

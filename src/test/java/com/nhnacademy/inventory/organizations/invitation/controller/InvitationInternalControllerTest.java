@@ -2,7 +2,6 @@ package com.nhnacademy.inventory.organizations.invitation.controller;
 
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSignupRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.SignupCompensateRequest;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSignupResponse;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import com.nhnacademy.inventory.support.RestDocsUtils;
 import com.nhnacademy.inventory.support.SupportControllerTest;
@@ -56,33 +55,17 @@ class InvitationInternalControllerTest extends SupportControllerTest {
                     accountUuid
             );
 
-            InvitationSignupResponse response = new InvitationSignupResponse(true);
-
-            given(invitationService.signupWithInvitation(request)).willReturn(response);
-
-            List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-
-            responseFields.add(fieldWithPath("data.isOwner")
-                    .type(JsonFieldType.BOOLEAN)
-                    .description("조직 Owner 여부")
-            );
-
-            // when & then
             mockMvc.perform(post("/api/core/internal/invitations/use")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request))
                     )
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.isOwner").value(true))
-
+                    .andExpect(status().isNoContent())
                     .andDo(document("invitation-signup",
                             requestFields(
                                     fieldWithPath("token").type(JsonFieldType.STRING).description("초대 토큰"),
                                     fieldWithPath("email").type(JsonFieldType.STRING).description("회원가입 이메일"),
                                     fieldWithPath("accountUuid").type(JsonFieldType.STRING).description("Account UUID")
-                            ),
-                            responseFields(responseFields)
+                            )
                     ));
 
             verify(invitationService).signupWithInvitation(request);

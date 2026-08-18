@@ -17,6 +17,8 @@ public interface ZoneRepository extends JpaRepository<Zone, Long> {
 
     List<Zone> findAllByStorage(Storage storage);
 
+    List<Zone> findAllByStorageId(Long storageId);
+
 
     boolean existsByStorageAndNameAndStatusNotAndIdNot(Storage storage, String name, ZoneStatus status, Long id);
 
