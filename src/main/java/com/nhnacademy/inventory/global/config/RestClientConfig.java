@@ -14,31 +14,31 @@ import org.springframework.web.client.RestClient;
 @EnableConfigurationProperties(MedicineProperties.class)
 public class RestClientConfig {
 
-    @Bean("medicineRestClient")
-    public RestClient medicineRestClient(MedicineProperties medicineProperties) {
-        return RestClient.builder()
-                .baseUrl(medicineProperties.baseUrl())
-                .build();
-    }
+//    @Bean("medicineRestClient")
+//    public RestClient medicineRestClient(MedicineProperties medicineProperties) {
+//        return RestClient.builder()
+//                .baseUrl(medicineProperties.baseUrl())
+//                .build();
+//    }
 
-//    @Bean("loadBalancedAccountRestClientBuilder")
+    @Bean("loadBalancedAccountRestClientBuilder")
 //    @LoadBalanced
 //    @Profile("prod")
-//    public RestClient.Builder loadBalancedAccountRestClientBuilder() {
-//        return RestClient.builder();
-//    }
-
-//    @Bean("accountRestClient")
-//    @Profile("prod")
-//    public RestClient prodAccountRestClient(
-//            @Qualifier("loadBalancedAccountRestClientBuilder") RestClient.Builder builder,
-//            @Value("${clients.account.base-url}") String baseUrl
-//    ) {
-//        return builder.baseUrl(baseUrl).build();
-//    }
+    public RestClient.Builder loadBalancedAccountRestClientBuilder() {
+        return RestClient.builder();
+    }
 
     @Bean("accountRestClient")
-//    @Profile("!prod")
+    @Profile("prod")
+    public RestClient prodAccountRestClient(
+            @Qualifier("loadBalancedAccountRestClientBuilder") RestClient.Builder builder,
+            @Value("${clients.account.base-url}") String baseUrl
+    ) {
+        return builder.baseUrl(baseUrl).build();
+    }
+
+    @Bean("accountRestClient")
+    @Profile("!prod")
     public RestClient localAccountRestClient(@Value("${clients.account.base-url}") String baseUrl) {
         return RestClient.builder().baseUrl(baseUrl).build();
     }
