@@ -19,7 +19,7 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public Optional<Report> find(Long organizationId, ReportType reportType, LocalDate periodStart) {
-        return reportRepository.findByOrganizationIdAndReportTypeAndPeriodStart(
+        return reportRepository.findByOrganizationIdAndReportTypeAndPeriodStartWithItems(
                 organizationId, reportType, periodStart);
     }
 
@@ -48,5 +48,21 @@ public class ReportService {
         if (aiSummary != null && !aiSummary.isBlank()) {
             report.updateSummary(aiSummary);
         }
+    }
+
+    @Transactional
+    public void failSummary(Long reportId) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(ReportNotFoundException::new);
+
+        report.failSummary();
+    }
+
+    @Transactional
+    public void resetSummary(Long reportId) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(ReportNotFoundException::new);
+
+        report.resetSummaryToPending();
     }
 }

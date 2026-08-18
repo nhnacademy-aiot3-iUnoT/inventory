@@ -5,6 +5,7 @@ CREATE TABLE reports (
     period_start DATE NOT NULL,
     period_end DATE NOT NULL,
     ai_summary TEXT,
+    ai_summary_status VARCHAR(20) NOT NULL,
     created_at DATETIME(6) NOT NULL,
     PRIMARY KEY (report_id),
     CONSTRAINT uk_reports_organization_type_period

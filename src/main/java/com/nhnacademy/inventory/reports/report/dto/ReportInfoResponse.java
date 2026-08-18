@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.reports.report.dto;
 
+import com.nhnacademy.inventory.reports.report.domain.AiSummaryStatus;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 
@@ -14,6 +15,7 @@ public record ReportInfoResponse(
         LocalDate periodStart,
         LocalDate periodEnd,
         String aiSummary,
+        AiSummaryStatus aiSummaryStatus,
         LocalDateTime createdAt,
         List<ReportItemResponse> items
 ) {
@@ -25,6 +27,7 @@ public record ReportInfoResponse(
                 report.getPeriodStart(),
                 report.getPeriodEnd(),
                 report.getAiSummary(),
+                report.getAiSummaryStatus(),
                 report.getCreatedAt(),
                 report.getReportItems().stream()
                         .map(ReportItemResponse::from)

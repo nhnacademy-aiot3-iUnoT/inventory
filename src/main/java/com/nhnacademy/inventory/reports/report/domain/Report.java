@@ -45,6 +45,10 @@ public class Report {
     @Column(name = "ai_summary", columnDefinition = "TEXT")
     private String aiSummary;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ai_summary_status", nullable = false)
+    private AiSummaryStatus aiSummaryStatus;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -57,11 +61,12 @@ public class Report {
     }
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Report(long organizationId, ReportType reportType, LocalDate periodStart, LocalDate periodEnd) {
+    private Report(long organizationId, ReportType reportType, LocalDate periodStart, LocalDate periodEnd, AiSummaryStatus aiSummaryStatus) {
         this.organizationId = organizationId;
         this.reportType = reportType;
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
+        this.aiSummaryStatus = (aiSummaryStatus != null) ? aiSummaryStatus : AiSummaryStatus.PENDING;
     }
 
     public static Report weeklyOf(long organizationId, LocalDate periodStart) {
@@ -74,11 +79,21 @@ public class Report {
                 .reportType(ReportType.WEEKLY)
                 .periodStart(periodStart)
                 .periodEnd(periodStart.plusDays(6))
+                .aiSummaryStatus(AiSummaryStatus.PENDING)
                 .build();
     }
 
     public void updateSummary(String aiSummary) {
         this.aiSummary = aiSummary;
+        this.aiSummaryStatus = AiSummaryStatus.COMPLETED;
+    }
+
+    public void failSummary() {
+        this.aiSummaryStatus = AiSummaryStatus.FAILED;
+    }
+
+    public void resetSummaryToPending() {
+        this.aiSummaryStatus = AiSummaryStatus.PENDING;
     }
 
     public void addUsage(MedicinePackageUnit unit, int quantity) {

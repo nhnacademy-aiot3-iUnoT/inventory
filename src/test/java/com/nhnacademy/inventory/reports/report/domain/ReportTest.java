@@ -75,4 +75,32 @@ class ReportTest {
         assertThat(item.getMedicineName())
                 .isEqualTo(unit.getMedicine().getProductName());
     }
+
+    @Test
+    @DisplayName("리포트 생성 시 aiSummaryStatus는 PENDING이고 상태 전이가 올바르게 동작한다.")
+    void aiSummaryStatus_TransitionsCorrectly() {
+        // given
+        Report report = Report.weeklyOf(1L, LocalDate.of(2026, Month.AUGUST, 10));
+
+        // init -> PENDING
+        assertThat(report.getAiSummaryStatus())
+                .isEqualTo(AiSummaryStatus.PENDING);
+
+        // updateSummary -> COMPLETED
+        report.updateSummary("AI 요약 완료");
+        assertThat(report.getAiSummaryStatus())
+                .isEqualTo(AiSummaryStatus.COMPLETED);
+        assertThat(report.getAiSummary())
+                .isEqualTo("AI 요약 완료");
+
+        // failSummary -> FAILED
+        report.failSummary();
+        assertThat(report.getAiSummaryStatus())
+                .isEqualTo(AiSummaryStatus.FAILED);
+
+        // resetSummaryToPending -> PENDING
+        report.resetSummaryToPending();
+        assertThat(report.getAiSummaryStatus())
+                .isEqualTo(AiSummaryStatus.PENDING);
+    }
 }

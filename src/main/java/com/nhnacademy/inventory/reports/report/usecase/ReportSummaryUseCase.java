@@ -6,11 +6,13 @@ import com.nhnacademy.inventory.reports.report.domain.ReportItemType;
 import com.nhnacademy.inventory.reports.report.service.ReportService;
 import com.nhnacademy.inventory.reports.report.service.ReportSummaryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ReportSummaryUseCase {
@@ -22,12 +24,17 @@ public class ReportSummaryUseCase {
         Report report = reportService.getReport(reportId);
 
         if (report.getReportItems().isEmpty()) {
+            reportService.updateSummary(reportId, "해당 주간에는 출고 및 폐기 내역이 없습니다.");
             return;
         }
 
-        String summary = reportSummaryService.generateSummary(toPromptText(report));
-
-        reportService.updateSummary(reportId, summary);
+        try {
+            String summary = reportSummaryService.generateSummary(toPromptText(report));
+            reportService.updateSummary(reportId, summary);
+        } catch (Exception e) {
+            log.error("AI 요약 생성 실패 reportId={}", reportId, e);
+            reportService.failSummary(reportId);
+        }
     }
 
     private String toPromptText(Report report) {
