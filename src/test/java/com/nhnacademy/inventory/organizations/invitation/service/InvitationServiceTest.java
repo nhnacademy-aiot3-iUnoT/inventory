@@ -1,19 +1,19 @@
 package com.nhnacademy.inventory.organizations.invitation.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.invitation.domain.InvitationStatus;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSearchRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSignupRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSearchResponse;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSignupResponse;
 import com.nhnacademy.inventory.organizations.invitation.event.InvitationMailSendEvent;
 import com.nhnacademy.inventory.organizations.invitation.exception.*;
 import com.nhnacademy.inventory.organizations.invitation.repository.InvitationRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -51,22 +52,23 @@ class InvitationServiceTest {
     @Mock
     private OrganizationMemberService organizationMemberService;
 
+    @Mock
+    private OrganizationAccessService orgAccessService;
+
     @InjectMocks
     private InvitationService invitationService;
 
     private Organization organization;
     private Invitation invitation;
     private OrganizationMember owner;
-    private OrganizationMember member;
 
     @BeforeEach
     void setUp() {
         organization = TestFixtures.createOrganization("테스트 조직", "1234567890");
         ReflectionTestUtils.setField(organization, "id", 1L);
-        invitation = TestFixtures.createInvitationOwner(organization, "test@test.com");
 
+        invitation = TestFixtures.createInvitationOwner(organization, "test@test.com");
         owner = TestFixtures.createOrganizationOwner(organization);
-        member = TestFixtures.createOrganizationMember(organization);
     }
 
     @Test
@@ -74,16 +76,14 @@ class InvitationServiceTest {
     void createInvitation_success() {
         String email = "test@test.com";
 
-        given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(false);
-
+        given(invitationRepository.existsInvitationBy(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(false);
         given(invitationRepository.save(any(Invitation.class))).willReturn(invitation);
 
         Invitation result = invitationService.createInvitation(organization, email, true);
 
         assertNotNull(result);
         assertEquals(invitation, result);
-
-        verify(invitationRepository).existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class));
+        verify(invitationRepository).existsInvitationBy(eq(organization.getId()), eq(email), any(LocalDateTime.class));
         verify(invitationRepository).save(any(Invitation.class));
         verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
     }
@@ -93,10 +93,11 @@ class InvitationServiceTest {
     void createInvitation_duplicate() {
         String email = "test@test.com";
 
-        given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(true);
+        given(invitationRepository.existsInvitationBy(eq(organization.getId()), eq(email), any(LocalDateTime.class))).willReturn(true);
 
         assertThrows(InvitationAlreadyExistsException.class, () -> invitationService.createInvitation(organization, email, true));
 
+        verify(invitationRepository, never()).updateInvitationReissued(any(), any());
         verify(invitationRepository, never()).save(any());
         verify(applicationEventPublisher, never()).publishEvent(any());
     }
@@ -111,7 +112,6 @@ class InvitationServiceTest {
             UUID token = invitation.getToken();
 
             ReflectionTestUtils.setField(invitation, "expiredAt", LocalDateTime.now().plusDays(1));
-
             given(invitationRepository.findByToken(token)).willReturn(Optional.of(invitation));
 
             assertDoesNotThrow(() -> invitationService.validateInvitationToken(token));
@@ -134,7 +134,6 @@ class InvitationServiceTest {
             UUID token = invitation.getToken();
 
             invitation.use();
-
             given(invitationRepository.findByToken(token)).willReturn(Optional.of(invitation));
 
             assertThrows(InvalidInvitationException.class, () -> invitationService.validateInvitationToken(token));
@@ -146,54 +145,40 @@ class InvitationServiceTest {
     class SignupWithInvitationTest {
 
         @Test
-        @DisplayName("성공 - OWNER 초대면 Owner로 생성")
+        @DisplayName("성공 - Admin 초대면 Boss로 생성")
         void signupAsOwner() {
             UUID token = invitation.getToken();
             UUID accountUuid = UUID.randomUUID();
 
             ReflectionTestUtils.setField(invitation, "expiredAt", LocalDateTime.now().plusDays(1));
-
             given(invitationRepository.findByToken(token)).willReturn(Optional.of(invitation));
 
             InvitationSignupRequest request = new InvitationSignupRequest(token, "test@test.com", accountUuid);
 
-            InvitationSignupResponse response = invitationService.signupWithInvitation(request);
+            invitationService.signupWithInvitation(request);
 
-            assertTrue(response.isOwner());
-
-            verify(organizationMemberService).createOwner(organization, accountUuid);
-
+            verify(organizationMemberService).createUser(organization, accountUuid, OrganizationRole.ORG_BOSS);
             assertEquals(InvitationStatus.USED, invitation.getInvitationStatus());
-
             assertNotNull(invitation.getUsedAt());
         }
 
         @Test
-        @DisplayName("성공 - MEMBER 초대면 Member로 생성")
+        @DisplayName("성공 - Boss/Owner 초대면 Member로 생성")
         void signupAsMember() {
             Invitation memberInvitation = TestFixtures.createInvitationMember(organization, "test@test.com");
             UUID token = memberInvitation.getToken();
             UUID accountUuid = UUID.randomUUID();
 
             ReflectionTestUtils.setField(memberInvitation, "expiredAt", LocalDateTime.now().plusDays(1));
-
             given(invitationRepository.findByToken(token)).willReturn(Optional.of(memberInvitation));
 
-            InvitationSignupRequest request = new InvitationSignupRequest(
-                    token,
-                    "test@test.com",
-                    accountUuid
-            );
+            InvitationSignupRequest request = new InvitationSignupRequest(token, "test@test.com", accountUuid);
 
-            InvitationSignupResponse response = invitationService.signupWithInvitation(request);
+            invitationService.signupWithInvitation(request);
 
-            assertFalse(response.isOwner());
-
-            verify(organizationMemberService).createMember(organization, accountUuid);
-            verify(organizationMemberService, never()).createOwner(any(), any());
-
+            verify(organizationMemberService).createUser(organization, accountUuid, OrganizationRole.ORG_MEMBER);
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_OWNER));
             assertEquals(InvitationStatus.USED, memberInvitation.getInvitationStatus());
-
             assertNotNull(memberInvitation.getUsedAt());
         }
 
@@ -204,22 +189,15 @@ class InvitationServiceTest {
             UUID accountUuid = UUID.randomUUID();
 
             ReflectionTestUtils.setField(invitation, "expiredAt", LocalDateTime.now().plusDays(1));
-
             given(invitationRepository.findByToken(token)).willReturn(Optional.of(invitation));
 
-            InvitationSignupRequest request = new InvitationSignupRequest(
-                    token,
-                    "different@test.com",
-                    accountUuid
-            );
+            InvitationSignupRequest request = new InvitationSignupRequest(token, "different@test.com", accountUuid);
 
             assertThrows(InvitationEmailMismatchException.class, () -> invitationService.signupWithInvitation(request));
 
-            verify(organizationMemberService, never()).createOwner(any(), any());
-            verify(organizationMemberService, never()).createMember(any(), any());
-
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_BOSS));
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_MEMBER));
             assertEquals(InvitationStatus.ACTIVE, invitation.getInvitationStatus());
-
             assertNull(invitation.getUsedAt());
         }
 
@@ -230,22 +208,15 @@ class InvitationServiceTest {
             UUID accountUuid = UUID.randomUUID();
 
             ReflectionTestUtils.setField(invitation, "expiredAt", LocalDateTime.now().minusDays(1));
-
             given(invitationRepository.findByToken(token)).willReturn(Optional.of(invitation));
 
-            InvitationSignupRequest request = new InvitationSignupRequest(
-                    token,
-                    "test@test.com",
-                    accountUuid
-            );
+            InvitationSignupRequest request = new InvitationSignupRequest(token, "test@test.com", accountUuid);
 
             assertThrows(InvitationExpiredException.class, () -> invitationService.signupWithInvitation(request));
 
-            verify(organizationMemberService, never()).createOwner(any(), any());
-            verify(organizationMemberService, never()).createMember(any(), any());
-
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_BOSS));
+            verify(organizationMemberService, never()).createUser(any(), any(), eq(OrganizationRole.ORG_MEMBER));
             assertEquals(InvitationStatus.ACTIVE, invitation.getInvitationStatus());
-
             assertNull(invitation.getUsedAt());
         }
     }
@@ -253,15 +224,14 @@ class InvitationServiceTest {
     @Nested
     @DisplayName("초대 목록 조회")
     class GetInvitationListTest {
+
         @Test
         @DisplayName("성공")
         void success() {
-            UserContext.setUserUuid(owner.getAccountUuid());
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(owner);
+            given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
 
             InvitationSearchRequest request = new InvitationSearchRequest(null, null);
             Pageable pageable = PageRequest.of(0, 10);
-
             Page<InvitationSearchResponse> expected = new PageImpl<>(List.of(), pageable, 0);
 
             given(invitationRepository.search(organization.getId(), request, pageable)).willReturn(expected);
@@ -269,14 +239,14 @@ class InvitationServiceTest {
             Page<InvitationSearchResponse> result = invitationService.getInvitations(request, pageable);
 
             assertEquals(expected, result);
+            verify(orgAccessService).requireOwnerOrBoss();
             verify(invitationRepository).search(organization.getId(), request, pageable);
         }
 
         @Test
-        @DisplayName("실패 - OWNER 아님")
+        @DisplayName("실패 - 권한 없음")
         void forbidden() {
-            UserContext.setUserUuid(member.getAccountUuid());
-            given(organizationMemberService.getCurrentOrganizationMember(any())).willReturn(member);
+            willThrow(new ForbiddenException()).given(orgAccessService).requireOwnerOrBoss();
 
             InvitationSearchRequest request = new InvitationSearchRequest(null, null);
             Pageable pageable = PageRequest.of(0, 10);
@@ -288,6 +258,7 @@ class InvitationServiceTest {
     @Nested
     @DisplayName("메일 발송 처리")
     class MarkEmailSent {
+
         @Test
         @DisplayName("성공")
         void success() {
@@ -312,6 +283,7 @@ class InvitationServiceTest {
             assertThrows(InvitationNotFoundException.class, () -> invitationService.markEmailSent(token));
         }
     }
+
     @Nested
     @DisplayName("Owner 초대 재전송")
     class ResendInvitationTest {
@@ -324,30 +296,25 @@ class InvitationServiceTest {
             ReflectionTestUtils.setField(invitation, "id", invitationId);
             ReflectionTestUtils.setField(invitation, "expiredAt", LocalDateTime.now().plusDays(1));
 
-            UserContext.setUserUuid(owner.getAccountUuid());
-
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
-
-            given(organizationMemberService.getCurrentOrganizationMember(owner.getAccountUuid())).willReturn(owner);
+            given(orgAccessService.requireOwnerOrBossOf(organization.getId())).willReturn(owner);
 
             invitationService.resendInvitation(invitationId);
 
+            verify(orgAccessService).requireOwnerOrBossOf(organization.getId());
             verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
         }
 
         @Test
-        @DisplayName("실패 - Owner가 아님")
+        @DisplayName("실패 - Owner/Boss가 아님")
         void forbiddenWhenMember() {
             Long invitationId = 1L;
 
             ReflectionTestUtils.setField(invitation, "id", invitationId);
             ReflectionTestUtils.setField(invitation, "expiredAt", LocalDateTime.now().plusDays(1));
 
-            UserContext.setUserUuid(member.getAccountUuid());
-
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
-
-            given(organizationMemberService.getCurrentOrganizationMember(member.getAccountUuid())).willReturn(member);
+            given(orgAccessService.requireOwnerOrBossOf(organization.getId())).willThrow(new ForbiddenException());
 
             assertThrows(ForbiddenException.class, () -> invitationService.resendInvitation(invitationId));
 
@@ -360,22 +327,17 @@ class InvitationServiceTest {
             Long invitationId = 1L;
 
             Organization anotherOrganization = TestFixtures.createOrganization("다른 조직", "9876543210");
-
-            ReflectionTestUtils.setField(organization, "id", 1L);
             ReflectionTestUtils.setField(anotherOrganization, "id", 2L);
 
             Invitation anotherInvitation = TestFixtures.createInvitationMember(anotherOrganization, "other@test.com");
-
             ReflectionTestUtils.setField(anotherInvitation, "id", invitationId);
             ReflectionTestUtils.setField(anotherInvitation, "expiredAt", LocalDateTime.now().plusDays(1));
 
-            UserContext.setUserUuid(owner.getAccountUuid());
-
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(anotherInvitation));
-
-            given(organizationMemberService.getCurrentOrganizationMember(owner.getAccountUuid())).willReturn(owner);
+            given(orgAccessService.requireOwnerOrBossOf(anotherOrganization.getId())).willThrow(new ForbiddenException());
 
             assertThrows(ForbiddenException.class, () -> invitationService.resendInvitation(invitationId));
+
             verify(applicationEventPublisher, never()).publishEvent(any());
         }
     }
@@ -392,15 +354,13 @@ class InvitationServiceTest {
             ReflectionTestUtils.setField(invitation, "id", invitationId);
             ReflectionTestUtils.setField(invitation, "expiredAt", LocalDateTime.now().plusDays(1));
 
-            UserContext.setUserUuid(owner.getAccountUuid());
-
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
-
-            given(organizationMemberService.getCurrentOrganizationMember(owner.getAccountUuid())).willReturn(owner);
+            given(orgAccessService.requireOwnerOrBossOf(organization.getId())).willReturn(owner);
 
             invitationService.cancelInvitation(invitationId);
 
             assertEquals(InvitationStatus.CANCELED, invitation.getInvitationStatus());
+            verify(orgAccessService).requireOwnerOrBossOf(organization.getId());
         }
 
         @Test
@@ -409,14 +369,10 @@ class InvitationServiceTest {
             Long invitationId = 1L;
 
             invitation.use();
-
             ReflectionTestUtils.setField(invitation, "id", invitationId);
 
-            UserContext.setUserUuid(owner.getAccountUuid());
-
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
-
-            given(organizationMemberService.getCurrentOrganizationMember(owner.getAccountUuid())).willReturn(owner);
+            given(orgAccessService.requireOwnerOrBossOf(organization.getId())).willReturn(owner);
 
             assertThrows(InvalidInvitationException.class, () -> invitationService.cancelInvitation(invitationId));
         }
@@ -438,18 +394,14 @@ class InvitationServiceTest {
             ReflectionTestUtils.setField(oldInvitation, "expiredAt", LocalDateTime.now().plusDays(1));
             ReflectionTestUtils.setField(newInvitation, "id", 2L);
 
-            UserContext.setUserUuid(owner.getAccountUuid());
-
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(oldInvitation));
-
-            given(organizationMemberService.getCurrentOrganizationMember(owner.getAccountUuid())).willReturn(owner);
-            given(invitationRepository.existsActiveInvitation(eq(organization.getId()), eq("member@test.com"), any(LocalDateTime.class))).willReturn(false);
+            given(orgAccessService.requireOwnerOrBossOf(organization.getId())).willReturn(owner);
+            given(invitationRepository.existsInvitationBy(eq(organization.getId()), eq("member@test.com"), any(LocalDateTime.class))).willReturn(false);
             given(invitationRepository.save(any(Invitation.class))).willReturn(newInvitation);
 
             invitationService.reissueInvitation(invitationId);
 
             assertEquals(InvitationStatus.REISSUED, oldInvitation.getInvitationStatus());
-
             verify(invitationRepository).save(any(Invitation.class));
             verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
         }
@@ -460,13 +412,10 @@ class InvitationServiceTest {
             Long invitationId = 1L;
 
             invitation.use();
-
             ReflectionTestUtils.setField(invitation, "id", invitationId);
 
-            UserContext.setUserUuid(owner.getAccountUuid());
-
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
-            given(organizationMemberService.getCurrentOrganizationMember(owner.getAccountUuid())).willReturn(owner);
+            given(orgAccessService.requireOwnerOrBossOf(organization.getId())).willReturn(owner);
 
             assertThrows(InvalidInvitationException.class, () -> invitationService.reissueInvitation(invitationId));
 
@@ -525,6 +474,7 @@ class InvitationServiceTest {
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
 
             assertThrows(ForbiddenException.class, () -> invitationService.resendInvitationForAdmin(1L, invitationId));
+
             verify(applicationEventPublisher, never()).publishEvent(any());
         }
 
@@ -542,6 +492,7 @@ class InvitationServiceTest {
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(memberInvitation));
 
             assertThrows(ForbiddenException.class, () -> invitationService.resendInvitationForAdmin(organizationId, invitationId));
+
             verify(applicationEventPublisher, never()).publishEvent(any());
         }
 
@@ -573,13 +524,12 @@ class InvitationServiceTest {
             Invitation newInvitation = TestFixtures.createInvitationOwner(organization, invitation.getEmail());
 
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(invitation));
-            given(invitationRepository.existsActiveInvitation(eq(organizationId), eq(invitation.getEmail()), any(LocalDateTime.class))).willReturn(false);
+            given(invitationRepository.existsInvitationBy(eq(organizationId), eq(invitation.getEmail()), any(LocalDateTime.class))).willReturn(false);
             given(invitationRepository.save(any(Invitation.class))).willReturn(newInvitation);
 
             invitationService.reissueInvitationForAdmin(organizationId, invitationId);
 
             assertEquals(InvitationStatus.REISSUED, invitation.getInvitationStatus());
-
             verify(invitationRepository).save(any(Invitation.class));
             verify(applicationEventPublisher).publishEvent(any(InvitationMailSendEvent.class));
         }
@@ -626,7 +576,6 @@ class InvitationServiceTest {
             ReflectionTestUtils.setField(organization, "id", organizationId);
 
             Invitation memberInvitation = TestFixtures.createInvitationMember(organization, "member@test.com");
-
             ReflectionTestUtils.setField(memberInvitation, "id", invitationId);
 
             given(invitationRepository.findById(invitationId)).willReturn(Optional.of(memberInvitation));

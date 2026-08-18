@@ -10,8 +10,9 @@ public enum GlobalErrorCode implements ErrorCode{
 
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "G001", "잘못된 입력값입니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "G002", "권한이 없습니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "G003", "서버 오류가 발생했습니다."),
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "G004", "인증이 필요합니다.");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "G003", "서버 내부 오류가 발생했습니다."),
+    UPSTREAM_SERVICE_ERROR(HttpStatus.BAD_GATEWAY, "G004", "외부 서비스 호출 중 오류가 발생했습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "G005", "인증이 필요합니다.");
 
 
 

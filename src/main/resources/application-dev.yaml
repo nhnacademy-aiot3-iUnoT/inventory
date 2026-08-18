@@ -2,6 +2,10 @@ eureka:
   client:
     enabled: false
 
+clients:
+  account:
+    base-url: ${ACCOUNT_BASE_URL:http://localhost:10413}
+
 management:
   tracing:
     export:

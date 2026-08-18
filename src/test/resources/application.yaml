@@ -39,3 +39,7 @@ security:
 
 app:
   invitation-url: localhost:10404/signup
+
+clients:
+  account:
+    base-url: ${ACCOUNT_BASE_URL:http://localhost:10413}

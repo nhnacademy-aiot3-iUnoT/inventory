@@ -5,7 +5,7 @@ import com.nhnacademy.inventory.organizations.invitation.domain.Invitation;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationCreateRequest;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.exception.OrganizationNotActiveException;
-import com.nhnacademy.inventory.organizations.organization.service.OrganizationService;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 class OrganizationInvitationServiceTest {
 
     @Mock
-    private OrganizationService organizationService;
+    private OrganizationAccessService orgAccessService;
 
     @Mock
     private InvitationService invitationService;
@@ -47,14 +47,14 @@ class OrganizationInvitationServiceTest {
     void inviteMember_success() {
         InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
 
-        organization.complete("12345", "광주시 남구", "101호", "테스트 조직"); // ACTIVE 상태
+        organization.complete("12345", "광주시 남구", "101호", "테스트 조직");
 
-        given(organizationService.getOrgAfterValidateOwner()).willReturn(organization);
+        given(orgAccessService.requireOwnerOrBossOrganization()).willReturn(organization);
         given(invitationService.createInvitation(organization, request.email(), false)).willReturn(invitation);
 
         organizationInvitationService.inviteMember(request);
 
-        verify(organizationService).getOrgAfterValidateOwner();
+        verify(orgAccessService).requireOwnerOrBossOrganization();
         verify(invitationService).createInvitation(organization, request.email(), false);
     }
 
@@ -63,23 +63,22 @@ class OrganizationInvitationServiceTest {
     void inviteMember_pendingOrganization() {
         InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
 
-        given(organizationService.getOrgAfterValidateOwner()).willReturn(organization); // 기본은 PENDING
+        given(orgAccessService.requireOwnerOrBossOrganization()).willReturn(organization);
 
         assertThrows(OrganizationNotActiveException.class, () -> organizationInvitationService.inviteMember(request));
 
-        verify(invitationService, never())
-                .createInvitation(any(), anyString(), anyBoolean());
+        verify(invitationService, never()).createInvitation(any(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("조직원 초대 실패 - OWNER 아님")
-    void inviteMember_organizationNotFound() {
+    void inviteMember_forbidden() {
         InvitationCreateRequest request = new InvitationCreateRequest("test@test.com");
 
-        given(organizationService.getOrgAfterValidateOwner()).willThrow(new ForbiddenException());
+        given(orgAccessService.requireOwnerOrBossOrganization()).willThrow(new ForbiddenException());
 
         assertThrows(ForbiddenException.class, () -> organizationInvitationService.inviteMember(request));
 
-        verify(invitationService, never()).createInvitation(any(), anyString(), eq(false));
+        verify(invitationService, never()).createInvitation(any(), anyString(), anyBoolean());
     }
 }
