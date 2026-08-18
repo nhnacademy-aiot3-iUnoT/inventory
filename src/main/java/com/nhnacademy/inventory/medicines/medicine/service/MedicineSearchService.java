@@ -47,7 +47,7 @@ public class MedicineSearchService {
 
         else{
 
-            if(!trimmed.matches("\\d{9}")){
+            if(!trimmed.matches("\\d+")){
                 throw new ItemCodeInvalidException();
             }
 

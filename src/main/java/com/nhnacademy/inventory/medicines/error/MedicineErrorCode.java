@@ -15,7 +15,7 @@ public enum MedicineErrorCode implements ErrorCode {
 
     // 품목기준 코드
     ITEM_CODE_REQUIRED(HttpStatus.BAD_REQUEST,"I001","품목기준코드는 필수입니다."),
-    ITEM_CODE_INVALID(HttpStatus.BAD_REQUEST,"I002","품목기준코드는 숫자 9자리로 입력해야 합니다."),
+    ITEM_CODE_INVALID(HttpStatus.BAD_REQUEST,"I002","품목기준코드는 숫자만 입력할 수 있습니다."),
 
 
     // 의약품

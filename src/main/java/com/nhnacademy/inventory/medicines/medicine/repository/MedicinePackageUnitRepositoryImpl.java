@@ -75,7 +75,7 @@ public class MedicinePackageUnitRepositoryImpl implements MedicinePackageUnitRep
                 ))
                 .from(packageUnit)
                 .join(packageUnit.medicine,medicine)
-                .where(medicine.itemCode.eq(itemCode))
+                .where(medicine.itemCode.contains(itemCode))
                 .orderBy(medicine.itemCode.asc(),medicine.productName.asc(),packageUnit.packUnit.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -84,7 +84,7 @@ public class MedicinePackageUnitRepositoryImpl implements MedicinePackageUnitRep
         Long total = queryFactory.select(packageUnit.count())
                 .from(packageUnit)
                 .join(packageUnit.medicine,medicine)
-                .where(medicine.itemCode.eq(itemCode))
+                .where(medicine.itemCode.contains(itemCode))
                 .fetchOne();
 
 
