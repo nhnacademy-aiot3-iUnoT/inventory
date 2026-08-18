@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.member.domain;
 
+import com.nhnacademy.inventory.organizations.member.exception.OrgMemberRoleChangeNotAllowedException;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -42,29 +43,32 @@ public class OrganizationMember {
         this.organizationRole = organizationRole;
     }
 
-    public static OrganizationMember createMember(Organization organization, UUID accountUuid) {
+    public static OrganizationMember createUser(Organization organization, UUID accountUuid, OrganizationRole role) {
         return OrganizationMember.builder()
                 .organization(organization)
                 .accountUuid(accountUuid)
-                .organizationRole(OrganizationRole.ORG_MEMBER)
+                .organizationRole(role)
                 .build();
     }
 
-    public static OrganizationMember createOwner(Organization organization, UUID accountUuid) {
-        return OrganizationMember.builder()
-                .organization(organization)
-                .accountUuid(accountUuid)
-                .organizationRole(OrganizationRole.ORG_OWNER)
-                .build();
+    public boolean isOwner() {
+        return this.organizationRole == OrganizationRole.ORG_OWNER;
     }
 
+    public boolean isBoss() {
+        return this.organizationRole == OrganizationRole.ORG_BOSS;
+    }
+
+    public void updateRole(OrganizationRole changeRole) {
+        if(changeRole == OrganizationRole.ORG_BOSS) {
+            throw new OrgMemberRoleChangeNotAllowedException();
+        }
+        this.organizationRole = changeRole;
+    }
 
     @PrePersist
     protected void onCreate() {
         this.joinedAt = LocalDateTime.now();
     }
 
-    public void changeRole(OrganizationRole role) {
-        this.organizationRole = role;
-    }
 }

@@ -1,9 +1,7 @@
 package com.nhnacademy.inventory.organizations.invitation.controller;
 
-import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.InvitationSignupRequest;
 import com.nhnacademy.inventory.organizations.invitation.dto.request.SignupCompensateRequest;
-import com.nhnacademy.inventory.organizations.invitation.dto.response.InvitationSignupResponse;
 import com.nhnacademy.inventory.organizations.invitation.service.InvitationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +19,9 @@ public class InvitationInternalController {
      * Account -> 토큰 검증, 이메일 일치 판단, 조직원 생성, 초대 토큰 사용 처리
      */
     @PostMapping("/use")
-    public ResponseEntity<ApiResponse<InvitationSignupResponse>> signupWithInvitation(@Valid @RequestBody InvitationSignupRequest request) {
-        InvitationSignupResponse response = invitationService.signupWithInvitation(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<Void> signupWithInvitation(@Valid @RequestBody InvitationSignupRequest request) {
+        invitationService.signupWithInvitation(request);
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -34,4 +32,6 @@ public class InvitationInternalController {
         invitationService.compensateSignup(request);
         return ResponseEntity.noContent().build();
     }
+
+    // TODO 회원탈퇴 시 조직원 삭제 api 추가
 }

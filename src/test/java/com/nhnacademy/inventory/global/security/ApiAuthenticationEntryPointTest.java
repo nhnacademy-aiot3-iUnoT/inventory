@@ -34,7 +34,7 @@ class ApiAuthenticationEntryPointTest {
                 MediaType.parseMediaType(response.getContentType())
         ));
         assertFalse(body.get("success").asBoolean());
-        assertEquals("G004", body.get("error").get("code").asText());
+        assertEquals("G005", body.get("error").get("code").asText());
         assertEquals("인증이 필요합니다.", body.get("error").get("message").asText());
     }
 }

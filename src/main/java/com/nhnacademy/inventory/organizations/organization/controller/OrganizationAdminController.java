@@ -27,14 +27,12 @@ public class OrganizationAdminController {
     private final OrganizationService organizationService;
 
     /**
-     * 조직 생성 (사업자 번호, 조직명, 이메일(Owner))
+     * 조직 생성 (사업자 번호, 조직명, 이메일(BOSS))
      */
     @PostMapping
     public ResponseEntity<ApiResponse<OrgCreateResponse>> createOrganization(@RequestBody @Valid OrgCreateRequest request) {
-        OrgCreateResponse response = organizationService.createOrganization(request);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response));
+        organizationService.createOrganization(request);
+        return ResponseEntity.noContent().build();
     }
 
     /**

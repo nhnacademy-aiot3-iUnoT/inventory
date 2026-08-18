@@ -21,20 +21,27 @@ public class MemberDepartment {
     private Long memberDepartmentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_member_id")
+    @JoinColumn(name = "organization_member_id", nullable = false)
     private OrganizationMember organizationMember;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id")
+    @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
     @Column(name = "joined_date", nullable = false)
     private LocalDate joinedDate;
 
-    @Builder
+    @Builder(access = AccessLevel.PRIVATE)
     private MemberDepartment(OrganizationMember organizationMember, Department department) {
         this.organizationMember = organizationMember;
         this.department = department;
+    }
+
+    public static MemberDepartment create(OrganizationMember organizationMember, Department department) {
+        return MemberDepartment.builder()
+                .organizationMember(organizationMember)
+                .department(department)
+                .build();
     }
 
     @PrePersist
