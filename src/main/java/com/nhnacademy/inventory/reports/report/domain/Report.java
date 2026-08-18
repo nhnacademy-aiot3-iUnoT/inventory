@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.reports.report.exception.InvalidWeeklyPeriodException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -55,6 +56,7 @@ public class Report {
         this.createdAt = LocalDateTime.now();
     }
 
+    @Builder(access = AccessLevel.PRIVATE)
     private Report(long organizationId, ReportType reportType, LocalDate periodStart, LocalDate periodEnd) {
         this.organizationId = organizationId;
         this.reportType = reportType;
@@ -67,7 +69,12 @@ public class Report {
             throw new InvalidWeeklyPeriodException();
         }
 
-        return new Report(organizationId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6));
+        return Report.builder()
+                .organizationId(organizationId)
+                .reportType(ReportType.WEEKLY)
+                .periodStart(periodStart)
+                .periodEnd(periodStart.plusDays(6))
+                .build();
     }
 
     public void updateSummary(String aiSummary) {
