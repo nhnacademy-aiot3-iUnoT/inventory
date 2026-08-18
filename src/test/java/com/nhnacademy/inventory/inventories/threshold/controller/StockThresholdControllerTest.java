@@ -68,6 +68,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
             );
             StockThresholdInfoResponse response = new StockThresholdInfoResponse(
                     1L, 11L, 111L,
+                    "테스트 약품", "테스트 단위", "테스트 조직", "테스트 저장소",
                     10, true
             );
 
@@ -180,6 +181,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
         void success() throws Exception {
             StockThresholdInfoResponse response = new StockThresholdInfoResponse(
                     1L, 11L, 111L,
+                    "테스트 약품", "테스트 단위", "테스트 조직", "테스트 저장소",
                     10, true
             );
             List<StockThresholdInfoResponse> responseList = List.of(response);
@@ -258,6 +260,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
             );
             StockThresholdInfoResponse response = new StockThresholdInfoResponse(
                     1L, 11L, 111L,
+                    "테스트 약품", "테스트 단위", "테스트 조직", "테스트 저장소",
                     20, true
             );
 
@@ -424,6 +427,10 @@ class StockThresholdControllerTest extends SupportControllerTest {
                 fieldWithPath(prefix + "stockThresholdId").type(JsonFieldType.NUMBER).description("최소 재고 임계값 ID"),
                 fieldWithPath(prefix + "medicinePackageUnitId").type(JsonFieldType.NUMBER).description("단위 의약품 ID"),
                 fieldWithPath(prefix + "storageId").type(JsonFieldType.NUMBER).description("저장소 ID"),
+                fieldWithPath(prefix + "productName").type(JsonFieldType.STRING).description("의약품 상품명"),
+                fieldWithPath(prefix + "packUnit").type(JsonFieldType.STRING).description("포장 단위"),
+                fieldWithPath(prefix + "organizationName").type(JsonFieldType.STRING).description("조직 이름"),
+                fieldWithPath(prefix + "storageName").type(JsonFieldType.STRING).description("저장소 이름"),
                 fieldWithPath(prefix + "stockThreshold").type(JsonFieldType.NUMBER).description("최소 재고 임계값"),
                 fieldWithPath(prefix + "isActive").type(JsonFieldType.BOOLEAN).description("활성화 상태")
         );

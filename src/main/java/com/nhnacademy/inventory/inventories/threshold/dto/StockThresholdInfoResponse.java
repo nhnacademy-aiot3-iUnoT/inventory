@@ -6,6 +6,10 @@ public record StockThresholdInfoResponse(
         Long stockThresholdId,
         Long medicinePackageUnitId,
         Long storageId,
+        String productName,
+        String packUnit,
+        String organizationName,
+        String storageName,
         Integer stockThreshold,
         Boolean isActive
 ) {
@@ -14,6 +18,10 @@ public record StockThresholdInfoResponse(
                 stockThreshold.getId(),
                 stockThreshold.getMedicinePackageUnit().getId(),
                 stockThreshold.getStorage().getId(),
+                stockThreshold.getMedicinePackageUnit().getMedicine().getProductName(),
+                stockThreshold.getMedicinePackageUnit().getPackUnit(),
+                stockThreshold.getStorage().getOrganization().getName(),
+                stockThreshold.getStorage().getName(),
                 stockThreshold.getThreshold(),
                 stockThreshold.getIsActive()
         );
