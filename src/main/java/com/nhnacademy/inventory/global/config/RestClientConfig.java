@@ -21,24 +21,24 @@ public class RestClientConfig {
                 .build();
     }
 
-    @Bean("loadBalancedAccountRestClientBuilder")
-    @LoadBalanced
-    @Profile("prod")
-    public RestClient.Builder loadBalancedAccountRestClientBuilder() {
-        return RestClient.builder();
-    }
+//    @Bean("loadBalancedAccountRestClientBuilder")
+//    @LoadBalanced
+//    @Profile("prod")
+//    public RestClient.Builder loadBalancedAccountRestClientBuilder() {
+//        return RestClient.builder();
+//    }
+
+//    @Bean("accountRestClient")
+//    @Profile("prod")
+//    public RestClient prodAccountRestClient(
+//            @Qualifier("loadBalancedAccountRestClientBuilder") RestClient.Builder builder,
+//            @Value("${clients.account.base-url}") String baseUrl
+//    ) {
+//        return builder.baseUrl(baseUrl).build();
+//    }
 
     @Bean("accountRestClient")
-    @Profile("prod")
-    public RestClient prodAccountRestClient(
-            @Qualifier("loadBalancedAccountRestClientBuilder") RestClient.Builder builder,
-            @Value("${clients.account.base-url}") String baseUrl
-    ) {
-        return builder.baseUrl(baseUrl).build();
-    }
-
-    @Bean("accountRestClient")
-    @Profile("!prod")
+//    @Profile("!prod")
     public RestClient localAccountRestClient(@Value("${clients.account.base-url}") String baseUrl) {
         return RestClient.builder().baseUrl(baseUrl).build();
     }
