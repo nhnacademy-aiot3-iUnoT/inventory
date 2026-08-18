@@ -15,8 +15,7 @@ import java.util.List;
 import java.time.LocalDate;
 
 
-public interface MedicineInventoryRepository extends JpaRepository<MedicineInventory, Long>, MedicineInventoryRepositoryCustom{
-
+public interface MedicineInventoryRepository extends JpaRepository<MedicineInventory, Long>, MedicineInventoryRepositoryCustom {
 
     @Query("""
             

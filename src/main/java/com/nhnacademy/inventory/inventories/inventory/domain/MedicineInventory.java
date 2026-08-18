@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.inventories.inventory.domain;
 
+import com.nhnacademy.inventory.inventories.inventory.exception.InsufficientStockException;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import jakarta.persistence.*;
@@ -110,6 +111,30 @@ public class MedicineInventory {
     public void increaseQuantity(int quantity){
 
         this.currentQuantity += quantity;
+    }
+
+    public void decreaseQuantity(int quantity) {
+        if (this.currentQuantity < quantity) {
+            throw new InsufficientStockException();
+        }
+
+        this.currentQuantity -= quantity;
+        if (this.currentQuantity == 0) {
+            this.managementStatus = ManagementStatus.DEPLETED;
+        }
+    }
+
+    public void disposeQuantity(int quantity) {
+
+        if (this.currentQuantity < quantity) {
+            throw new InsufficientStockException();
+        }
+
+        this.currentQuantity -= quantity;
+
+        if (this.currentQuantity == 0) {
+            this.managementStatus = ManagementStatus.DISPOSAL;
+        }
     }
 
     public void review(){
