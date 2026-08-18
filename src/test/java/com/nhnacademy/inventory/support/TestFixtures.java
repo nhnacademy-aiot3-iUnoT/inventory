@@ -29,11 +29,15 @@ public class TestFixtures {
     }
 
     public static OrganizationMember createOrganizationMember(Organization organization) {
-        return OrganizationMember.createMember(organization, UUID.randomUUID());
+        return OrganizationMember.createUser(organization, UUID.randomUUID(), OrganizationRole.ORG_MEMBER);
     }
 
     public static OrganizationMember createOrganizationOwner(Organization organization) {
-        return OrganizationMember.createOwner(organization, UUID.randomUUID());
+        return OrganizationMember.createUser(organization, UUID.randomUUID(), OrganizationRole.ORG_OWNER);
+    }
+
+    public static OrganizationMember createOrganizationBoss(Organization organization) {
+        return OrganizationMember.createUser(organization, UUID.randomUUID(), OrganizationRole.ORG_BOSS);
     }
 
     public static Storage createStorage(Organization organization) {
@@ -89,12 +93,17 @@ public class TestFixtures {
     }
 
     public static Medicine createMedicine(String itemCode, String productName) {
-        return Medicine.builder()
-                .itemCode(itemCode)
-                .productName(productName)
-                .storageMethod("실온보관")
-                .companyName("한국얀센")
-                .build();
+        return Medicine.create(
+                itemCode,
+                productName,
+                        "실온보관",
+                        "한국얀센",
+                null,
+                        "company"
+
+
+                );
+
     }
 
     public static MedicinePackageUnit createPackageUnit(Medicine medicine) {

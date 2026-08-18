@@ -1,7 +1,6 @@
 package com.nhnacademy.inventory.medicines.medicine.domain;
 
-import com.nhnacademy.inventory.global.error.ErrorCode;
-import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
+
 import com.nhnacademy.inventory.medicines.medicine.exception.MedicineRequiredException;
 import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitRequiredException;
 import jakarta.persistence.*;
@@ -28,7 +27,7 @@ public class MedicinePackageUnit {
     @Column(name = "pack_unit", length = 200, nullable = false)
     private String packUnit;
 
-
+    @Builder(access = AccessLevel.PRIVATE)
     private MedicinePackageUnit(Medicine medicine, String packUnit) {
 
         if(medicine == null){

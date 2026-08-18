@@ -26,7 +26,7 @@ public class MedicineApiService {
 
 
         String json = medicineApiClient.getJson(1,PAGE_SIZE);
-        //log.info("json: {}",json);
+
 
         JsonNode jsonNode = objectMapper.readTree(json);
         JsonNode jsonBody = jsonNode.path("body");
@@ -39,7 +39,7 @@ public class MedicineApiService {
         //test
 
         int totalCount = jsonBody.path("totalCount").asInt();
-        //int totalCount = 100;
+
         log.info("totalCount: {}",totalCount);
 
         // 전체 페이지 수 구하기

@@ -27,7 +27,7 @@ public class OrganizationController {
     }
 
     /**
-     * 조직 상태 활성화 <-> 비활성화 (OWNER 체크)
+     * 조직 상태 활성화 <-> 비활성화 (BOSS 체크)
      */
     @PutMapping("/status")
     public ResponseEntity<Void> updateOrganizationStatus(@RequestBody @Valid OrgStatusUpdateRequest request) {

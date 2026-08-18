@@ -52,9 +52,6 @@ public class InboundService {
                 medicineInventory,
                 request);
 
-        
-
-
 
     }
 

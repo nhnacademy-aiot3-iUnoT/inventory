@@ -8,10 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -45,14 +42,8 @@ public class MedicineEnvironmentStandard {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
-
-//    @OneToMany(
-//            mappedBy = "medicineEnvironmentStandard",
-//            cascade = CascadeType.ALL,
-//            orphanRemoval = true
-//    )
-//    private final List<MedicineEnvironmentType> environmentTypes = new ArrayList<>();
-
+    @Version
+    private Long version;
 
     @Column(name = "create_account_id", columnDefinition = "BINARY(16)", nullable = false)
     private UUID createAccountId;
@@ -99,23 +90,7 @@ public class MedicineEnvironmentStandard {
     }
 
 
-//    public void addEnvironmentType(EnvironmentType environmentType, BigDecimal min, BigDecimal max){
-//
-//        MedicineEnvironmentType type = MedicineEnvironmentType.create(this,environmentType,min,max);
-//        environmentTypes.add(type);
-//
-//    }
-//
-//
-//    public void updateEnvironmentTypes(List<MedicineEnvironmentTypeRequest> requests){
-//
-//        environmentTypes.clear();
-//        for(MedicineEnvironmentTypeRequest request : requests){
-//            addEnvironmentType(request.environmentType(),request.min(),request.max());
-//
-//        }
-//
-//    }
+
 
 
 

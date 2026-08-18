@@ -1,10 +1,9 @@
 package com.nhnacademy.inventory.medicines.medicine.service;
 
-import com.nhnacademy.inventory.medicines.error.MedicineErrorCode;
+
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicineResponse;
-import com.nhnacademy.inventory.medicines.medicine.exception.MedicineNotFoundException;
 import com.nhnacademy.inventory.medicines.medicine.mapper.MedicineMapper;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicineRepository;

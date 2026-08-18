@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.zone.controller;
 
+
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
@@ -63,9 +64,9 @@ class ZoneControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             ZoneCreateRequest request = new ZoneCreateRequest("테스트 구역", "설명");
-            ZoneInfoResponse response = new ZoneInfoResponse(
-                    1L, 11L,
-                    "테스트 구역", "설명",
+            ZoneDetailResponse response = new ZoneDetailResponse(
+                    1L, 11L, "테스트 조직",
+                    "테스트 저장소", "테스트 구역", "설명",
                     ZoneStatus.ACTIVE, EnvStatus.NORMAL,
                     LocalDateTime.now(), null
             );
@@ -73,7 +74,7 @@ class ZoneControllerTest extends SupportControllerTest {
             given(zoneService.createZone(111L, request)).willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(zoneInfoResponseFields("data."));
+            responseFields.addAll(zoneDetailResponseFields("data."));
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
                             .header("X-USER-ID", accountUuid.toString())
@@ -169,9 +170,7 @@ class ZoneControllerTest extends SupportControllerTest {
         void success() throws Exception {
             ZoneInfoResponse response = new ZoneInfoResponse(
                     1L, 11L,
-                    "테스트 구역", "설명",
-                    ZoneStatus.ACTIVE, EnvStatus.NORMAL,
-                    LocalDateTime.now(), null
+                    "테스트 구역", ZoneStatus.ACTIVE, EnvStatus.NORMAL
             );
             List<ZoneInfoResponse> responseList = List.of(response);
 
@@ -246,9 +245,9 @@ class ZoneControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             ZoneUpdateRequest request = new ZoneUpdateRequest("업데이트 구역", "업데이트 설명");
-            ZoneInfoResponse response = new ZoneInfoResponse(
-                    1L, 11L,
-                    "업데이트 구역", "업데이트 설명",
+            ZoneDetailResponse response = new ZoneDetailResponse(
+                    1L, 11L, "테스트 조직",
+                    "테스트 저장소", "업데이트 구역", "업데이트 설명",
                     ZoneStatus.ACTIVE, EnvStatus.NORMAL,
                     LocalDateTime.now(), LocalDateTime.now()
             );
@@ -256,7 +255,7 @@ class ZoneControllerTest extends SupportControllerTest {
             given(zoneService.updateZone(111L, 1111L, request)).willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(zoneInfoResponseFields("data."));
+            responseFields.addAll(zoneDetailResponseFields("data."));
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
                             .header("X-USER-ID", accountUuid.toString())
@@ -368,9 +367,9 @@ class ZoneControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(ZoneStatus.INACTIVE);
-            ZoneInfoResponse response = new ZoneInfoResponse(
-                    1L, 11L,
-                    "테스트 구역", "테스트 설명",
+            ZoneDetailResponse response = new ZoneDetailResponse(
+                    1L, 11L, "테스트 조직",
+                    "테스트 저장소", "테스트 구역", "테스트 설명",
                     ZoneStatus.INACTIVE, EnvStatus.NORMAL,
                     LocalDateTime.now(), LocalDateTime.now()
             );
@@ -379,7 +378,7 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(zoneInfoResponseFields("data."));
+            responseFields.addAll(zoneDetailResponseFields("data."));
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/status", 111L, 1111L)
                             .header("X-USER-ID", accountUuid.toString())
@@ -474,9 +473,9 @@ class ZoneControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(EnvStatus.CRITICAL);
-            ZoneInfoResponse response = new ZoneInfoResponse(
-                    1L, 11L,
-                    "테스트 구역", "테스트 설명",
+            ZoneDetailResponse response = new ZoneDetailResponse(
+                    1L, 11L, "테스트 조직",
+                    "테스트 저장소", "테스트 구역", "테스트 설명",
                     ZoneStatus.ACTIVE, EnvStatus.CRITICAL,
                     LocalDateTime.now(), LocalDateTime.now()
             );
@@ -485,7 +484,7 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(zoneInfoResponseFields("data."));
+            responseFields.addAll(zoneDetailResponseFields("data."));
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
                             .header("X-USER-ID", accountUuid.toString())
@@ -668,6 +667,18 @@ class ZoneControllerTest extends SupportControllerTest {
         return List.of(
                 fieldWithPath(prefix + "zoneId").type(JsonFieldType.NUMBER).description("구역 ID"),
                 fieldWithPath(prefix + "storageId").type(JsonFieldType.NUMBER).description("저장소 ID"),
+                fieldWithPath(prefix + "name").type(JsonFieldType.STRING).description("구역 이름"),
+                fieldWithPath(prefix + "status").type(JsonFieldType.STRING).description("구역 상태"),
+                fieldWithPath(prefix + "envStatus").type(JsonFieldType.STRING).description("환경 상태")
+        );
+    }
+
+    private List<FieldDescriptor> zoneDetailResponseFields(String prefix){
+        return List.of(
+                fieldWithPath(prefix + "zoneId").type(JsonFieldType.NUMBER).description("구역 ID"),
+                fieldWithPath(prefix + "storageId").type(JsonFieldType.NUMBER).description("저장소 ID"),
+                fieldWithPath(prefix + "organizationName").type(JsonFieldType.STRING).description("상위 조직 이름"),
+                fieldWithPath(prefix + "storageName").type(JsonFieldType.STRING).description("상위 저장소 이름"),
                 fieldWithPath(prefix + "name").type(JsonFieldType.STRING).description("구역 이름"),
                 fieldWithPath(prefix + "description").type(JsonFieldType.STRING).description("구역 설명").optional(),
                 fieldWithPath(prefix + "status").type(JsonFieldType.STRING).description("구역 상태"),

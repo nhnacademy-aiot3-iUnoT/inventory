@@ -8,6 +8,7 @@ public record ThresholdInfoResponse(
         Long zoneThresholdId,
         Long zoneId,
         Long sensorTypeId,
+        String sensorTypeName,
         BigDecimal minValue,
         BigDecimal maxValue,
         Integer alertDuration
@@ -17,6 +18,7 @@ public record ThresholdInfoResponse(
                 threshold.getZoneThresholdId(),
                 threshold.getZone().getId(),
                 threshold.getSensorType().getSensorTypeId(),
+                threshold.getSensorType().getName(),
                 threshold.getMinValue(),
                 threshold.getMaxValue(),
                 threshold.getAlertDuration()

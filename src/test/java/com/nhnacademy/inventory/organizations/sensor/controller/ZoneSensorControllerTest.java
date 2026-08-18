@@ -1,10 +1,7 @@
 package com.nhnacademy.inventory.organizations.sensor.controller;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
-import com.nhnacademy.inventory.organizations.sensor.dto.DeviceLocationResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorCreateRequest;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorInfoResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorUpdateRequest;
+import com.nhnacademy.inventory.organizations.sensor.dto.*;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorNotFoundException;
 import com.nhnacademy.inventory.organizations.sensor.service.ZoneSensorService;
@@ -53,16 +50,18 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         void success() throws Exception {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "테스트 디바이스", "테스트 이름", "테스트 설명");
-            ZoneSensorInfoResponse response = new ZoneSensorInfoResponse(
-                    1L, 11L, "테스트 디바이스", "테스트 이름", "테스트 설명");
+            ZoneSensorDetailResponse response = new ZoneSensorDetailResponse(
+                    1L, 11L, 111L,
+                    "테스트 디바이스", "테스트 조직", "테스트 저장소",
+                    "테스트 구역", "테스트 이름", "테스트 설명");
 
-            given(zoneSensorService.createZoneSensor(11L, request))
+            given(zoneSensorService.createZoneSensor(111L, request))
                     .willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(zoneSensorInfoResponseFields("data."));
+            responseFields.addAll(zoneSensorDetailResponseFields("data."));
 
-            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 11L)
+            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 111L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -91,7 +90,7 @@ class ZoneSensorControllerTest extends SupportControllerTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "", "테스트 이름", "테스트 설명");
 
-            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 11L)
+            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 111L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -104,10 +103,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "테스트 디바이스", "테스트 이름", "테스트 설명");
 
-            given(zoneSensorService.createZoneSensor(11L, request))
+            given(zoneSensorService.createZoneSensor(111L, request))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 11L)
+            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 111L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -120,10 +119,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "테스트 디바이스", "테스트 이름", "테스트 설명");
 
-            given(zoneSensorService.createZoneSensor(11L, request))
+            given(zoneSensorService.createZoneSensor(111L, request))
                     .willThrow(new ZoneNotFoundException());
 
-            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 11L)
+            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 111L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -136,10 +135,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "테스트 디바이스", "테스트 이름", "테스트 설명");
 
-            given(zoneSensorService.createZoneSensor(11L, request))
+            given(zoneSensorService.createZoneSensor(111L, request))
                     .willThrow(new ZoneSensorAlreadyExistsException());
 
-            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 11L)
+            mockMvc.perform(post("/api/core/zones/{zone-id}/zone-sensors", 111L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
@@ -155,21 +154,20 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             ZoneSensorInfoResponse response = new ZoneSensorInfoResponse(
-                    1L, 11L, "테스트 디바이스", "테스트 이름", "테스트 설명");
+                    1L, 111L, "테스트 디바이스", "테스트 이름");
 
-            given(zoneSensorService.getZoneSensors(11L))
+            given(zoneSensorService.getZoneSensors(111L))
                     .willReturn(List.of(response));
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(zoneSensorInfoResponseFields("data[]."));
 
-            mockMvc.perform(get("/api/core/zones/{zone-id}/zone-sensors", 11L))
+            mockMvc.perform(get("/api/core/zones/{zone-id}/zone-sensors", 111L))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(1))
                     .andExpect(jsonPath("$.data[0].deviceEui").value("테스트 디바이스"))
                     .andExpect(jsonPath("$.data[0].name").value("테스트 이름"))
-                    .andExpect(jsonPath("$.data[0].description").value("테스트 설명"))
                     .andDo(document("zone-sensor-get-list",
                             pathParameters(
                                     parameterWithName("zone-id").description("저장소 ID")
@@ -182,10 +180,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트(빈 배열)")
         void success_empty() throws Exception {
-            given(zoneSensorService.getZoneSensors(11L))
+            given(zoneSensorService.getZoneSensors(111L))
                     .willReturn(List.of());
 
-            mockMvc.perform(get("/api/core/zones/{zone-id}/zone-sensors", 11L))
+            mockMvc.perform(get("/api/core/zones/{zone-id}/zone-sensors", 111L))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(0));
@@ -194,10 +192,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
-            given(zoneSensorService.getZoneSensors(11L))
+            given(zoneSensorService.getZoneSensors(111L))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(get("/api/core/zones/{zone-id}/zone-sensors", 11L))
+            mockMvc.perform(get("/api/core/zones/{zone-id}/zone-sensors", 111L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -205,10 +203,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("실패 - 존재하지 않는 구역")
         void fail_NotFoundZone() throws Exception {
-            given(zoneSensorService.getZoneSensors(11L))
+            given(zoneSensorService.getZoneSensors(111L))
                     .willThrow(new ZoneNotFoundException());
 
-            mockMvc.perform(get("/api/core/zones/{zone-id}/zone-sensors", 11L))
+            mockMvc.perform(get("/api/core/zones/{zone-id}/zone-sensors", 111L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -222,16 +220,18 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 이름", "수정된 설명");
-            ZoneSensorInfoResponse response = new ZoneSensorInfoResponse(
-                    1L, 11L, "테스트 디바이스", "수정된 이름", "수정된 설명");
+            ZoneSensorDetailResponse response = new ZoneSensorDetailResponse(
+                    1L, 11L, 111L,
+                    "테스트 디바이스", "테스트 좆기", "테스트 저장소",
+                    "테스트 구역", "수정된 이름", "수정된 설명");
 
-            given(zoneSensorService.updateZoneSensorInfo(11L, 1L, request))
+            given(zoneSensorService.updateZoneSensorInfo(111L, 1L, request))
                     .willReturn(response);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
-            responseFields.addAll(zoneSensorInfoResponseFields("data."));
+            responseFields.addAll(zoneSensorDetailResponseFields("data."));
 
-            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L)
+            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -258,7 +258,7 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         void fail_InvalidInput() throws Exception {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("", "수정된 설명");
 
-            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L)
+            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -270,10 +270,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         void fail_Forbidden() throws Exception {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 이름", "수정된 설명");
 
-            given(zoneSensorService.updateZoneSensorInfo(11L, 1L, request))
+            given(zoneSensorService.updateZoneSensorInfo(111L, 1L, request))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L)
+            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -285,10 +285,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         void fail_NotFoundZone() throws Exception {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 이름", "수정된 설명");
 
-            given(zoneSensorService.updateZoneSensorInfo(11L, 1L, request))
+            given(zoneSensorService.updateZoneSensorInfo(111L, 1L, request))
                     .willThrow(new ZoneNotFoundException());
 
-            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L)
+            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -300,10 +300,10 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         void fail_NotFoundZoneSensor() throws Exception {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 이름", "수정된 설명");
 
-            given(zoneSensorService.updateZoneSensorInfo(11L, 1L, request))
+            given(zoneSensorService.updateZoneSensorInfo(111L, 1L, request))
                     .willThrow(new ZoneSensorNotFoundException());
 
-            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L)
+            mockMvc.perform(put("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -318,7 +318,7 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            mockMvc.perform(delete("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L))
+            mockMvc.perform(delete("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L))
                     .andExpect(status().isNoContent())
                     .andDo(document("zone-sensor-delete",
                             pathParameters(
@@ -326,16 +326,16 @@ class ZoneSensorControllerTest extends SupportControllerTest {
                                     parameterWithName("zone-sensor-id").description("센서 ID")
                             )));
 
-            verify(zoneSensorService).deleteZoneSensor(11L, 1L);
+            verify(zoneSensorService).deleteZoneSensor(111L, 1L);
         }
 
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
             willThrow(new ForbiddenException()).given(zoneSensorService)
-                    .deleteZoneSensor(11L, 1L);
+                    .deleteZoneSensor(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L))
+            mockMvc.perform(delete("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -344,9 +344,9 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @DisplayName("실패 - 존재하지 않는 구역")
         void fail_NotFoundZone() throws Exception {
             willThrow(new ZoneNotFoundException()).given(zoneSensorService)
-                    .deleteZoneSensor(11L, 1L);
+                    .deleteZoneSensor(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L))
+            mockMvc.perform(delete("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -355,9 +355,9 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @DisplayName("실패 - 존재하지 않는 구역 센서")
         void fail_NotFoundZoneSensor() throws Exception {
             willThrow(new ZoneSensorNotFoundException()).given(zoneSensorService)
-                    .deleteZoneSensor(11L, 1L);
+                    .deleteZoneSensor(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 11L, 1L))
+            mockMvc.perform(delete("/api/core/zones/{zone-id}/zone-sensors/{zone-sensor-id}", 111L, 1L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -370,7 +370,8 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            DeviceLocationResponse response = new DeviceLocationResponse(1L, 11L, 111L, "테스트 디바이스");
+            DeviceLocationResponse response = new DeviceLocationResponse(
+                    1L, 11L, 111L, "테스트 디바이스");
 
             given(zoneSensorService.getDeviceLocation("테스트 디바이스"))
                     .willReturn(response);
@@ -417,7 +418,20 @@ class ZoneSensorControllerTest extends SupportControllerTest {
         return List.of(
                 fieldWithPath(prefix + "zoneSensorId").type(JsonFieldType.NUMBER).description("센서 ID"),
                 fieldWithPath(prefix + "zoneId").type(JsonFieldType.NUMBER).description("구역 ID"),
-                fieldWithPath(prefix + "deviceEui").type(JsonFieldType.STRING).description("센서(디바이스) ID"),
+                fieldWithPath(prefix + "deviceEui").type(JsonFieldType.STRING).description("Device EUI"),
+                fieldWithPath(prefix + "name").type(JsonFieldType.STRING).description("센서 이름")
+        );
+    }
+
+    private List<FieldDescriptor> zoneSensorDetailResponseFields(String prefix){
+        return List.of(
+                fieldWithPath(prefix + "zoneSensorId").type(JsonFieldType.NUMBER).description("센서 ID"),
+                fieldWithPath(prefix + "storageId").type(JsonFieldType.NUMBER).description("저장소 ID"),
+                fieldWithPath(prefix + "zoneId").type(JsonFieldType.NUMBER).description("구역 ID"),
+                fieldWithPath(prefix + "deviceEui").type(JsonFieldType.STRING).description("Device EUI"),
+                fieldWithPath(prefix + "organizationName").type(JsonFieldType.STRING).description("상위 조직 이름"),
+                fieldWithPath(prefix + "storageName").type(JsonFieldType.STRING).description("상위 저장소 이름"),
+                fieldWithPath(prefix + "zoneName").type(JsonFieldType.STRING).description("상위 구역 이름"),
                 fieldWithPath(prefix + "name").type(JsonFieldType.STRING).description("센서 이름"),
                 fieldWithPath(prefix + "description").type(JsonFieldType.STRING).description("센서 설명").optional()
         );

@@ -3,10 +3,7 @@ package com.nhnacademy.inventory.organizations.sensor.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.sensor.domain.ZoneSensor;
-import com.nhnacademy.inventory.organizations.sensor.dto.DeviceLocationResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorCreateRequest;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorInfoResponse;
-import com.nhnacademy.inventory.organizations.sensor.dto.ZoneSensorUpdateRequest;
+import com.nhnacademy.inventory.organizations.sensor.dto.*;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorNotFoundException;
 import com.nhnacademy.inventory.organizations.sensor.repository.ZoneSensorRepository;
@@ -75,14 +72,14 @@ class ZoneSensorServiceTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "생성 테스트 디바이스", "생성 센서 이름", "테스트 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.existsByDeviceEui(request.deviceEui()))
                     .willReturn(false);
             given(zoneSensorRepository.save(any(ZoneSensor.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
-            ZoneSensorInfoResponse response = zoneSensorService.createZoneSensor(
+            ZoneSensorDetailResponse response = zoneSensorService.createZoneSensor(
                     zone.getId(),
                     request
             );
@@ -101,7 +98,7 @@ class ZoneSensorServiceTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "생성 테스트 디바이스", "생성 센서 이름", "테스트 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -120,7 +117,7 @@ class ZoneSensorServiceTest {
             ZoneSensorCreateRequest request = new ZoneSensorCreateRequest(
                     "생성 테스트 디바이스", "생성 센서 이름", "테스트 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.existsByDeviceEui(request.deviceEui()))
                     .willReturn(true);
@@ -224,12 +221,12 @@ class ZoneSensorServiceTest {
         void success() {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 센서 이름", "수정된 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.of(zoneSensor));
 
-            ZoneSensorInfoResponse response = zoneSensorService.updateZoneSensorInfo(
+            ZoneSensorDetailResponse response = zoneSensorService.updateZoneSensorInfo(
                     zone.getId(),
                     zoneSensor.getId(),
                     request
@@ -248,7 +245,7 @@ class ZoneSensorServiceTest {
         void fail_Forbidden() {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 센서 이름", "수정된 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -261,7 +258,7 @@ class ZoneSensorServiceTest {
         void fail_NotFound() {
             ZoneSensorUpdateRequest request = new ZoneSensorUpdateRequest("수정된 센서 이름", "수정된 설명");
 
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.empty());
@@ -279,7 +276,7 @@ class ZoneSensorServiceTest {
         @Test
         @DisplayName("성공 테스트")
         void success() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.of(zoneSensor));
@@ -292,7 +289,7 @@ class ZoneSensorServiceTest {
         @Test
         @DisplayName("실패 - 권한없음")
         void fail_Forbidden() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -303,7 +300,7 @@ class ZoneSensorServiceTest {
         @Test
         @DisplayName("실패 - 존재하지 않는 센서")
         void fail_NotFound() {
-            given(zoneService.validateMemberAndGetZone(zone.getId()))
+            given(zoneService.validateOwnerAndGetZone(zone.getId()))
                     .willReturn(zone);
             given(zoneSensorRepository.findByIdAndZone(zoneSensor.getId(), zone))
                     .willReturn(Optional.empty());

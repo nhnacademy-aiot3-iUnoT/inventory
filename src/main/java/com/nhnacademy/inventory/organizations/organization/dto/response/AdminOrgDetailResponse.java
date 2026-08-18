@@ -7,6 +7,7 @@ import com.nhnacademy.inventory.organizations.organization.domain.OrganizationSt
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record AdminOrgDetailResponse(
         Long id,
@@ -17,13 +18,11 @@ public record AdminOrgDetailResponse(
         String addressDetail,
         OrganizationStatus status,
         LocalDateTime createdAt,
-        AdminInvitationResponse invitation,
-        List<AdminOwnerResponse> owners
+        AdminInvitationResponse invitation
 ) {
     public static AdminOrgDetailResponse from(
             Organization organization,
-            Invitation invitation,
-            List<OrganizationMember> owners
+            Invitation invitation
     ) {
         return new AdminOrgDetailResponse(
                 organization.getId(),
@@ -34,8 +33,7 @@ public record AdminOrgDetailResponse(
                 organization.getAddressDetail(),
                 organization.getStatus(),
                 organization.getCreatedAt(),
-                invitation == null ? null : AdminInvitationResponse.from(invitation),
-                owners.stream().map(AdminOwnerResponse::from).toList()
+                invitation == null ? null : AdminInvitationResponse.from(invitation)
         );
     }
 }
