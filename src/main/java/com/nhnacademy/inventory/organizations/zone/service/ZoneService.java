@@ -132,7 +132,7 @@ public class ZoneService {
                 .orElseThrow(ZoneNotFoundException::new);
 
         if (!Objects.equals(member.getOrganization().getId(), zone.getStorage().getOrganization().getId()) ||
-            member.getOrganizationRole() != OrganizationRole.ORG_OWNER){
+            member.getOrganizationRole() == OrganizationRole.ORG_MEMBER){
             throw new ForbiddenException();
         }
 

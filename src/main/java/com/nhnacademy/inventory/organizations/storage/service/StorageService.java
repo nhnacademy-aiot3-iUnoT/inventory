@@ -110,7 +110,7 @@ public class StorageService {
                 .orElseThrow(StorageNotFoundException::new);
 
         if(!Objects.equals(member.getOrganization().getId(), storage.getOrganization().getId()) ||
-            member.getOrganizationRole() != OrganizationRole.ORG_OWNER){
+            member.getOrganizationRole() == OrganizationRole.ORG_MEMBER){
             throw new ForbiddenException();
         }
 
@@ -128,7 +128,7 @@ public class StorageService {
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        if(member.getOrganizationRole() != OrganizationRole.ORG_OWNER){
+        if(member.getOrganizationRole() == OrganizationRole.ORG_MEMBER){
             throw new ForbiddenException();
         }
 
