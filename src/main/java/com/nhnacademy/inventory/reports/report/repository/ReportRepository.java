@@ -19,6 +19,15 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
         """)
     Optional<Report> findByIdWithItems(@Param("reportId") Long reportId);
 
+    @Query("""
+        SELECT r
+        FROM Report r
+        LEFT JOIN FETCH r.reportItems
+        WHERE r.id = :reportId AND r.organizationId = :organizationId
+        """)
+    Optional<Report> findByIdAndOrganizationId(
+            @Param("reportId") Long reportId, @Param("organizationId") Long organizationId);
+
     Optional<Report> findByOrganizationIdAndReportTypeAndPeriodStart(
             Long organizationId, ReportType reportType, LocalDate periodStart);
 }

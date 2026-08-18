@@ -34,6 +34,12 @@ public class ReportService {
                 .orElseThrow(ReportNotFoundException::new);
     }
 
+    @Transactional(readOnly = true)
+    public Report getReport(Long reportId, Long organizationId) {
+        return reportRepository.findByIdAndOrganizationId(reportId, organizationId)
+                .orElseThrow(ReportNotFoundException::new);
+    }
+
     @Transactional
     public void updateSummary(Long reportId, String aiSummary) {
         Report report = reportRepository.findById(reportId)

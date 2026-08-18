@@ -58,10 +58,13 @@ class WeeklyReportCreateUseCaseTest {
 
         Organization organization = mock(Organization.class);
         OrganizationMember member = mock(OrganizationMember.class);
-        given(organizationMemberValidator.validateAndGet(accountUuid)).willReturn(member);
-        given(member.getOrganization()).willReturn(organization);
-        given(organization.getId()).willReturn(organizationId);
 
+        given(organizationMemberValidator.validateAndGet(accountUuid))
+                .willReturn(member);
+        given(member.getOrganization())
+                .willReturn(organization);
+        given(organization.getId())
+                .willReturn(organizationId);
         given(reportService.find(organizationId, ReportType.WEEKLY, periodStart))
                 .willReturn(Optional.of(report));
 
@@ -88,10 +91,13 @@ class WeeklyReportCreateUseCaseTest {
 
         Organization organization = mock(Organization.class);
         OrganizationMember member = mock(OrganizationMember.class);
-        given(organizationMemberValidator.validateAndGet(accountUuid)).willReturn(member);
-        given(member.getOrganization()).willReturn(organization);
-        given(organization.getId()).willReturn(organizationId);
 
+        given(organizationMemberValidator.validateAndGet(accountUuid))
+                .willReturn(member);
+        given(member.getOrganization())
+                .willReturn(organization);
+        given(organization.getId())
+                .willReturn(organizationId);
         given(reportService.find(organizationId, ReportType.WEEKLY, periodStart))
                 .willReturn(Optional.empty());
         given(reportService.register(any(Report.class)))

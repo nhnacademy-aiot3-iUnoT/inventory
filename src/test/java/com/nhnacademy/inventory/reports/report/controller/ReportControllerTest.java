@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.reports.report.domain.ReportType;
 import com.nhnacademy.inventory.reports.report.dto.ReportCreateRequest;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
 import com.nhnacademy.inventory.reports.report.usecase.ReportCreateFacade;
+import com.nhnacademy.inventory.reports.report.usecase.ReportGetUseCase;
 import com.nhnacademy.inventory.support.SupportControllerTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +35,9 @@ class ReportControllerTest extends SupportControllerTest {
 
     @MockitoBean
     private ReportCreateFacade reportCreateFacade;
+
+    @MockitoBean
+    private ReportGetUseCase reportGetUseCase;
 
     @Autowired
     private JsonMapper jsonMapper;
@@ -79,5 +84,53 @@ class ReportControllerTest extends SupportControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("리포트 ID로 조회하면 리포트 정보를 반환한다.")
+    void getReportById() throws Exception {
+        // given
+        UUID accountUuid = UUID.randomUUID();
+        UserContext.setUserUuid(accountUuid);
+
+        long reportId = 1L;
+        long organizationId = 1L;
+        LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
+        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", LocalDateTime.now(), List.of());
+
+        given(reportGetUseCase.execute(accountUuid, reportId))
+                .willReturn(response);
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/core/reports/{report-id}", reportId)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.reportId").value(reportId))
+                .andExpect(jsonPath("$.data.organizationId").value(organizationId))
+                .andExpect(jsonPath("$.data.reportType").value("WEEKLY"))
+                .andExpect(jsonPath("$.data.aiSummary").value("AI Summary"));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 리포트 ID로 조회하면 404를 반환한다.")
+    void getReportById_WhenNotFound_ReturnsNotFound() throws Exception {
+        // given
+        UUID accountUuid = UUID.randomUUID();
+        UserContext.setUserUuid(accountUuid);
+
+        long reportId = 999L;
+
+        given(reportGetUseCase.execute(accountUuid, reportId))
+                .willThrow(new com.nhnacademy.inventory.reports.report.exception.ReportNotFoundException());
+
+        // when
+        ResultActions result = mockMvc.perform(get("/api/core/reports/{report-id}", reportId)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
     }
 }
