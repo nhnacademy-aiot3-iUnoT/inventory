@@ -6,8 +6,7 @@ public record ZoneSensorInfoResponse(
         Long zoneSensorId,
         Long zoneId,
         String deviceEui,
-        String name,
-        String description
+        String name
 
 ) {
     public static ZoneSensorInfoResponse from(ZoneSensor zoneSensor) {
@@ -15,8 +14,7 @@ public record ZoneSensorInfoResponse(
                 zoneSensor.getId(),
                 zoneSensor.getZone().getId(),
                 zoneSensor.getDeviceEui(),
-                zoneSensor.getName(),
-                zoneSensor.getDescription()
+                zoneSensor.getName()
         );
     }
 }

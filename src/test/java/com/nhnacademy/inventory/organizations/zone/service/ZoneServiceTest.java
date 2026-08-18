@@ -86,7 +86,7 @@ class ZoneServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            ZoneInfoResponse response = zoneService.createZone(
+            ZoneDetailResponse response = zoneService.createZone(
                     storage.getId(),
                     request
             );
@@ -265,7 +265,7 @@ class ZoneServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            ZoneInfoResponse response = zoneService.updateZone(storage.getId(), zone.getId(),  request);
+            ZoneDetailResponse response = zoneService.updateZone(storage.getId(), zone.getId(),  request);
 
             assertAll(
                     () -> assertEquals(1111L, response.zoneId()),
@@ -347,7 +347,7 @@ class ZoneServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            ZoneInfoResponse response = zoneService.updateZoneStatus(storage.getId(), zone.getId(), request);
+            ZoneDetailResponse response = zoneService.updateZoneStatus(storage.getId(), zone.getId(), request);
 
             assertAll(
                     () -> assertEquals(1111L, response.zoneId()),
@@ -409,7 +409,7 @@ class ZoneServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            ZoneInfoResponse response = zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), request);
+            ZoneDetailResponse response = zoneService.updateZoneEnvStatus(storage.getId(), zone.getId(), request);
 
             assertAll(
                     () -> assertEquals(1111L, response.zoneId()),

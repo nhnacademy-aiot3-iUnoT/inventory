@@ -20,11 +20,11 @@ public class ZoneController {
     private final ZoneService zoneService;
 
     @PostMapping("/storages/{storage-id}/zones")
-    public ResponseEntity<ApiResponse<ZoneInfoResponse>> createZone(
+    public ResponseEntity<ApiResponse<ZoneDetailResponse>> createZone(
             @PathVariable(name = "storage-id") Long storageId,
             @RequestBody @Valid ZoneCreateRequest request
     ){
-        ZoneInfoResponse response = zoneService.createZone(storageId, request);
+        ZoneDetailResponse response = zoneService.createZone(storageId, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -40,35 +40,45 @@ public class ZoneController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
+    @GetMapping("/storages/{storage-id}/zones/{zone-id}")
+    public ResponseEntity<ApiResponse<ZoneDetailResponse>> getZone(
+            @PathVariable(name = "storage-id") Long storageId,
+            @PathVariable(name = "zone-id") Long zoneId
+    ){
+        ZoneDetailResponse response = zoneService.getZone(storageId, zoneId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PutMapping("/storages/{storage-id}/zones/{zone-id}")
-    public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneInfo(
+    public ResponseEntity<ApiResponse<ZoneDetailResponse>> updateZoneInfo(
             @PathVariable(name = "storage-id") Long storageId,
             @PathVariable(name = "zone-id") Long zoneId,
             @RequestBody @Valid ZoneUpdateRequest request
     ){
-        ZoneInfoResponse response = zoneService.updateZone(storageId, zoneId, request);
+        ZoneDetailResponse response = zoneService.updateZone(storageId, zoneId, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PutMapping("/storages/{storage-id}/zones/{zone-id}/status")
-    public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneStatus(
+    public ResponseEntity<ApiResponse<ZoneDetailResponse>> updateZoneStatus(
             @PathVariable(name = "storage-id") Long storageId,
             @PathVariable(name = "zone-id") Long zoneId,
             @RequestBody @Valid ZoneStatusUpdateRequest request
     ){
-        ZoneInfoResponse response = zoneService.updateZoneStatus(storageId, zoneId, request);
+        ZoneDetailResponse response = zoneService.updateZoneStatus(storageId, zoneId, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PutMapping("/storages/{storage-id}/zones/{zone-id}/env-status")
-    public ResponseEntity<ApiResponse<ZoneInfoResponse>> updateZoneEnvStatus(
+    public ResponseEntity<ApiResponse<ZoneDetailResponse>> updateZoneEnvStatus(
             @PathVariable(name = "storage-id") Long storageId,
             @PathVariable(name = "zone-id") Long zoneId,
             @RequestBody @Valid ZoneEnvStatusUpdateRequest request
     ){
-        ZoneInfoResponse response = zoneService.updateZoneEnvStatus(storageId, zoneId, request);
+        ZoneDetailResponse response = zoneService.updateZoneEnvStatus(storageId, zoneId, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
