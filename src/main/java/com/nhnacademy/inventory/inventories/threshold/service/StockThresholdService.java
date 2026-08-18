@@ -29,7 +29,7 @@ public class StockThresholdService {
 
     @Transactional
     public StockThresholdInfoResponse saveStockThreshold(Long storageId, StockThresholdSaveRequest request){
-        Storage storage = storageService.validateMemberAndGetStorage(storageId);
+        Storage storage = storageService.validateOwnerAndGetStorage(storageId);
 
         MedicinePackageUnit medicinePackageUnit = medicinePackageUnitRepository
                 .findById(request.medicinePackageUnitId())
@@ -81,7 +81,7 @@ public class StockThresholdService {
     }
 
     private StockThreshold findByIdAndValidate(Long stockThresholdId, Long storageId){
-        Storage storage = storageService.validateMemberAndGetStorage(storageId);
+        Storage storage = storageService.validateOwnerAndGetStorage(storageId);
 
         return stockThresholdRepository.findByIdAndStorage(stockThresholdId, storage)
                 .orElseThrow(StockThresholdNotFoundException::new);

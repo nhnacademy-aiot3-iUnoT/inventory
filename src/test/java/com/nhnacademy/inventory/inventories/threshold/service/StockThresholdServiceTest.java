@@ -82,7 +82,7 @@ class StockThresholdServiceTest {
                     20
             );
 
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willReturn(storage);
             given(medicinePackageUnitRepository.findById(medicinePackageUnit.getId()))
                     .willReturn(Optional.of(medicinePackageUnit));
@@ -114,7 +114,7 @@ class StockThresholdServiceTest {
                     20
             );
 
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willReturn(storage);
             given(medicinePackageUnitRepository.findById(medicinePackageUnit.getId()))
                     .willReturn(Optional.of(medicinePackageUnit));
@@ -144,7 +144,7 @@ class StockThresholdServiceTest {
                     20
             );
 
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -215,7 +215,7 @@ class StockThresholdServiceTest {
         void success() {
             StockThresholdUpdateRequest request = new StockThresholdUpdateRequest(30, true);
 
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willReturn(storage);
             given(stockThresholdRepository.findByIdAndStorage(stockThreshold.getId(), storage))
                     .willReturn(Optional.of(stockThreshold));
@@ -238,7 +238,7 @@ class StockThresholdServiceTest {
         void fail_Forbidden() {
             StockThresholdUpdateRequest request = new StockThresholdUpdateRequest(30, true);
 
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -251,7 +251,7 @@ class StockThresholdServiceTest {
         void fail_NotFoundStockThreshold() {
             StockThresholdUpdateRequest request = new StockThresholdUpdateRequest(30, true);
 
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willReturn(storage);
             given(stockThresholdRepository.findByIdAndStorage(stockThreshold.getId(), storage))
                     .willReturn(Optional.empty());
@@ -269,7 +269,7 @@ class StockThresholdServiceTest {
         @Test
         @DisplayName("성공 테스트")
         void success() {
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willReturn(storage);
             given(stockThresholdRepository.findByIdAndStorage(stockThreshold.getId(), storage))
                     .willReturn(Optional.of(stockThreshold));
@@ -282,7 +282,7 @@ class StockThresholdServiceTest {
         @Test
         @DisplayName("실패 - 권한없음")
         void fail_Forbidden() {
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willThrow(new ForbiddenException());
 
             assertThrowsExactly(ForbiddenException.class, () ->
@@ -293,7 +293,7 @@ class StockThresholdServiceTest {
         @Test
         @DisplayName("실패 - 존재하지않는 최소 재고 임계값")
         void fail_NotFoundStockThreshold() {
-            given(storageService.validateMemberAndGetStorage(storage.getId()))
+            given(storageService.validateOwnerAndGetStorage(storage.getId()))
                     .willReturn(storage);
             given(stockThresholdRepository.findByIdAndStorage(stockThreshold.getId(), storage))
                     .willReturn(Optional.empty());
