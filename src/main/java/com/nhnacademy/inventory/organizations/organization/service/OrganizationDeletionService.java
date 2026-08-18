@@ -1,6 +1,6 @@
 package com.nhnacademy.inventory.organizations.organization.service;
 
-import com.nhnacademy.inventory.global.cient.AccountClient;
+import com.nhnacademy.inventory.global.client.AccountClient;
 import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.organizations.department.repository.DepartmentRepository;
 import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;

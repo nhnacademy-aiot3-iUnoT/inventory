@@ -1,6 +1,6 @@
 package com.nhnacademy.inventory.organizations.member.service;
 
-import com.nhnacademy.inventory.global.cient.AccountClient;
+import com.nhnacademy.inventory.global.client.AccountClient;
 import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
