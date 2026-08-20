@@ -29,6 +29,7 @@ public class AlertRepositoryImpl implements AlertRepositoryCustom{
                 .select(new QAlertInfoResponse(
                         alert.id,
                         alert.organization.id,
+                        alert.organization.name,
                         alert.alertType,
                         alert.message,
                         alert.isChecked,

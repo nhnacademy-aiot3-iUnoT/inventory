@@ -77,21 +77,21 @@ public class AlertService {
         );
     }
 
-    public Page<AlertInfoResponse> getAlerts(Long organizationId, AlertSearchCondition condition, Pageable pageable){
-        Organization organization = validateOrganizationMember(organizationId);
+    public Page<AlertInfoResponse> getAlerts(AlertSearchCondition condition, Pageable pageable){
+        Organization organization = validateOrganizationMember();
 
         return alertRepository.searchByCondition(organization, condition, pageable);
     }
 
-    public long getUncheckedAlertCount(Long organizationId){
-        Organization organization = validateOrganizationMember(organizationId);
+    public long getUncheckedAlertCount(){
+        Organization organization = validateOrganizationMember();
 
         return alertRepository.countByOrganizationAndIsChecked(organization, false);
     }
 
     @Transactional
-    public void markAsChecked(Long organizationId, AlertCheckRequest request){
-        Organization organization = validateOrganizationMember(organizationId);
+    public void markAsChecked(AlertCheckRequest request){
+        Organization organization = validateOrganizationMember();
 
         List<Long> alertIds = request.alertIds();
 
@@ -105,8 +105,8 @@ public class AlertService {
     }
 
     @Transactional
-    public void deleteAlerts(Long organizationId, AlertDeleteRequest request){
-        Organization organization = validateOrganizationMember(organizationId);
+    public void deleteAlerts(AlertDeleteRequest request){
+        Organization organization = validateOrganizationMember();
 
         List<Long> alertIds = request.alertIds();
 
@@ -120,8 +120,8 @@ public class AlertService {
     }
 
     @Transactional
-    public void deleteAllAlerts(Long organizationId){
-        Organization organization = validateOrganizationMember(organizationId);
+    public void deleteAllAlerts(){
+        Organization organization = validateOrganizationMember();
 
         List<Alert> alerts = alertRepository.findAllByOrganization(organization);
 
@@ -145,13 +145,9 @@ public class AlertService {
         alertRepository.save(alert);
     }
 
-    private Organization validateOrganizationMember(Long organizationId){
+    private Organization validateOrganizationMember(){
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
-
-        if(!Objects.equals(member.getOrganization().getId(), organizationId)){
-            throw new ForbiddenException();
-        }
 
         return member.getOrganization();
     }

@@ -20,51 +20,44 @@ public class AlertController {
 
     private final AlertService alertService;
 
-    @GetMapping("/organizations/{organization-id}/alerts")
+    @GetMapping("/alerts")
     public ResponseEntity<ApiResponse<PageResponse<AlertInfoResponse>>> getAlerts(
-            @PathVariable(name = "organization-id") Long organizationId,
             AlertSearchCondition condition,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
-        Page<AlertInfoResponse> responses = alertService.getAlerts(organizationId, condition, pageable);
+        Page<AlertInfoResponse> responses = alertService.getAlerts(condition, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(responses)));
     }
 
-    @GetMapping("/organizations/{organization-id}/alerts/unread-count")
-    public ResponseEntity<ApiResponse<Long>> getUncheckedAlertCount(
-            @PathVariable(name = "organization-id") Long organizationId
-    ){
-        long count = alertService.getUncheckedAlertCount(organizationId);
+    @GetMapping("/alerts/unread-count")
+    public ResponseEntity<ApiResponse<Long>> getUncheckedAlertCount(){
+        long count = alertService.getUncheckedAlertCount();
 
         return ResponseEntity.ok(ApiResponse.success(count));
     }
 
-    @PutMapping("/organizations/{organization-id}/alerts/check")
+    @PutMapping("/alerts/check")
     public ResponseEntity<Void> markAsChecked(
-            @PathVariable(name = "organization-id") Long organizationId,
             @RequestBody AlertCheckRequest request
     ){
-        alertService.markAsChecked(organizationId, request);
+        alertService.markAsChecked(request);
 
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/organizations/{organization-id}/alerts")
+    @DeleteMapping("/alerts")
     public ResponseEntity<Void> deleteAlerts(
-            @PathVariable(name = "organization-id") Long organizationId,
             @RequestBody AlertDeleteRequest request
     ){
-        alertService.deleteAlerts(organizationId, request);
+        alertService.deleteAlerts(request);
 
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/organizations/{organization-id}/alerts/all")
-    public ResponseEntity<Void> deleteAllAlerts(
-            @PathVariable(name = "organization-id") Long organizationId
-    ){
-        alertService.deleteAllAlerts(organizationId);
+    @DeleteMapping("/alerts/all")
+    public ResponseEntity<Void> deleteAllAlerts(){
+        alertService.deleteAllAlerts();
 
         return ResponseEntity.noContent().build();
     }
