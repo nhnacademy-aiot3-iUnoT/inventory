@@ -1,13 +1,13 @@
-package com.nhnacademy.inventory.inventories.inventory.operation.disposal.sevice;
+package com.nhnacademy.inventory.inventories.inventory.operation.disposal.service;
 
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.exception.InventoryNotFoundException;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.domain.DisposalOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
