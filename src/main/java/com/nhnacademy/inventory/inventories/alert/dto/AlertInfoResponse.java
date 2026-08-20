@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public record AlertInfoResponse(
         Long alertId,
         Long organizationId,
+        String organizationName,
         AlertType alertType,
         String message,
         Boolean isChecked,
@@ -18,6 +19,7 @@ public record AlertInfoResponse(
         return new AlertInfoResponse(
                 alert.getId(),
                 alert.getOrganization().getId(),
+                alert.getOrganization().getName(),
                 alert.getAlertType(),
                 alert.getMessage(),
                 alert.getIsChecked(),

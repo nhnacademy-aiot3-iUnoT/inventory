@@ -57,7 +57,7 @@ class AlertControllerTest extends SupportControllerTest {
         void success() throws Exception {
             AlertSearchCondition condition = new AlertSearchCondition(AlertType.LOW_STOCK, false);
             AlertInfoResponse response = new AlertInfoResponse(
-                    1L, 11L,
+                    1L, 11L, "테스트 조직",
                     AlertType.LOW_STOCK, "테스트 메시지",
                     false, LocalDateTime.now()
             );
@@ -353,6 +353,7 @@ class AlertControllerTest extends SupportControllerTest {
         return List.of(
                 fieldWithPath(prefix + "alertId").type(JsonFieldType.NUMBER).description("알림 ID"),
                 fieldWithPath(prefix + "organizationId").type(JsonFieldType.NUMBER).description("조직 ID"),
+                fieldWithPath(prefix + "organizationName").type(JsonFieldType.STRING).description("조직 이름"),
                 fieldWithPath(prefix + "alertType").type(JsonFieldType.STRING).description("알림 타입"),
                 fieldWithPath(prefix + "message").type(JsonFieldType.STRING).description("메시지"),
                 fieldWithPath(prefix + "isChecked").type(JsonFieldType.BOOLEAN).description("읽음 여부"),

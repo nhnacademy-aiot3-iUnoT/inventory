@@ -173,7 +173,7 @@ class AlertServiceTest {
             AlertSearchCondition condition = new AlertSearchCondition(AlertType.LOW_STOCK, false);
             Pageable pageable = PageRequest.of(0, 10);
             List<AlertInfoResponse> responses = List.of(new AlertInfoResponse(1L, organization.getId(),
-                    AlertType.LOW_STOCK,"테스트 메시지", false, LocalDateTime.now()));
+                    "테스트 조직", AlertType.LOW_STOCK,"테스트 메시지", false, LocalDateTime.now()));
 
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
