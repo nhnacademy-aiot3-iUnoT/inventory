@@ -49,7 +49,7 @@ class AlertControllerTest extends SupportControllerTest {
     private AlertService alertService;
 
     @Nested
-    @DisplayName("알림 조건 조회 GET /api/core/organizations/{organization-id}/alerts")
+    @DisplayName("알림 조건 조회 GET /api/core/alerts")
     class getAlerts{
 
         @Test
@@ -62,14 +62,14 @@ class AlertControllerTest extends SupportControllerTest {
                     false, LocalDateTime.now()
             );
 
-            given(alertService.getAlerts(eq(11L), any(), any(Pageable.class)))
+            given(alertService.getAlerts(any(), any(Pageable.class)))
                     .willReturn(new PageImpl<>(List.of(response), PageRequest.of(0, 20), 1));
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(alertInfoResponseFields("data.content[]."));
             responseFields.addAll(pageResponseFields("data."));
 
-            mockMvc.perform(get("/api/core/organizations/{organization-id}/alerts", 11L)
+            mockMvc.perform(get("/api/core/alerts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(condition)))
                     .andExpect(status().isOk())
@@ -78,9 +78,6 @@ class AlertControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.content[0].alertType").value("LOW_STOCK"))
                     .andExpect(jsonPath("$.data.content[0].message").value("테스트 메시지"))
                     .andDo(document("alert-get-list",
-                            pathParameters(
-                                    parameterWithName("organization-id").description("조직 ID")
-                            ),
                             requestFields(
                                     fieldWithPath("alertType").type(JsonFieldType.STRING).description("메시지 유형"),
                                     fieldWithPath("isChecked").type(JsonFieldType.BOOLEAN).description("확인 유무")
@@ -96,10 +93,10 @@ class AlertControllerTest extends SupportControllerTest {
         void success_empty() throws Exception {
             AlertSearchCondition condition = new AlertSearchCondition(AlertType.LOW_STOCK, false);
 
-            given(alertService.getAlerts(eq(11L), any(), any(Pageable.class)))
+            given(alertService.getAlerts(any(), any(Pageable.class)))
                     .willReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 
-            mockMvc.perform(get("/api/core/organizations/{organization-id}/alerts", 11L)
+            mockMvc.perform(get("/api/core/alerts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(condition)))
                     .andExpect(status().isOk())
@@ -112,10 +109,10 @@ class AlertControllerTest extends SupportControllerTest {
         void fail_Forbidden() throws Exception {
             AlertSearchCondition condition = new AlertSearchCondition(AlertType.LOW_STOCK, false);
 
-            given(alertService.getAlerts(eq(11L), any(), any(Pageable.class)))
+            given(alertService.getAlerts(any(), any(Pageable.class)))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(get("/api/core/organizations/{organization-id}/alerts", 11L)
+            mockMvc.perform(get("/api/core/alerts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(condition)))
                     .andExpect(status().isForbidden())
@@ -124,26 +121,23 @@ class AlertControllerTest extends SupportControllerTest {
     }
 
     @Nested
-    @DisplayName("체크하지않은 알림 개수 조회 GET /api/core/organizations/{organization-id}/alerts/unread-count")
+    @DisplayName("체크하지않은 알림 개수 조회 GET /api/core/alerts/unread-count")
     class getUnreadAlertCount{
 
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            given(alertService.getUncheckedAlertCount(11L))
+            given(alertService.getUncheckedAlertCount())
                     .willReturn(5L);
 
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.add(fieldWithPath("data").type(JsonFieldType.NUMBER).description("체크되지 않은 알림 개수"));
 
-            mockMvc.perform(get("/api/core/organizations/{organization-id}/alerts/unread-count", 11L))
+            mockMvc.perform(get("/api/core/alerts/unread-count"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").value(5))
                     .andDo(document("alert-get-unchecked-count",
-                            pathParameters(
-                                    parameterWithName("organization-id").description("조직 ID")
-                            ),
                             responseFields(
                                     responseFields
                             )
@@ -153,17 +147,17 @@ class AlertControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
-            given(alertService.getUncheckedAlertCount(11L))
+            given(alertService.getUncheckedAlertCount())
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(get("/api/core/organizations/{organization-id}/alerts/unread-count", 11L))
+            mockMvc.perform(get("/api/core/alerts/unread-count"))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
     }
 
     @Nested
-    @DisplayName("알림 체크 PUT /api/core/organizations/{organization-id}/alerts/check")
+    @DisplayName("알림 체크 PUT /api/core/alerts/check")
     class markAsChecked{
 
         @Test
@@ -173,20 +167,17 @@ class AlertControllerTest extends SupportControllerTest {
                     List.of(1L, 2L, 3L, 4L, 5L)
             );
 
-            mockMvc.perform(put("/api/core/organizations/{organization-id}/alerts/check", 11L)
+            mockMvc.perform(put("/api/core/alerts/check")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNoContent())
                     .andDo(document("alert-check",
-                            pathParameters(
-                                    parameterWithName("organization-id").description("조직 ID")
-                            ),
                             requestFields(
                                     fieldWithPath("alertIds").type(JsonFieldType.ARRAY).description("체크할 알림 ID 리스트")
                             )
                     ));
 
-            verify(alertService).markAsChecked(11L, request);
+            verify(alertService).markAsChecked(request);
         }
 
         @Test
@@ -197,9 +188,9 @@ class AlertControllerTest extends SupportControllerTest {
             );
 
             willThrow(new AlertNotFoundException()).given(alertService)
-                            .markAsChecked(11L, request);
+                            .markAsChecked(request);
 
-            mockMvc.perform(put("/api/core/organizations/{organization-id}/alerts/check", 11L)
+            mockMvc.perform(put("/api/core/alerts/check")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound());
@@ -213,9 +204,9 @@ class AlertControllerTest extends SupportControllerTest {
             );
 
             willThrow(new ForbiddenException()).given(alertService)
-                    .markAsChecked(11L, request);
+                    .markAsChecked(request);
 
-            mockMvc.perform(put("/api/core/organizations/{organization-id}/alerts/check", 11L)
+            mockMvc.perform(put("/api/core/alerts/check")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden());
@@ -223,7 +214,7 @@ class AlertControllerTest extends SupportControllerTest {
     }
 
     @Nested
-    @DisplayName("알림 삭제 DELETE /api/core/organizations/{organization-id}/alerts")
+    @DisplayName("알림 삭제 DELETE /api/core/alerts")
     class deleteAlerts{
 
         @Test
@@ -233,20 +224,17 @@ class AlertControllerTest extends SupportControllerTest {
                     List.of(1L, 2L, 3L, 4L, 5L)
             );
 
-            mockMvc.perform(delete("/api/core/organizations/{organization-id}/alerts", 11L)
+            mockMvc.perform(delete("/api/core/alerts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNoContent())
                     .andDo(document("alert-delete",
-                            pathParameters(
-                                    parameterWithName("organization-id").description("조직 ID")
-                            ),
                             requestFields(
                                     fieldWithPath("alertIds").type(JsonFieldType.ARRAY).description("체크할 알림 ID 리스트")
                             )
                     ));
 
-            verify(alertService).deleteAlerts(11L, request);
+            verify(alertService).deleteAlerts(request);
         }
 
         @Test
@@ -257,9 +245,9 @@ class AlertControllerTest extends SupportControllerTest {
             );
 
             willThrow(new AlertNotFoundException()).given(alertService)
-                    .deleteAlerts(11L, request);
+                    .deleteAlerts(request);
 
-            mockMvc.perform(delete("/api/core/organizations/{organization-id}/alerts", 11L)
+            mockMvc.perform(delete("/api/core/alerts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound());
@@ -273,9 +261,9 @@ class AlertControllerTest extends SupportControllerTest {
             );
 
             willThrow(new ForbiddenException()).given(alertService)
-                    .deleteAlerts(11L, request);
+                    .deleteAlerts(request);
 
-            mockMvc.perform(delete("/api/core/organizations/{organization-id}/alerts", 11L)
+            mockMvc.perform(delete("/api/core/alerts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden());
@@ -283,30 +271,26 @@ class AlertControllerTest extends SupportControllerTest {
     }
 
     @Nested
-    @DisplayName("알림 전체 삭제 DELETE /api/core/organizations/{organization-id}/alerts/all")
+    @DisplayName("알림 전체 삭제 DELETE /api/core/alerts/all")
     class deleteAllAlerts{
 
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            mockMvc.perform(delete("/api/core/organizations/{organization-id}/alerts/all", 11L))
+            mockMvc.perform(delete("/api/core/alerts/all"))
                     .andExpect(status().isNoContent())
-                    .andDo(document("alert-delete-all",
-                            pathParameters(
-                                    parameterWithName("organization-id").description("조직 ID")
-                            )
-                    ));
+                    .andDo(document("alert-delete-all"));
 
-            verify(alertService).deleteAllAlerts(11L);
+            verify(alertService).deleteAllAlerts();
         }
 
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
             willThrow(new ForbiddenException()).given(alertService)
-                    .deleteAllAlerts(11L);
+                    .deleteAllAlerts();
 
-            mockMvc.perform(delete("/api/core/organizations/{organization-id}/alerts/all", 11L))
+            mockMvc.perform(delete("/api/core/alerts/all"))
                     .andExpect(status().isForbidden());
         }
     }

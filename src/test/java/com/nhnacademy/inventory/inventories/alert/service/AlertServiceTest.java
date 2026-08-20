@@ -182,7 +182,7 @@ class AlertServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            Page<AlertInfoResponse> actual = alertService.getAlerts(organization.getId(), condition, pageable);
+            Page<AlertInfoResponse> actual = alertService.getAlerts(condition, pageable);
 
             assertAll(
                     () -> assertNotNull(actual),
@@ -207,7 +207,7 @@ class AlertServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            Page<AlertInfoResponse> actual = alertService.getAlerts(organization.getId(), condition, pageable);
+            Page<AlertInfoResponse> actual = alertService.getAlerts(condition, pageable);
 
             assertAll(
                     () -> assertNotNull(actual),
@@ -230,7 +230,7 @@ class AlertServiceTest {
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
             assertThrowsExactly(ForbiddenException.class,
-                    () -> alertService.getAlerts(organization.getId(), condition, pageable));
+                    () -> alertService.getAlerts(condition, pageable));
 
             verify(alertRepository, never()).searchByCondition(any(), any(), any());
         }
@@ -250,7 +250,7 @@ class AlertServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            Long actual = alertService.getUncheckedAlertCount(organization.getId());
+            Long actual = alertService.getUncheckedAlertCount();
 
             assertNotNull(actual);
             assertEquals(5L, actual);
@@ -265,7 +265,7 @@ class AlertServiceTest {
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
             assertThrowsExactly(ForbiddenException.class,
-                    () -> alertService.getUncheckedAlertCount(organization.getId()));
+                    () -> alertService.getUncheckedAlertCount());
 
             verify(alertRepository, never()).countByOrganizationAndIsChecked(any(), anyBoolean());
         }
@@ -291,7 +291,7 @@ class AlertServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            assertDoesNotThrow(() -> alertService.markAsChecked(organization.getId(), request));
+            assertDoesNotThrow(() -> alertService.markAsChecked(request));
 
             assertAll(
                     () -> assertEquals("테스트 메시지1", alert1.getMessage()),
@@ -317,7 +317,7 @@ class AlertServiceTest {
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
             assertThrowsExactly(AlertNotFoundException.class,
-                    () -> alertService.markAsChecked(organization.getId(), request));
+                    () -> alertService.markAsChecked(request));
         }
 
         @Test
@@ -332,7 +332,7 @@ class AlertServiceTest {
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
             assertThrowsExactly(ForbiddenException.class,
-                    () -> alertService.markAsChecked(organization.getId(), request));
+                    () -> alertService.markAsChecked(request));
         }
     }
 
@@ -356,7 +356,7 @@ class AlertServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            assertDoesNotThrow(() -> alertService.deleteAlerts(organization.getId(), request));
+            assertDoesNotThrow(() -> alertService.deleteAlerts(request));
 
             verify(alertRepository).deleteAll(alerts);
         }
@@ -377,7 +377,7 @@ class AlertServiceTest {
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
             assertThrowsExactly(AlertNotFoundException.class,
-                    () -> alertService.deleteAlerts(organization.getId(), request));
+                    () -> alertService.deleteAlerts(request));
 
             verify(alertRepository, never()).deleteAll(alerts);
         }
@@ -394,7 +394,7 @@ class AlertServiceTest {
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
             assertThrowsExactly(ForbiddenException.class,
-                    () -> alertService.deleteAlerts(organization.getId(), request));
+                    () -> alertService.deleteAlerts(request));
 
             verify(alertRepository, never()).deleteAll(any());
         }
@@ -418,7 +418,7 @@ class AlertServiceTest {
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
-            assertDoesNotThrow(() -> alertService.deleteAllAlerts(organization.getId()));
+            assertDoesNotThrow(() -> alertService.deleteAllAlerts());
 
             verify(alertRepository).deleteAll(alerts);
         }
@@ -432,7 +432,7 @@ class AlertServiceTest {
             UserContext.setUserUuid(approvedMember.getAccountUuid());
 
             assertThrowsExactly(ForbiddenException.class,
-                    () -> alertService.deleteAllAlerts(organization.getId()));
+                    () -> alertService.deleteAllAlerts());
 
             verify(alertRepository, never()).deleteAll(any());
         }
