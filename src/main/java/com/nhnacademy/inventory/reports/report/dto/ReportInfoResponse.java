@@ -20,6 +20,10 @@ public record ReportInfoResponse(
         List<ReportItemResponse> items
 ) {
     public static ReportInfoResponse of(Report report) {
+        if (report == null) {
+            return null;
+        }
+
         return new ReportInfoResponse(
                 report.getId(),
                 report.getOrganizationId(),

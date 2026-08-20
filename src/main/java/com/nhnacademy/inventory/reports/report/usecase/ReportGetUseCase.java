@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
-import com.nhnacademy.inventory.reports.report.exception.ReportNotFoundException;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -23,7 +22,7 @@ public class ReportGetUseCase {
     private final OrganizationMemberValidator memberValidator;
 
     @Transactional(readOnly = true)
-    public ReportInfoResponse execute(UUID accountUuid, Long reportId) {
+    public ReportInfoResponse getWeeklyReportById(UUID accountUuid, Long reportId) {
         OrganizationMember member = memberValidator.validateAndGet(accountUuid);
         Long organizationId = member.getOrganization().getId();
 
@@ -33,13 +32,13 @@ public class ReportGetUseCase {
     }
 
     @Transactional(readOnly = true)
-    public ReportInfoResponse getWeeklyReport(UUID accountUuid, LocalDate periodStart) {
+    public ReportInfoResponse getWeeklyReportByPeriod(UUID accountUuid, LocalDate periodStart) {
         OrganizationMember member = memberValidator.validateAndGet(accountUuid);
         Long organizationId = member.getOrganization().getId();
 
         Report report = reportService.find(organizationId, ReportType.WEEKLY, periodStart)
-                .orElseThrow(ReportNotFoundException::new);
+                .orElse(null);
 
-        return ReportInfoResponse.of(report);
+        return (report != null) ? ReportInfoResponse.of(report) : null;
     }
 }

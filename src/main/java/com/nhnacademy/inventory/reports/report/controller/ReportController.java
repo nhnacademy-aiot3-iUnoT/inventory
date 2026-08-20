@@ -30,7 +30,7 @@ public class ReportController {
     ) {
         UUID accountUuid = UserContext.getUserUuid();
 
-        ReportInfoResponse response = reportGetUseCase.getWeeklyReport(accountUuid, periodStart);
+        ReportInfoResponse response = reportGetUseCase.getWeeklyReportByPeriod(accountUuid, periodStart);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -52,7 +52,7 @@ public class ReportController {
     ) {
         UUID accountUuid = UserContext.getUserUuid();
 
-        ReportInfoResponse response = reportGetUseCase.execute(accountUuid, reportId);
+        ReportInfoResponse response = reportGetUseCase.getWeeklyReportById(accountUuid, reportId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
