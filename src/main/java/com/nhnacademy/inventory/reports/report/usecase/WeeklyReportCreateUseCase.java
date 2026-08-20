@@ -60,12 +60,15 @@ public class WeeklyReportCreateUseCase {
     private void collectReportItems(Report report) {
         List<StockTransaction> transactions = stockTransactionService.findTransactionsForReport(
                 report.getOrganizationId(),
-                List.of(TransactionType.OUTBOUND, TransactionType.DISPOSAL),
+                List.of(TransactionType.INBOUND, TransactionType.OUTBOUND, TransactionType.DISPOSAL),
                 report.getPeriodStart(),
                 report.getPeriodEnd());
 
+        sumByUnit(transactions, TransactionType.INBOUND)
+                .forEach(report::addInbound);
+
         sumByUnit(transactions, TransactionType.OUTBOUND)
-                .forEach(report::addUsage);
+                .forEach(report::addOutbound);
 
         sumByUnit(transactions, TransactionType.DISPOSAL)
                 .forEach(report::addDisposal);

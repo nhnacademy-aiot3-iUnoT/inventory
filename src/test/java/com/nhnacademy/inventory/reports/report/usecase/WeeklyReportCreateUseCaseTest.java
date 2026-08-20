@@ -104,7 +104,7 @@ class WeeklyReportCreateUseCaseTest {
                 .willReturn(report);
         given(stockTransactionService.findTransactionsForReport(
                 organizationId,
-                List.of(TransactionType.OUTBOUND, TransactionType.DISPOSAL),
+                List.of(TransactionType.INBOUND, TransactionType.OUTBOUND, TransactionType.DISPOSAL),
                 report.getPeriodStart(),
                 report.getPeriodEnd()))
                 .willReturn(List.of());

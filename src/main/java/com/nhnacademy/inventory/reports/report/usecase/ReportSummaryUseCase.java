@@ -38,7 +38,7 @@ public class ReportSummaryUseCase {
     }
 
     private String toPromptText(Report report) {
-        String usageText = toItemLines(report, ReportItemType.USAGE);
+        String usageText = toItemLines(report, ReportItemType.OUTBOUND);
         String disposalText = toItemLines(report, ReportItemType.DISPOSAL);
 
         String reportType = report.getReportType().getName();

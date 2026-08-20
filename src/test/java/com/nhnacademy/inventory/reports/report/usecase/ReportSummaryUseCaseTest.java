@@ -59,7 +59,7 @@ class ReportSummaryUseCaseTest {
         // given
         long reportId = 1L;
         Report report = Report.weeklyOf(1L, LocalDate.of(2026, Month.AUGUST, 10));
-        report.addUsage(TestFixtures.createPackageUnit(TestFixtures.createMedicine("202106092", "타이레놀")), 10);
+        report.addOutbound(TestFixtures.createPackageUnit(TestFixtures.createMedicine("202106092", "타이레놀")), 10);
 
         given(reportService.getReport(reportId))
                 .willReturn(report);

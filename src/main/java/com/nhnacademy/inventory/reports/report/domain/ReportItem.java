@@ -46,8 +46,12 @@ public class ReportItem {
         this.quantity = quantity;
     }
 
-    public static ReportItem usage(Report report, MedicinePackageUnit unit, int quantity) {
-        return new ReportItem(report, ReportItemType.USAGE, unit, quantity);
+    public static ReportItem inbound(Report report, MedicinePackageUnit unit, int quantity) {
+        return new ReportItem(report, ReportItemType.INBOUND, unit, quantity);
+    }
+
+    public static ReportItem outbound(Report report, MedicinePackageUnit unit, int quantity) {
+        return new ReportItem(report, ReportItemType.OUTBOUND, unit, quantity);
     }
 
     public static ReportItem disposal(Report report, MedicinePackageUnit unit, int quantity) {

@@ -52,7 +52,7 @@ class ReportTest {
 
     @Test
     @DisplayName("사용 항목을 추가하면 의약품 정보가 스냅샷으로 저장된다.")
-    void addUsage_SnapshotsMedicineInfo() {
+    void addOutbound_SnapshotsMedicineInfo() {
         // given
         Report report = Report.weeklyOf(1L, LocalDate.of(2026, Month.AUGUST, 10));
         MedicinePackageUnit unit = TestFixtures.createPackageUnit(
@@ -61,7 +61,7 @@ class ReportTest {
         int quantity = 50;
 
         // when
-        report.addUsage(unit, quantity);
+        report.addOutbound(unit, quantity);
 
         ReportItem item = report.getReportItems().getFirst();
 

@@ -96,8 +96,12 @@ public class Report {
         this.aiSummaryStatus = AiSummaryStatus.PENDING;
     }
 
-    public void addUsage(MedicinePackageUnit unit, int quantity) {
-        this.reportItems.add(ReportItem.usage(this, unit, quantity));
+    public void addInbound(MedicinePackageUnit unit, int quantity) {
+        this.reportItems.add(ReportItem.inbound(this, unit, quantity));
+    }
+
+    public void addOutbound(MedicinePackageUnit unit, int quantity) {
+        this.reportItems.add(ReportItem.outbound(this, unit, quantity));
     }
 
     public void addDisposal(MedicinePackageUnit unit, int quantity) {

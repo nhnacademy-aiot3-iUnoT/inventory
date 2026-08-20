@@ -134,12 +134,12 @@ class ReportCreateIntegrationTest {
                             .isEqualTo("10정");
                 });
         assertThat(response.items())
-                .filteredOn(item -> item.reportItemType() == ReportItemType.USAGE)
+                .filteredOn(item -> item.reportItemType() == ReportItemType.OUTBOUND)
                 .singleElement()
                 .satisfies(item -> assertThat(item.quantity()).isEqualTo(42));
         assertThat(response.items())
                 .extracting(ReportItemResponse::reportItemType)
-                .contains(ReportItemType.USAGE);
+                .contains(ReportItemType.OUTBOUND);
 
         // 저장까지 실제로 됐는지 (cascade 확인)
         Report saved = reportRepository.findByIdWithItems(response.reportId())
