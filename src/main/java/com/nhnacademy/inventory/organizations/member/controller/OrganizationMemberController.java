@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.global.dto.PageResponse;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationMemberSearchRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRoleUpdateRequest;
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
+import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberRoleResponse;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,13 @@ public class OrganizationMemberController {
     ) {
         Page<OrganizationMemberResponse> members = organizationMemberService.findMembers(request, false, pageable);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(members)));
+    }
+
+    @GetMapping("/me/role")
+    public ResponseEntity<ApiResponse<OrganizationMemberRoleResponse>> getRole(){
+        OrganizationMemberRoleResponse response = organizationMemberService.getRole();
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
