@@ -38,7 +38,8 @@ public class ReportSummaryUseCase {
     }
 
     private String toPromptText(Report report) {
-        String usageText = toItemLines(report, ReportItemType.OUTBOUND);
+        String inboundText = toItemLines(report, ReportItemType.INBOUND);
+        String outboundText = toItemLines(report, ReportItemType.OUTBOUND);
         String disposalText = toItemLines(report, ReportItemType.DISPOSAL);
 
         String reportType = report.getReportType().getName();
@@ -46,12 +47,15 @@ public class ReportSummaryUseCase {
         return """
             기간: %s ~ %s (%s)
             
+            [입고]
+            %s
+            
             [사용]
             %s
             
             [폐기]
             %s
-            """.formatted(report.getPeriodStart(), report.getPeriodEnd(), reportType, usageText, disposalText);
+            """.formatted(report.getPeriodStart(), report.getPeriodEnd(), reportType, inboundText, outboundText, disposalText);
     }
 
     private String toItemLines(Report report, ReportItemType type) {
