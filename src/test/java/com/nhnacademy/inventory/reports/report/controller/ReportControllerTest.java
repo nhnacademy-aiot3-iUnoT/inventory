@@ -104,7 +104,7 @@ class ReportControllerTest extends SupportControllerTest {
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
         ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
 
-        given(reportGetUseCase.execute(accountUuid, reportId))
+        given(reportGetUseCase.getWeeklyReportById(accountUuid, reportId))
                 .willReturn(response);
 
         // when
@@ -154,7 +154,7 @@ class ReportControllerTest extends SupportControllerTest {
 
         long reportId = 999L;
 
-        given(reportGetUseCase.execute(accountUuid, reportId))
+        given(reportGetUseCase.getWeeklyReportById(accountUuid, reportId))
                 .willThrow(new com.nhnacademy.inventory.reports.report.exception.ReportNotFoundException());
 
         // when
@@ -178,7 +178,7 @@ class ReportControllerTest extends SupportControllerTest {
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
         ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
 
-        given(reportGetUseCase.getWeeklyReport(accountUuid, periodStart))
+        given(reportGetUseCase.getWeeklyReportByPeriod(accountUuid, periodStart))
                 .willReturn(response);
 
         // when

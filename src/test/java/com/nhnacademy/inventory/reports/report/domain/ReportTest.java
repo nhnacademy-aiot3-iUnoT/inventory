@@ -51,7 +51,35 @@ class ReportTest {
     }
 
     @Test
-    @DisplayName("사용 항목을 추가하면 의약품 정보가 스냅샷으로 저장된다.")
+    @DisplayName("입고 항목을 추가하면 의약품 정보와 INBOUND 타입이 스냅샷으로 저장된다.")
+    void addInbound_SnapshotsMedicineInfo() {
+        // given
+        Report report = Report.weeklyOf(1L, LocalDate.of(2026, Month.AUGUST, 10));
+        MedicinePackageUnit unit = TestFixtures.createPackageUnit(
+                TestFixtures.createMedicine("202106092", "타이레놀정500밀리그람(아세트아미노펜)")
+        );
+        int quantity = 100;
+
+        // when
+        report.addInbound(unit, quantity);
+
+        ReportItem item = report.getReportItems().getFirst();
+
+        // then
+        assertThat(item)
+                .isNotNull();
+        assertThat(item.getReportItemType())
+                .isEqualTo(ReportItemType.INBOUND);
+        assertThat(item.getQuantity())
+                .isEqualTo(quantity);
+        assertThat(item.getPackUnit())
+                .isEqualTo(unit.getPackUnit());
+        assertThat(item.getMedicineName())
+                .isEqualTo(unit.getMedicine().getProductName());
+    }
+
+    @Test
+    @DisplayName("사용(출고) 항목을 추가하면 의약품 정보와 OUTBOUND 타입이 스냅샷으로 저장된다.")
     void addOutbound_SnapshotsMedicineInfo() {
         // given
         Report report = Report.weeklyOf(1L, LocalDate.of(2026, Month.AUGUST, 10));
@@ -68,6 +96,35 @@ class ReportTest {
         // then
         assertThat(item)
                 .isNotNull();
+        assertThat(item.getReportItemType()).isEqualTo(ReportItemType.OUTBOUND);
+        assertThat(item.getQuantity())
+                .isEqualTo(quantity);
+        assertThat(item.getPackUnit())
+                .isEqualTo(unit.getPackUnit());
+        assertThat(item.getMedicineName())
+                .isEqualTo(unit.getMedicine().getProductName());
+    }
+
+    @Test
+    @DisplayName("폐기 항목을 추가하면 의약품 정보와 DISPOSAL 타입이 스냅샷으로 저장된다.")
+    void addDisposal_SnapshotsMedicineInfo() {
+        // given
+        Report report = Report.weeklyOf(1L, LocalDate.of(2026, Month.AUGUST, 10));
+        MedicinePackageUnit unit = TestFixtures.createPackageUnit(
+                TestFixtures.createMedicine("202106092", "타이레놀정500밀리그람(아세트아미노펜)")
+        );
+        int quantity = 3;
+
+        // when
+        report.addDisposal(unit, quantity);
+
+        ReportItem item = report.getReportItems().getFirst();
+
+        // then
+        assertThat(item)
+                .isNotNull();
+        assertThat(item.getReportItemType())
+                .isEqualTo(ReportItemType.DISPOSAL);
         assertThat(item.getQuantity())
                 .isEqualTo(quantity);
         assertThat(item.getPackUnit())
