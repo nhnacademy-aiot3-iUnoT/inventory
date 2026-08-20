@@ -16,7 +16,7 @@ public class PastWeekMondayValidator implements ConstraintValidator<PastWeekMond
         }
 
         // 입력 날짜가 월요일인지 확인
-        if (Objects.equals(value.getDayOfWeek(), DayOfWeek.MONDAY)) {
+        if (!Objects.equals(value.getDayOfWeek(), DayOfWeek.MONDAY)) {
             return false;
         }
 
