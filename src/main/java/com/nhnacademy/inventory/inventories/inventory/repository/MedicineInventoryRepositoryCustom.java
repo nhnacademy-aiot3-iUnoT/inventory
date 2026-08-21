@@ -15,8 +15,10 @@ public interface MedicineInventoryRepositoryCustom {
             (Long medicinePackageUnitId, Long zoneId, String lotNumber, LocalDate expiration);
 
 
-    Page<InventoriesResponse> findAllInventories(String search,Long storageId, List<Long> departmentId, Pageable pageable);
+    Page<InventoriesResponse> findAllInventoriesByDepartmentIds(String search,Long storageId, List<Long> departmentId, Pageable pageable);
 
+
+    Page<InventoriesResponse> findAllInventories(String search, Long storageId, List<Long> storageIds, Pageable pageable);
 
 
 }

@@ -1,7 +1,5 @@
 package com.nhnacademy.inventory.inventories.inventory.repository;
 
-import com.nhnacademy.inventory.inventories.alert.dto.InventoryQuantityResponse;
-import com.nhnacademy.inventory.inventories.alert.dto.QInventoryQuantityResponse;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory;
@@ -60,15 +58,9 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
         return Optional.ofNullable(content);
     }
 
-    //        String productName,
-    //        String itemCode,
-    //        String packUnit,
-    //        LocalDate expirationDate,
-    //        String storageName,
-    //        Integer totalQuantity
 
     @Override
-    public Page<InventoriesResponse> findAllInventories(String search,Long storageId, List<Long> departmentIds, Pageable pageable) {
+    public Page<InventoriesResponse> findAllInventoriesByDepartmentIds(String search,Long storageId, List<Long> departmentIds, Pageable pageable) {
 
 
         // 제품명 또는 품목기준코드로 조회
@@ -170,6 +162,67 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
 
         return new PageImpl<>(content,pageable,total);
 
+    }
+
+    @Override
+    public Page<InventoriesResponse> findAllInventories(String search, Long storageId, List<Long> storageIds, Pageable pageable) {
+
+
+        BooleanExpression searchCondition =
+                search == null || search.isBlank() ? null :
+                        medicine.productName.containsIgnoreCase(search.trim())
+                                .or(medicine.itemCode.containsIgnoreCase(search.trim()));
+
+
+        BooleanExpression storageCondition = storageId == null ? null :
+                storage.id.eq(storageId);
+
+
+        List<InventoriesResponse> contents = queryFactory.select(new QInventoriesResponse(
+                inventory.zone.storage.id,
+                inventory.medicinePackageUnit.id,
+                inventory.medicinePackageUnit.medicine.productName,
+                inventory.medicinePackageUnit.medicine.itemCode,
+                inventory.medicinePackageUnit.packUnit,
+                inventory.expirationDate.min(),
+                inventory.zone.storage.name,
+                inventory.currentQuantity.sum()
+
+        )).from(inventory)
+                .join(inventory.medicinePackageUnit,medicinePackageUnit)
+                .join(inventory.medicinePackageUnit.medicine,medicine)
+                .join(inventory.zone,zone)
+                .join(zone.storage,storage)
+                .where(
+                    searchCondition,
+                        storageCondition,
+                        zone.storage.id.in(storageIds)
+                )
+                .groupBy(medicinePackageUnit.id,storage.id)
+                .orderBy(medicine.productName.asc(),inventory.expirationDate.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+
+        int total = queryFactory.select(inventory.id)
+                .from(inventory)
+                .join(inventory.medicinePackageUnit,medicinePackageUnit)
+                .join(inventory.medicinePackageUnit.medicine,medicine)
+                .join(inventory.zone,zone)
+                .join(zone.storage,storage)
+                .where(
+                        searchCondition,
+                        storageCondition,
+                        zone.storage.id.in(storageIds)
+
+                ).
+                groupBy(medicinePackageUnit.id,storage.id)
+                        .fetch()
+                        .size();
+
+
+        return new PageImpl<>(contents,pageable,total);
     }
 
 

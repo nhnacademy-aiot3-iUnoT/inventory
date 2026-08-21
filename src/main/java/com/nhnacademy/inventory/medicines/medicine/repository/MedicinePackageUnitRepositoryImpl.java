@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResp
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageSearchResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.QMedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.QMedicinePackageSearchResponse;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -64,6 +65,9 @@ public class MedicinePackageUnitRepositoryImpl implements MedicinePackageUnitRep
 
     @Override
     public Page<MedicinePackageSearchResponse> findAllWithMedicineByItemCode(String itemCode, Pageable pageable) {
+
+
+
 
         List<MedicinePackageSearchResponse> content = queryFactory.select(new QMedicinePackageSearchResponse(
                         medicine.id,

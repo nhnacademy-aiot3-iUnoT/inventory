@@ -65,7 +65,6 @@ class InventoryServiceTest {
         assertEquals(0L,total);
 
 
-
     }
 
 
