@@ -4,7 +4,6 @@ import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.QStockTransactionSearchResponse;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchCondition;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchResponse;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 
+import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import static com.nhnacademy.inventory.inventories.transaction.domain.QStockTransaction.stockTransaction;
@@ -24,6 +26,26 @@ import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackag
 public class StockTransactionRepositoryImpl implements StockTransactionRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
+
+    @Override
+    public List<StockTransaction> findTransactionsForStorageReport(
+            Long storageId,
+            Collection<TransactionType> types,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+        return queryFactory
+                .selectFrom(stockTransaction)
+                .join(stockTransaction.medicinePackageUnit, medicinePackageUnit).fetchJoin()
+                .join(medicinePackageUnit.medicine, medicine).fetchJoin()
+                .where(
+                        stockTransaction.zone.storage.id.eq(storageId),
+                        stockTransaction.transactionType.in(types),
+                        stockTransaction.processedAt.goe(start),
+                        stockTransaction.processedAt.lt(end)
+                )
+                .fetch();
+    }
 
     @Override
     public Page<StockTransactionSearchResponse> searchByCondition(Long zoneId, StockTransactionSearchCondition condition, Pageable pageable) {
