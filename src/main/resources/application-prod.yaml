@@ -8,6 +8,8 @@ eureka:
 clients:
   account:
     base-url: ${ACCOUNT_BASE_URL:http://account}
+  rule-engine:
+    base-url: ${RULE_ENGINE_BASE_URL:http://rule-engine}
 
 logging:
   level:

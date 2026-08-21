@@ -4,7 +4,6 @@ import com.nhnacademy.inventory.medicines.medicine.property.MedicineProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -14,12 +13,12 @@ import org.springframework.web.client.RestClient;
 @EnableConfigurationProperties(MedicineProperties.class)
 public class RestClientConfig {
 
-//    @Bean("medicineRestClient")
-//    public RestClient medicineRestClient(MedicineProperties medicineProperties) {
-//        return RestClient.builder()
-//                .baseUrl(medicineProperties.baseUrl())
-//                .build();
-//    }
+    @Bean("medicineRestClient")
+    public RestClient medicineRestClient(MedicineProperties medicineProperties) {
+        return RestClient.builder()
+                .baseUrl(medicineProperties.baseUrl())
+                .build();
+    }
 
     @Bean("loadBalancedAccountRestClientBuilder")
 //    @LoadBalanced
@@ -40,6 +39,11 @@ public class RestClientConfig {
     @Bean("accountRestClient")
     @Profile("!prod")
     public RestClient localAccountRestClient(@Value("${clients.account.base-url}") String baseUrl) {
+        return RestClient.builder().baseUrl(baseUrl).build();
+    }
+
+    @Bean("ruleEngineRestClient")
+    public RestClient ruleEngineRestClient(@Value("${clients.rule-engine.base-url}") String baseUrl) {
         return RestClient.builder().baseUrl(baseUrl).build();
     }
 }
