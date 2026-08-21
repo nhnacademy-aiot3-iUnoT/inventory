@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.inventories.inventory.repository;
 
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
+import com.nhnacademy.inventory.inventories.inventory.dto.InventoryInfoResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,6 +20,10 @@ public interface MedicineInventoryRepositoryCustom {
 
 
     Page<InventoriesResponse> findAllInventories(String search, Long storageId, List<Long> storageIds, Pageable pageable);
+
+
+    Page<InventoryInfoResponse> findByZonesAndPackUnitId(List<Long> zoneIds, Long packUnitId, Pageable pageable);
+
 
 
 }

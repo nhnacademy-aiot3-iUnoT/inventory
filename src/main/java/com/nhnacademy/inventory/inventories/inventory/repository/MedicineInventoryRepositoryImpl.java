@@ -6,7 +6,10 @@ import com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
 
 
+import com.nhnacademy.inventory.inventories.inventory.dto.InventoryInfoResponse;
 import com.nhnacademy.inventory.inventories.inventory.dto.QInventoriesResponse;
+
+import com.nhnacademy.inventory.inventories.inventory.dto.QInventoryInfoResponse;
 import com.nhnacademy.inventory.medicines.medicine.domain.QMedicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.department.domain.QStorageDepartment;
@@ -156,7 +159,12 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                         storageCondition
 
                 ).groupBy(
-                        storage.id,medicinePackageUnit.id
+                        storage.id,
+                        medicinePackageUnit.id,
+                        medicine.productName,
+                        medicine.itemCode,
+                        medicinePackageUnit.packUnit,
+                        storage.name
                 ).fetch().size();
 
 
@@ -199,13 +207,13 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                         zone.storage.id.in(storageIds)
                 )
                 .groupBy(medicinePackageUnit.id,storage.id)
-                .orderBy(medicine.productName.asc(),inventory.expirationDate.asc())
+                .orderBy(medicine.productName.asc(),inventory.expirationDate.min().asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
 
-        int total = queryFactory.select(inventory.id)
+        long total = queryFactory.select(storage.id,medicinePackageUnit.id)
                 .from(inventory)
                 .join(inventory.medicinePackageUnit,medicinePackageUnit)
                 .join(inventory.medicinePackageUnit.medicine,medicine)
@@ -216,8 +224,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                         storageCondition,
                         zone.storage.id.in(storageIds)
 
-                ).
-                groupBy(medicinePackageUnit.id,storage.id)
+                ).groupBy(storage.id,medicinePackageUnit.id)
                         .fetch()
                         .size();
 
@@ -226,4 +233,55 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     }
 
 
+    // Long medicinePackUnitId,
+    //        Long storageId,
+    //        Long zoneId,
+    //        String productName,
+    //        String lotNumber,
+    //        LocalDate expirationDate,
+    //        Long currentQuantity,
+    //        String storageName,
+    //        String zoneName,
+    //        ManagementStatus managementStatus
+
+
+    @Override
+    public Page<InventoryInfoResponse> findByZonesAndPackUnitId(List<Long> zoneIds, Long packUnitId,Pageable pageable) {
+
+        List<InventoryInfoResponse> content = queryFactory.select(new QInventoryInfoResponse(
+                medicinePackageUnit.id,
+                storage.id,
+                zone.id,
+                medicine.productName,
+                inventory.lotNumber,
+                inventory.expirationDate,
+                inventory.currentQuantity,
+                storage.name,
+                zone.name,
+                inventory.managementStatus
+        )).from(inventory)
+                .join(inventory.medicinePackageUnit,medicinePackageUnit)
+                .join(inventory.medicinePackageUnit.medicine,medicine)
+                .join(inventory.zone,zone)
+                .join(zone.storage,storage)
+                .where(zone.id.in(zoneIds),medicinePackageUnit.id.eq(packUnitId))
+                .orderBy(medicine.productName.asc(),inventory.expirationDate.min().asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+
+        long total = queryFactory.select()
+                .from(inventory)
+                .join(inventory.medicinePackageUnit,medicinePackageUnit)
+                .join(inventory.medicinePackageUnit.medicine,medicine)
+                .join(inventory.zone,zone)
+                .join(zone.storage,storage)
+                .where(zone.id.in(zoneIds),medicinePackageUnit.id.eq(packUnitId))
+                .fetch().size();
+
+
+
+        return new PageImpl<>(content,pageable,total);
+    }
 }
