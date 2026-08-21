@@ -20,7 +20,7 @@ public record ReportInfoResponse(
         LocalDateTime createdAt,
         List<ReportItemResponse> items
 ) {
-    public static ReportInfoResponse of(Report report) {
+    public static ReportInfoResponse from(Report report) {
         if (report == null) {
             return null;
         }

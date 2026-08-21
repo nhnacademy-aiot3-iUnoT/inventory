@@ -41,7 +41,7 @@ public class WeeklyReportCreateUseCase {
         Report report = reportService.find(storageId, ReportType.WEEKLY, periodStart)
                 .orElseGet(() -> generate(organizationId, storage.getId(), periodStart));
 
-        return ReportInfoResponse.of(report);
+        return ReportInfoResponse.from(report);
     }
 
     private Report generate(Long organizationId, Long storageId, LocalDate periodStart) {

@@ -27,7 +27,10 @@ public class ReportController {
             @PathVariable(name = "storage-id") Long storageId,
             @RequestParam(name = "periodStart") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate periodStart
     ) {
-        ReportInfoResponse response = reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart);
+        // 404로 던지면 GatewayClient가 ApiException으로 변환해 던져서 처리가 복잡해짐
+        // 따라서 리포트가 없어도 200으로 반환
+        ReportInfoResponse response = reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart)
+                .orElse(null);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

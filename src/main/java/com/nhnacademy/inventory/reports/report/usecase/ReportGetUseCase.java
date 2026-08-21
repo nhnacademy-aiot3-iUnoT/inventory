@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -25,16 +26,14 @@ public class ReportGetUseCase {
 
         Report report = reportService.getReportByStorage(reportId, storage.getId());
 
-        return ReportInfoResponse.of(report);
+        return ReportInfoResponse.from(report);
     }
 
     @Transactional(readOnly = true)
-    public ReportInfoResponse getWeeklyReportByPeriod(Long storageId, LocalDate periodStart) {
+    public Optional<ReportInfoResponse> getWeeklyReportByPeriod(Long storageId, LocalDate periodStart) {
         Storage storage = storageService.validateMemberAndGetStorage(storageId);
 
-        Report report = reportService.find(storage.getId(), ReportType.WEEKLY, periodStart)
-                .orElse(null);
-
-        return (report != null) ? ReportInfoResponse.of(report) : null;
+        return reportService.find(storage.getId(), ReportType.WEEKLY, periodStart)
+                .map(ReportInfoResponse::from);
     }
 }

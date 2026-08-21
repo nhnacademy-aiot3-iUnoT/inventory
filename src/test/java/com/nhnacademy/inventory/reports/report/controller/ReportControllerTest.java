@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
@@ -177,7 +178,7 @@ class ReportControllerTest extends SupportControllerTest {
         ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
 
         given(reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart))
-                .willReturn(response);
+                .willReturn(Optional.of(response));
 
         // when
         ResultActions result = mockMvc.perform(get("/api/core/storages/{storage-id}/reports/weekly", storageId)

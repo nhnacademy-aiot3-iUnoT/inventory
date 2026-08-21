@@ -60,7 +60,7 @@ class ReportGetUseCaseTest {
     }
 
     @Test
-    @DisplayName("리포트가 존재하지 않으면 null을 반환한다.")
+    @DisplayName("리포트가 존재하지 않으면 Optional.empty()를 반환한다.")
     void getWeeklyReportByPeriod_WhenNotFound_ReturnsNull() {
         // given
         long storageId = 1L;
@@ -76,10 +76,10 @@ class ReportGetUseCaseTest {
                 .willReturn(Optional.empty());
 
         // when
-        ReportInfoResponse result = reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart);
+        Optional<ReportInfoResponse> result = reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart);
 
         // then
         assertThat(result)
-                .isNull();
+                .isNotPresent();
     }
 }
