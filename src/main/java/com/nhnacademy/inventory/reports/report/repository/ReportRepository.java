@@ -32,13 +32,22 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
         SELECT r
         FROM Report r
         LEFT JOIN FETCH r.reportItems
-        WHERE r.organizationId = :organizationId AND r.reportType = :reportType AND r.periodStart = :periodStart
+        WHERE r.id = :reportId AND r.storageId = :storageId
         """)
-    Optional<Report> findByOrganizationIdAndReportTypeAndPeriodStartWithItems(
-            @Param("organizationId") Long organizationId,
+    Optional<Report> findByIdAndStorageId(
+            @Param("reportId") Long reportId, @Param("storageId") Long storageId);
+
+    @Query("""
+        SELECT r
+        FROM Report r
+        LEFT JOIN FETCH r.reportItems
+        WHERE r.storageId = :storageId AND r.reportType = :reportType AND r.periodStart = :periodStart
+        """)
+    Optional<Report> findByStorageIdAndReportTypeAndPeriodStartWithItems(
+            @Param("storageId") Long storageId,
             @Param("reportType") ReportType reportType,
             @Param("periodStart") LocalDate periodStart);
 
-    Optional<Report> findByOrganizationIdAndReportTypeAndPeriodStart(
-            Long organizationId, ReportType reportType, LocalDate periodStart);
+    Optional<Report> findByStorageIdAndReportTypeAndPeriodStart(
+            Long storageId, ReportType reportType, LocalDate periodStart);
 }

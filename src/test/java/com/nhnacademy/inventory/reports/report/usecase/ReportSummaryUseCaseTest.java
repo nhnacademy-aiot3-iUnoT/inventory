@@ -36,7 +36,7 @@ class ReportSummaryUseCaseTest {
     void execute_WhenEmptyReportItems_SetsEmptyMessage() {
         // given
         long reportId = 1L;
-        Report report = Report.weeklyOf(1L, LocalDate.of(2026, Month.AUGUST, 10));
+        Report report = Report.weeklyOf(1L, 1L, LocalDate.of(2026, Month.AUGUST, 10));
 
         given(reportService.getReport(reportId))
                 .willReturn(report);
@@ -58,7 +58,7 @@ class ReportSummaryUseCaseTest {
     void execute_WhenExceptionOccurs_CallsFailSummary() {
         // given
         long reportId = 1L;
-        Report report = Report.weeklyOf(1L, LocalDate.of(2026, Month.AUGUST, 10));
+        Report report = Report.weeklyOf(1L, 1L, LocalDate.of(2026, Month.AUGUST, 10));
         report.addOutbound(TestFixtures.createPackageUnit(TestFixtures.createMedicine("202106092", "타이레놀")), 10);
 
         given(reportService.getReport(reportId))

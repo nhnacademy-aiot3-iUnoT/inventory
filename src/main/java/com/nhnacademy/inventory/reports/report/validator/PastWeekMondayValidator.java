@@ -1,4 +1,4 @@
-package com.nhnacademy.inventory.reports.report.dto.validator;
+package com.nhnacademy.inventory.reports.report.validator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

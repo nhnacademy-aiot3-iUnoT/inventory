@@ -18,9 +18,9 @@ public class ReportService {
     private final ReportRepository reportRepository;
 
     @Transactional(readOnly = true)
-    public Optional<Report> find(Long organizationId, ReportType reportType, LocalDate periodStart) {
-        return reportRepository.findByOrganizationIdAndReportTypeAndPeriodStartWithItems(
-                organizationId, reportType, periodStart);
+    public Optional<Report> find(Long storageId, ReportType reportType, LocalDate periodStart) {
+        return reportRepository.findByStorageIdAndReportTypeAndPeriodStartWithItems(
+                storageId, reportType, periodStart);
     }
 
     @Transactional
@@ -35,8 +35,8 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public Report getReport(Long reportId, Long organizationId) {
-        return reportRepository.findByIdAndOrganizationId(reportId, organizationId)
+    public Report getReportByStorage(Long reportId, Long storageId) {
+        return reportRepository.findByIdAndStorageId(reportId, storageId)
                 .orElseThrow(ReportNotFoundException::new);
     }
 

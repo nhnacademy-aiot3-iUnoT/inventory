@@ -17,8 +17,8 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "reports", uniqueConstraints = @UniqueConstraint(
-        name = "uk_reports_organization_type_period",
-        columnNames = {"organization_id", "report_type", "period_start"}
+        name = "uk_reports_storage_type_period",
+        columnNames = {"storage_id", "report_type", "period_start"}
 ))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -32,8 +32,11 @@ public class Report {
     @Column(name = "organization_id", nullable = false)
     private Long organizationId;
 
+    @Column(name = "storage_id", nullable = false)
+    private Long storageId;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "report_type", nullable = false)
+    @Column(name = "report_type", length = 30, nullable = false)
     private ReportType reportType;
 
     @Column(name = "period_start", nullable = false)
@@ -61,21 +64,23 @@ public class Report {
     }
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Report(long organizationId, ReportType reportType, LocalDate periodStart, LocalDate periodEnd, AiSummaryStatus aiSummaryStatus) {
+    private Report(long organizationId, long storageId, ReportType reportType, LocalDate periodStart, LocalDate periodEnd, AiSummaryStatus aiSummaryStatus) {
         this.organizationId = organizationId;
+        this.storageId = storageId;
         this.reportType = reportType;
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
         this.aiSummaryStatus = (aiSummaryStatus != null) ? aiSummaryStatus : AiSummaryStatus.PENDING;
     }
 
-    public static Report weeklyOf(long organizationId, LocalDate periodStart) {
+    public static Report weeklyOf(long organizationId, long storageId, LocalDate periodStart) {
         if (!Objects.equals(periodStart.getDayOfWeek(), DayOfWeek.MONDAY)) {
             throw new InvalidWeeklyPeriodException();
         }
 
         return Report.builder()
                 .organizationId(organizationId)
+                .storageId(storageId)
                 .reportType(ReportType.WEEKLY)
                 .periodStart(periodStart)
                 .periodEnd(periodStart.plusDays(6))

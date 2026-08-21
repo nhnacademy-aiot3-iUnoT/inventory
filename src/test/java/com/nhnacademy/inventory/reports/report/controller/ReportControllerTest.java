@@ -63,21 +63,23 @@ class ReportControllerTest extends SupportControllerTest {
         UserContext.setUserUuid(accountUuid);
 
         long organizationId = 1L;
+        long storageId = 1L;
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
         ReportCreateRequest request = new ReportCreateRequest(periodStart);
-        ReportInfoResponse response = new ReportInfoResponse(1L, organizationId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), null, AiSummaryStatus.PENDING, LocalDateTime.now(), List.of());
+        ReportInfoResponse response = new ReportInfoResponse(1L, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), null, AiSummaryStatus.PENDING, LocalDateTime.now(), List.of());
 
-        given(reportCreateFacade.createWeeklyReport(accountUuid, periodStart))
+        given(reportCreateFacade.createWeeklyReport(storageId, periodStart))
                 .willReturn(response);
 
         // when
-        ResultActions result = mockMvc.perform(post("/api/core/reports/weekly")
+        ResultActions result = mockMvc.perform(post("/api/core/storages/{storage-id}/reports/weekly", storageId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsBytes(request)));
 
         // then
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.organizationId").value(organizationId))
+                .andExpect(jsonPath("$.data.storageId").value(storageId))
                 .andExpect(jsonPath("$.data.reportType").value("WEEKLY"))
                 .andExpect(jsonPath("$.data.aiSummaryStatus").value("PENDING"))
                 .andExpect(jsonPath("$.data.aiSummary").doesNotExist());
@@ -86,7 +88,7 @@ class ReportControllerTest extends SupportControllerTest {
     @Test
     @DisplayName("periodStart가 없으면 400을 반환한다")
     void createWeeklyReport_WhenPeriodStartIsNull_ReturnsBadRequest() throws Exception {
-        mockMvc.perform(post("/api/core/reports/weekly")
+        mockMvc.perform(post("/api/core/storages/{storage-id}/reports/weekly", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest());
@@ -101,48 +103,42 @@ class ReportControllerTest extends SupportControllerTest {
 
         long reportId = 1L;
         long organizationId = 1L;
+        long storageId = 1L;
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
-        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
+        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
 
-        given(reportGetUseCase.getWeeklyReportById(accountUuid, reportId))
+        given(reportGetUseCase.getWeeklyReportById(storageId, reportId))
                 .willReturn(response);
 
         // when
-        ResultActions result = mockMvc.perform(get("/api/core/reports/{report-id}", reportId)
+        ResultActions result = mockMvc.perform(get("/api/core/storages/{storage-id}/reports/{report-id}", storageId, reportId)
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.reportId").value(reportId))
                 .andExpect(jsonPath("$.data.organizationId").value(organizationId))
+                .andExpect(jsonPath("$.data.storageId").value(storageId))
                 .andExpect(jsonPath("$.data.reportType").value("WEEKLY"))
                 .andExpect(jsonPath("$.data.aiSummaryStatus").value("COMPLETED"))
                 .andExpect(jsonPath("$.data.aiSummary").value("AI Summary"));
     }
 
     @Test
-    @DisplayName("AI 요약 재시도 요청 시 갱신된 리포트 정보를 반환한다.")
+    @DisplayName("AI 요약 재시도 요청 시 204를 반환한다.")
     void retryAiSummary() throws Exception {
         // given
         UUID accountUuid = UUID.randomUUID();
         UserContext.setUserUuid(accountUuid);
 
         long reportId = 1L;
-        long organizationId = 1L;
-        LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
-        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), null, AiSummaryStatus.PENDING, LocalDateTime.now(), List.of());
-
-        given(reportRetrySummaryUseCase.execute(accountUuid, reportId))
-                .willReturn(response);
+        long storageId = 1L;
 
         // when
-        ResultActions result = mockMvc.perform(post("/api/core/reports/{report-id}/ai-summary/retry", reportId)
-                .contentType(MediaType.APPLICATION_JSON));
+        ResultActions result = mockMvc.perform(post("/api/core/storages/{storage-id}/reports/{report-id}/ai-summary/retry", storageId, reportId));
 
         // then
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.reportId").value(reportId))
-                .andExpect(jsonPath("$.data.aiSummaryStatus").value("PENDING"));
+        result.andExpect(status().isNoContent());
     }
 
     @Test
@@ -153,12 +149,13 @@ class ReportControllerTest extends SupportControllerTest {
         UserContext.setUserUuid(accountUuid);
 
         long reportId = 999L;
+        long storageId = 1L;
 
-        given(reportGetUseCase.getWeeklyReportById(accountUuid, reportId))
+        given(reportGetUseCase.getWeeklyReportById(storageId, reportId))
                 .willThrow(new com.nhnacademy.inventory.reports.report.exception.ReportNotFoundException());
 
         // when
-        ResultActions result = mockMvc.perform(get("/api/core/reports/{report-id}", reportId)
+        ResultActions result = mockMvc.perform(get("/api/core/storages/{storage-id}/reports/{report-id}", storageId, reportId)
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
@@ -167,7 +164,7 @@ class ReportControllerTest extends SupportControllerTest {
     }
 
     @Test
-    @DisplayName("기간 시작일로 주간 리포트를 조회하면 리포트 정보를 반환한다.")
+    @DisplayName("저장소 ID 및 기간 시작일로 주간 리포트를 조회하면 리포트 정보를 반환한다.")
     void getWeeklyReportByPeriodStart() throws Exception {
         // given
         UUID accountUuid = UUID.randomUUID();
@@ -175,14 +172,15 @@ class ReportControllerTest extends SupportControllerTest {
 
         long reportId = 1L;
         long organizationId = 1L;
+        long storageId = 1L;
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
-        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
+        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
 
-        given(reportGetUseCase.getWeeklyReportByPeriod(accountUuid, periodStart))
+        given(reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart))
                 .willReturn(response);
 
         // when
-        ResultActions result = mockMvc.perform(get("/api/core/reports/weekly")
+        ResultActions result = mockMvc.perform(get("/api/core/storages/{storage-id}/reports/weekly", storageId)
                 .param("periodStart", periodStart.toString())
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -190,6 +188,7 @@ class ReportControllerTest extends SupportControllerTest {
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.reportId").value(reportId))
                 .andExpect(jsonPath("$.data.organizationId").value(organizationId))
+                .andExpect(jsonPath("$.data.storageId").value(storageId))
                 .andExpect(jsonPath("$.data.reportType").value("WEEKLY"))
                 .andExpect(jsonPath("$.data.aiSummaryStatus").value("COMPLETED"));
     }

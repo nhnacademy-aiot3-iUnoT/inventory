@@ -4,12 +4,12 @@ import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.storage.domain.Storage;
+import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 import com.nhnacademy.inventory.reports.report.dto.ReportCreatedEvent;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
-import com.nhnacademy.inventory.reports.report.service.OrganizationMemberValidator;
 import com.nhnacademy.inventory.reports.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,24 +28,24 @@ import java.util.stream.Collectors;
 public class WeeklyReportCreateUseCase {
 
     private final ReportService reportService;
-    private final OrganizationMemberValidator memberValidator;
     private final StockTransactionService stockTransactionService;
     private final ApplicationEventPublisher eventPublisher;
+    private final StorageService storageService;
 
     // 주간 리포트를 생성한다. 이미 주간 리포트가 있으면 그걸 반환하고, 없으면 생성한다.
     @Transactional
-    public ReportInfoResponse execute(UUID accountUuid, LocalDate periodStart) {
-        OrganizationMember member = memberValidator.validateAndGet(accountUuid);
-        Long organizationId = member.getOrganization().getId();
+    public ReportInfoResponse execute(Long storageId, LocalDate periodStart) {
+        Storage storage = storageService.validateMemberAndGetStorage(storageId);
+        long organizationId = storage.getOrganization().getId();
 
-        Report report = reportService.find(organizationId, ReportType.WEEKLY, periodStart)
-                .orElseGet(() -> generate(organizationId, periodStart));
+        Report report = reportService.find(storageId, ReportType.WEEKLY, periodStart)
+                .orElseGet(() -> generate(organizationId, storage.getId(), periodStart));
 
         return ReportInfoResponse.of(report);
     }
 
-    private Report generate(Long organizationId, LocalDate periodStart) {
-        Report report = Report.weeklyOf(organizationId, periodStart);
+    private Report generate(Long organizationId, Long storageId, LocalDate periodStart) {
+        Report report = Report.weeklyOf(organizationId, storageId, periodStart);
 
         Report saved = reportService.register(report);
 
@@ -58,8 +57,8 @@ public class WeeklyReportCreateUseCase {
     }
 
     private void collectReportItems(Report report) {
-        List<StockTransaction> transactions = stockTransactionService.findTransactionsForReport(
-                report.getOrganizationId(),
+        List<StockTransaction> transactions = stockTransactionService.findTransactionsForStorageReport(
+                report.getStorageId(),
                 List.of(TransactionType.INBOUND, TransactionType.OUTBOUND, TransactionType.DISPOSAL),
                 report.getPeriodStart(),
                 report.getPeriodEnd());

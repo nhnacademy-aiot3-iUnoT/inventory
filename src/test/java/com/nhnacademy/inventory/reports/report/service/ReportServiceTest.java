@@ -43,21 +43,6 @@ class ReportServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 리포트를 ID와 조직 ID로 조회하면 ReportNotFoundException이 발생한다.")
-    void getReportWithIdAndOrganizationId_WhenNotExists_ThrowsException() {
-        // given
-        long reportId = 1L;
-        long organizationId = 1L;
-
-        given(reportRepository.findByIdAndOrganizationId(reportId, organizationId))
-                .willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> reportService.getReport(reportId, organizationId))
-                .isInstanceOf(ReportNotFoundException.class);
-    }
-
-    @Test
     @DisplayName("존재하지 않는 리포트의 AI 요약을 업데이트하면 ReportNotFoundException이 발생한다.")
     void updateSummary_WhenNotExists_ThrowsException() {
         // given

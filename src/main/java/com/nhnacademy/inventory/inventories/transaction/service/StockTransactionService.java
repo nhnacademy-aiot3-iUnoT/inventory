@@ -44,9 +44,9 @@ public class StockTransactionService {
         return stockTransactionRepository.searchByCondition(zoneId, condition, pageable);
     }
 
-    public List<StockTransaction> findTransactionsForReport(Long organizationId, List<TransactionType> types, LocalDate start, LocalDate end) {
-        return stockTransactionRepository.findAllForReport(
-                organizationId,
+    public List<StockTransaction> findTransactionsForStorageReport(Long storageId, List<TransactionType> types, LocalDate start, LocalDate end) {
+        return stockTransactionRepository.findTransactionsForStorageReport(
+                storageId,
                 types,
                 start.atStartOfDay(),
                 end.plusDays(1).atStartOfDay());

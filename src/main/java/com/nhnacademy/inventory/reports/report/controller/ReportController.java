@@ -1,7 +1,6 @@
 package com.nhnacademy.inventory.reports.report.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.reports.report.dto.ReportCreateRequest;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
 import com.nhnacademy.inventory.reports.report.usecase.ReportCreateFacade;
@@ -14,57 +13,52 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/core")
+@RequestMapping("/api/core/storages/{storage-id}/reports")
 @RequiredArgsConstructor
 public class ReportController {
     private final ReportCreateFacade reportCreateFacade;
     private final ReportGetUseCase reportGetUseCase;
     private final ReportRetrySummaryUseCase reportRetrySummaryUseCase;
 
-    @GetMapping("/reports/weekly")
+    @GetMapping("/weekly")
     public ResponseEntity<ApiResponse<ReportInfoResponse>> getWeeklyReport(
+            @PathVariable(name = "storage-id") Long storageId,
             @RequestParam(name = "periodStart") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate periodStart
     ) {
-        UUID accountUuid = UserContext.getUserUuid();
-
-        ReportInfoResponse response = reportGetUseCase.getWeeklyReportByPeriod(accountUuid, periodStart);
+        ReportInfoResponse response = reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/reports/weekly")
+    @PostMapping("/weekly")
     public ResponseEntity<ApiResponse<ReportInfoResponse>> createWeeklyReport(
+            @PathVariable(name = "storage-id") Long storageId,
             @Valid @RequestBody ReportCreateRequest request
     ) {
-        UUID accountUuid = UserContext.getUserUuid();
-
-        ReportInfoResponse response = reportCreateFacade.createWeeklyReport(accountUuid, request.periodStart());
+        ReportInfoResponse response = reportCreateFacade.createWeeklyReport(storageId, request.periodStart());
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @GetMapping("/reports/{report-id}")
+    @GetMapping("/{report-id}")
     public ResponseEntity<ApiResponse<ReportInfoResponse>> getReport(
+            @PathVariable(name = "storage-id") Long storageId,
             @PathVariable(name = "report-id") Long reportId
     ) {
-        UUID accountUuid = UserContext.getUserUuid();
-
-        ReportInfoResponse response = reportGetUseCase.getWeeklyReportById(accountUuid, reportId);
+        ReportInfoResponse response = reportGetUseCase.getWeeklyReportById(storageId, reportId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/reports/{report-id}/ai-summary/retry")
-    public ResponseEntity<ApiResponse<ReportInfoResponse>> retryAiSummary(
+    @PostMapping("/{report-id}/ai-summary/retry")
+    public ResponseEntity<Void> retryAiSummary(
+            @PathVariable(name = "storage-id") Long storageId,
             @PathVariable(name = "report-id") Long reportId
     ) {
-        UUID accountUuid = UserContext.getUserUuid();
+        reportRetrySummaryUseCase.execute(storageId, reportId);
 
-        ReportInfoResponse response = reportRetrySummaryUseCase.execute(accountUuid, reportId);
-
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,6 @@
 package com.nhnacademy.inventory.reports.report.dto;
 
-import com.nhnacademy.inventory.reports.report.dto.validator.PastWeekMonday;
+import com.nhnacademy.inventory.reports.report.validator.PastWeekMonday;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;

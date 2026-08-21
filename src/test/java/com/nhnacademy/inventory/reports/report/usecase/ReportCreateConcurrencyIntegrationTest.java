@@ -5,6 +5,8 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
+import com.nhnacademy.inventory.organizations.storage.domain.Storage;
+import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
 import com.nhnacademy.inventory.reports.report.repository.ReportRepository;
 import com.nhnacademy.inventory.reports.report.service.ReportSummaryService;
@@ -44,14 +46,21 @@ class ReportCreateConcurrencyIntegrationTest {
     @Autowired
     private OrganizationMemberRepository organizationMemberRepository;
 
+    @Autowired
+    private StorageRepository storageRepository;
+
     private ExecutorService threadPool;
 
     private UUID accountUuid;
+
+    private long storageId;
 
     @BeforeEach
     void setUp() {
         Organization organization = organizationRepository.save(Organization.create("1000010000", "테스트"));
         OrganizationMember member = TestFixtures.createOrganizationMember(organization);
+        Storage storage = storageRepository.save(TestFixtures.createStorage(organization));
+        storageId = storage.getId();
         accountUuid = member.getAccountUuid();
         organizationMemberRepository.save(member);
     }
@@ -59,6 +68,7 @@ class ReportCreateConcurrencyIntegrationTest {
     @AfterEach
     void tearDown() {
         reportRepository.deleteAllInBatch();
+        storageRepository.deleteAllInBatch();
         organizationMemberRepository.deleteAllInBatch();
         organizationRepository.deleteAllInBatch();
 
@@ -93,7 +103,7 @@ class ReportCreateConcurrencyIntegrationTest {
                 }
 
                 try {
-                    return reportCreateFacade.createWeeklyReport(accountUuid, LocalDate.of(2026, Month.AUGUST, 10));
+                    return reportCreateFacade.createWeeklyReport(storageId, LocalDate.of(2026, Month.AUGUST, 10));
                 } finally {
                     UserContext.clear();
                 }
