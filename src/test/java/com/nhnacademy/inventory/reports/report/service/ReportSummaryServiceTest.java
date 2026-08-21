@@ -9,7 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
@@ -23,8 +23,8 @@ class ReportSummaryServiceTest {
     private ReportSummaryService reportSummaryService;
 
     @Test
-    @DisplayName("리포트 생성 중 예외가 발생하면 빈 문자열을 반환한다.")
-    void generateSummary_WhenOccurException_ReturnsEmptyString() {
+    @DisplayName("리포트 생성 중 예외가 발생하면 예외 처리를 유스케이스로 위임한다.")
+    void generateSummary_WhenOccurException_DoesNothing() {
         // given
         given(chatClientBuilder.build()
                 .prompt()
@@ -34,11 +34,8 @@ class ReportSummaryServiceTest {
                 .content())
                 .willThrow(new RuntimeException("API 에러"));
 
-        // when
-        String result = reportSummaryService.generateSummary("텍스트");
-
-        // then
-        assertThat(result)
-                .isEmpty();
+        // when & then
+        assertThatThrownBy(() -> reportSummaryService.generateSummary("텍스트"))
+                .isInstanceOf(RuntimeException.class);
     }
 }

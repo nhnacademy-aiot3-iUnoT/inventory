@@ -30,9 +30,15 @@ public class ReportSummaryUseCase {
 
         try {
             String summary = reportSummaryService.generateSummary(toPromptText(report));
+
+            if (summary == null || summary.isBlank()) {
+                log.warn("AI 요약 결과가 비어 있음: {}", reportId);
+                reportService.failSummary(reportId);
+            }
+
             reportService.updateSummary(reportId, summary);
         } catch (Exception e) {
-            log.warn("AI 요약 생성 실패 reportId={}", reportId, e);
+            log.error("AI 요약 생성 실패 reportId={}", reportId, e);
             reportService.failSummary(reportId);
         }
     }
