@@ -23,15 +23,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
         SELECT r
         FROM Report r
         LEFT JOIN FETCH r.reportItems
-        WHERE r.id = :reportId AND r.organizationId = :organizationId
-        """)
-    Optional<Report> findByIdAndOrganizationId(
-            @Param("reportId") Long reportId, @Param("organizationId") Long organizationId);
-
-    @Query("""
-        SELECT r
-        FROM Report r
-        LEFT JOIN FETCH r.reportItems
         WHERE r.id = :reportId AND r.storageId = :storageId
         """)
     Optional<Report> findByIdAndStorageId(
@@ -47,7 +38,4 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             @Param("storageId") Long storageId,
             @Param("reportType") ReportType reportType,
             @Param("periodStart") LocalDate periodStart);
-
-    Optional<Report> findByStorageIdAndReportTypeAndPeriodStart(
-            Long storageId, ReportType reportType, LocalDate periodStart);
 }
