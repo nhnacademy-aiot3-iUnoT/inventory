@@ -35,21 +35,15 @@ public class ReportSummaryService {
         """;
 
     public String generateSummary(String reportText) {
+        String summary = chatClientBuilder.build()
+                .prompt()
+                .system(PROMPT)
+                .user(reportText)
+                .call()
+                .content();
 
-        try {
-            String summary = chatClientBuilder.build()
-                    .prompt()
-                    .system(PROMPT)
-                    .user(reportText)
-                    .call()
-                    .content();
+        log.info("생성된 리포트 요약: {}", summary);
 
-            log.info("생성된 리포트 요약: {}", summary);
-
-            return summary;
-        } catch (Exception e) {
-            log.warn("리포트 AI 요약 생성 실패", e);
-            return "";
-        }
+        return summary;
     }
 }

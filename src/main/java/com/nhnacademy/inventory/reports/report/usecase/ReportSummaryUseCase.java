@@ -32,7 +32,7 @@ public class ReportSummaryUseCase {
             String summary = reportSummaryService.generateSummary(toPromptText(report));
             reportService.updateSummary(reportId, summary);
         } catch (Exception e) {
-            log.error("AI 요약 생성 실패 reportId={}", reportId, e);
+            log.warn("AI 요약 생성 실패 reportId={}", reportId, e);
             reportService.failSummary(reportId);
         }
     }
