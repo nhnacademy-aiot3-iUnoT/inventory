@@ -36,4 +36,21 @@ public interface StorageDepartmentRepository extends JpaRepository<StorageDepart
 
     Optional<StorageDepartment> findByDepartmentId(Long departmentId);
 
+
+    @Modifying
+    @Query("delete from StorageDepartment sd " +
+            "where sd.department.id = :departmentId")
+    void deleteByDepartmentId(Long departmentId);
+
+    List<StorageDepartment> findAllByDepartmentId(Long departmentId);
+    List<StorageDepartment> findAllByStorageId(Long storageId);
+    boolean existsByDepartmentIdAndStorageId(Long departmentId, Long storageId);
+
+    @Modifying
+    @Query("""
+        delete from StorageDepartment sd
+        where sd.department.id = :departmentId
+          and sd.storage.id = :storageId
+    """)
+    void deleteByDepartmentIdAndStorageId(Long departmentId, Long storageId);
 }
