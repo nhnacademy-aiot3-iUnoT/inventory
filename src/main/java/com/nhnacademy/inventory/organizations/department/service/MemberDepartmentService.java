@@ -1,13 +1,16 @@
 package com.nhnacademy.inventory.organizations.department.service;
 
+import com.nhnacademy.inventory.global.client.AccountClient;
+import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.organizations.department.domain.Department;
 import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
+import com.nhnacademy.inventory.organizations.department.dto.request.MemberDepartmentAssignRequest;
 import com.nhnacademy.inventory.organizations.department.dto.response.DepartmentListResponse;
-import com.nhnacademy.inventory.organizations.department.dto.request.MemberDepartmentUpdateRequest;
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentNotFoundException;
 import com.nhnacademy.inventory.organizations.department.repository.DepartmentRepository;
 import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
@@ -15,10 +18,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +32,48 @@ public class MemberDepartmentService {
     private final OrganizationMemberService orgMemberService;
     private final OrganizationAccessService orgAccessService;
     private final DepartmentRepository departmentRepository;
+    private final AccountClient accountClient;
+
+    /**
+     * 부서에 속한 조직원 목록
+     */
+    public List<OrganizationMemberResponse> getDepartmentMembers(Long departmentId) {
+        Organization organization = orgAccessService.getCurrentMember().getOrganization();
+        validateDepartment(departmentId, organization.getId());
+
+        List<OrganizationMember> members = memberDepartmentRepository.findAllByDepartmentId(departmentId).stream()
+                .map(MemberDepartment::getOrganizationMember).toList();
+
+        Map<UUID, String> emails = getEmailMap(members);
+
+        return members.stream()
+                .map(member -> new OrganizationMemberResponse(
+                        member.getId(), emails.get(member.getAccountUuid()),
+                        member.getOrganizationRole(), member.getJoinedAt()))
+                .toList();
+    }
+
+    @Transactional
+    public void addMember(Long departmentId, Long memberId) {
+        Organization organization = orgAccessService.requireOwnerOrBossOrganization();
+        Department department = validateDepartment(departmentId, organization.getId());
+
+        OrganizationMember member = orgMemberService.getMemberById(memberId, organization.getId());
+
+        if (!memberDepartmentRepository.existsByDepartmentIdAndOrganizationMemberId(departmentId, memberId)) {
+            memberDepartmentRepository.save(MemberDepartment.create(member, department));
+        }
+
+    }
+
+    @Transactional
+    public void removeMember(Long departmentId, Long memberId) {
+        Organization organization = orgAccessService.requireOwnerOrBossOrganization();
+        validateDepartment(departmentId, organization.getId());
+
+        OrganizationMember member = orgMemberService.getMemberById(memberId, organization.getId());
+        memberDepartmentRepository.deleteByDepartmentIdAndOrganizationMemberId(departmentId, member.getId());
+    }
 
     public List<DepartmentListResponse> getMyDepartments() {
         OrganizationMember member = orgAccessService.getCurrentMember();
@@ -42,48 +86,42 @@ public class MemberDepartmentService {
                 .toList();
     }
 
-    public List<DepartmentListResponse> getMemberDepartments(Long memberId) {
-        Organization organization = orgAccessService.requireOwnerOrBossOrganization();
-        OrganizationMember member = orgMemberService.getMemberById(memberId, organization.getId());
-
-        return memberDepartmentRepository
-                .findAllByOrganizationMemberId(member.getId())
-                .stream()
-                .map(MemberDepartment::getDepartment)
-                .map(DepartmentListResponse::from)
-                .toList();
-    }
-
     @Transactional
-    public void updateMemberDepartments(Long memberId, MemberDepartmentUpdateRequest request) {
+    public void assignMemberDepartments(Long memberId, MemberDepartmentAssignRequest request) {
         Organization organization = orgAccessService.requireOwnerOrBossOrganization();
         OrganizationMember member = orgMemberService.getMemberById(memberId, organization.getId());
 
-        // 사용자가 선택한 부서 ID 목록
-        Set<Long> requestedDepartmentIds = request.departmentIds() == null ? Set.of() : new HashSet<>(request.departmentIds());
+        List<Long> departmentIds = request.departmentIds() == null
+                ? List.of()
+                : request.departmentIds().stream().distinct().toList();
 
-        List<Department> requestedDepartments = requestedDepartmentIds.isEmpty() ? List.of()
-                : departmentRepository.findAllByIdInAndOrganizationId(List.copyOf(requestedDepartmentIds), organization.getId());
+        List<Department> departments = departmentRepository.findAllByIdInAndOrganizationId(
+                departmentIds, organization.getId());
 
-        // 조직에 존재하지 않는 부서가 포함되어 있음
-        if (requestedDepartments.size() != requestedDepartmentIds.size()) {
+        if (departments.size() != departmentIds.size()) {
             throw new DepartmentNotFoundException();
         }
 
-        List<MemberDepartment> currentAssignments = memberDepartmentRepository.findAllByOrganizationMemberId(member.getId());
-        // 기존 배정 부서 중 선택에서 제외된 부서 연결 제거
-        memberDepartmentRepository.deleteAll(currentAssignments.stream()
-                .filter(assignment -> !requestedDepartmentIds.contains(assignment.getDepartment().getId()))
-                .toList());
-
-        Set<Long> existingDepartmentIds = currentAssignments.stream()
-                .map(assignment -> assignment.getDepartment().getId())
-                .collect(Collectors.toSet());
-
-        // 새로 선택된 부서만 연결 생성
-        memberDepartmentRepository.saveAll(requestedDepartments.stream()
-                .filter(department -> !existingDepartmentIds.contains(department.getId()))
+        memberDepartmentRepository.deleteByOrganizationMemberId(memberId);
+        memberDepartmentRepository.saveAll(departments.stream()
                 .map(department -> MemberDepartment.create(member, department))
                 .toList());
+    }
+
+    private Department validateDepartment(Long departmentId, Long organizationId) {
+        return departmentRepository.findByIdAndOrganizationId(departmentId, organizationId)
+                .orElseThrow(DepartmentNotFoundException::new);
+    }
+
+    private Map<UUID, String> getEmailMap(List<OrganizationMember> members) {
+        if (members.isEmpty()) {
+            return Map.of();
+        }
+
+        return accountClient.findByUuids(members.stream()
+                        .map(OrganizationMember::getAccountUuid)
+                        .toList())
+                .stream()
+                .collect(Collectors.toMap(AccountResponse::accountUuid, AccountResponse::email));
     }
 }

@@ -23,6 +23,16 @@ public interface MemberDepartmentRepository extends JpaRepository<MemberDepartme
 
     void deleteByOrganizationMemberId(Long organizationMemberId);
 
+    @Modifying
+    @Query("delete from MemberDepartment md " +
+            "where md.department.id = :departmentId")
+    void deleteByDepartmentId(Long departmentId);
+
+    void deleteByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
+
     List<MemberDepartment> findAllByOrganizationMemberId(Long organizationMemberId);
+    List<MemberDepartment> findAllByDepartmentId(Long departmentId);
+
+    boolean existsByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 
 }
