@@ -15,6 +15,14 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReportEnvironmentStat {
 
+    // 온도, 습도, 조도 같은 측정값의 자릿수
+    private static final int MEASURE_PRECISION = 10;
+    private static final int MEASURE_SCALE = 2;
+
+    // 이탈 비율(0.0~1.0)의 자릿수
+    private static final int RATIO_PRECISION = 5;
+    private static final int RATIO_SCALE = 4;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "report_environment_stat_id")
@@ -37,24 +45,23 @@ public class ReportEnvironmentStat {
     @Column(name = "unit", length = 20)
     private String unit;
 
-    @Column(name = "avg_value", nullable = false)
+    @Column(name = "avg_value", nullable = false, precision = MEASURE_PRECISION, scale = MEASURE_SCALE)
     private BigDecimal avgValue;
 
-    @Column(name = "min_value", nullable = false)
+    @Column(name = "min_value", nullable = false, precision = MEASURE_PRECISION, scale = MEASURE_SCALE)
     private BigDecimal minValue;
 
-    @Column(name = "max_value", nullable = false)
+    @Column(name = "max_value", nullable = false, precision = MEASURE_PRECISION, scale = MEASURE_SCALE)
     private BigDecimal maxValue;
 
     // null은 임계값 미설정을 뜻함, 한쪽 경계만 설정된 구역이 있어 각각 null일 수 있음
-    @Column(name = "threshold_min")
+    @Column(name = "threshold_min", precision = MEASURE_PRECISION, scale = MEASURE_SCALE)
     private BigDecimal thresholdMin;
 
-    @Column(name = "threshold_max")
+    @Column(name = "threshold_max", precision = MEASURE_PRECISION, scale = MEASURE_SCALE)
     private BigDecimal thresholdMax;
 
-    // null은 임계값이 없거나 표본이 없다는 뜻이다. 이탈 0%와 구분해야 한다.
-    @Column(name = "out_of_range_ratio")
+    @Column(name = "out_of_range_ratio", precision = RATIO_PRECISION, scale = RATIO_SCALE)
     private BigDecimal outOfRangeRatio;
 
     private ReportEnvironmentStat(
@@ -92,7 +99,6 @@ public class ReportEnvironmentStat {
         );
     }
 
-    // null은 "설정되지 않음"이라는 정보이므로 0으로 채우지 않고 그대로 둠
     private static BigDecimal toBigDecimal(Double value) {
         return (value != null) ? BigDecimal.valueOf(value) : null;
     }

@@ -2,6 +2,8 @@ package com.nhnacademy.inventory.reports.report.usecase;
 
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
+import com.nhnacademy.inventory.reports.environment.service.ReportEnvironmentAggregator;
+import com.nhnacademy.inventory.reports.environment.service.ReportEnvironmentService;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
@@ -30,6 +33,12 @@ class ReportGetUseCaseTest {
 
     @Mock
     private StorageService storageService;
+
+    @Mock
+    private ReportEnvironmentService reportEnvironmentService;
+
+    @Spy
+    private ReportEnvironmentAggregator reportEnvironmentAggregator = new ReportEnvironmentAggregator();
 
     @InjectMocks
     private ReportGetUseCase reportGetUseCase;

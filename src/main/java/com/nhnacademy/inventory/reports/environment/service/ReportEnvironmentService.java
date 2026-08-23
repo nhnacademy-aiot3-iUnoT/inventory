@@ -17,13 +17,20 @@ public class ReportEnvironmentService {
     private final ReportEnvironmentStatRepository statRepository;
     private final ReportEnvironmentDoorStatRepository doorStatRepository;
 
-    /**
-     * 센서 통계와 문 통계를 한 트랜잭션으로 저장한다.
-     * 둘이 따로 커밋되면 센서만 저장된 반쪽 상태가 남을 수 있다.
-     */
+    // 환경 통계와 문열림 통계를 하나의 트랜잭션으로 저장
     @Transactional
     public void registerAll(List<ReportEnvironmentStat> stats, List<ReportEnvironmentDoorStat> doorStats) {
         statRepository.saveAll(stats);
         doorStatRepository.saveAll(doorStats);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReportEnvironmentStat> getStats(Long reportId) {
+        return statRepository.findAllByReportId(reportId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReportEnvironmentDoorStat> getDoorStats(Long reportId) {
+        return doorStatRepository.findAllByReportId(reportId);
     }
 }
