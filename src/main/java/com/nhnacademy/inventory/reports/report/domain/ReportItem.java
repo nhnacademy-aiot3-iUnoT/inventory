@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "report_items")
@@ -21,6 +23,7 @@ public class ReportItem {
     @JoinColumn(name = "report_id", nullable = false)
     private Report report;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
     @Column(name = "report_item_type", length = 30, nullable = false)
     private ReportItemType reportItemType;
