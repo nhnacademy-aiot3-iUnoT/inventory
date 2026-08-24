@@ -1,8 +1,10 @@
 package com.nhnacademy.inventory.organizations.storage.service;
 
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.organizations.department.domain.Department;
+import com.nhnacademy.inventory.organizations.department.repository.StorageDepartmentRepository;
+import com.nhnacademy.inventory.organizations.department.service.DepartmentService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
@@ -34,6 +36,10 @@ class StorageServiceTest {
     private StorageRepository storageRepository;
     @Mock
     private OrganizationMemberRepository memberRepository;
+    @Mock
+    private DepartmentService departmentService;
+    @Mock
+    private StorageDepartmentRepository storageDepartmentRepository;
 
     @InjectMocks
     private StorageService storageService;
@@ -41,6 +47,7 @@ class StorageServiceTest {
     private Organization organization;
     private OrganizationMember approvedMember;
     private Storage storage;
+    private Department department;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -52,18 +59,23 @@ class StorageServiceTest {
 
         storage = TestFixtures.createStorage(organization, "테스트 저장소1");
         setId(storage, 111L);
+
+        department = Department.create(organization, "테스트 부서", "테스트 설명");
+        setId(department, 1111L);
     }
 
     @Test
     @DisplayName("저장소 정상 생성 테스트")
     void createStorage() {
-        StorageCreateRequest request = new StorageCreateRequest("테스트 저장소2", "테스트 설명");
+        StorageCreateRequest request = new StorageCreateRequest("테스트 저장소2", "테스트 설명", List.of(1111L));
 
         given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid())).willReturn(Optional.of(approvedMember));
-        given(storageRepository.save(any(Storage.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
         given(storageRepository.existsByOrganizationAndNameAndStatusNot(organization, request.name(), StorageStatus.CLOSED))
                 .willReturn(false);
+        given(storageRepository.save(any(Storage.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+        given(departmentService.getDepartmentById(1111L, organization.getId()))
+                .willReturn(department);
 
         UserContext.setUserUuid(approvedMember.getAccountUuid());
 
@@ -79,8 +91,8 @@ class StorageServiceTest {
         );
 
         verify(storageRepository).save(any(Storage.class));
-        verify(memberRepository).findByAccountUuid(any());
-        verify(storageRepository).existsByOrganizationAndNameAndStatusNot(any(), anyString(), any());
+        verify(storageDepartmentRepository).saveAll(anyList());
+
     }
 
     @Test

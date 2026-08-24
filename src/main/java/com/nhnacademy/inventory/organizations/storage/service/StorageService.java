@@ -2,6 +2,10 @@ package com.nhnacademy.inventory.organizations.storage.service;
 
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.organizations.department.domain.Department;
+import com.nhnacademy.inventory.organizations.department.domain.StorageDepartment;
+import com.nhnacademy.inventory.organizations.department.repository.StorageDepartmentRepository;
+import com.nhnacademy.inventory.organizations.department.service.DepartmentService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
@@ -17,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +32,8 @@ import java.util.Objects;
 public class StorageService {
     private final StorageRepository storageRepository;
     private final OrganizationMemberRepository memberRepository;
+    private final DepartmentService departmentService;
+    private final StorageDepartmentRepository storageDepartmentRepository;
 
     @Transactional
     public StorageDetailResponse createStorage(StorageCreateRequest request){
@@ -42,6 +49,20 @@ public class StorageService {
                 .build();
 
         Storage saved = storageRepository.save(storage);
+
+        List<StorageDepartment> storageDepartments = request.departmentIds() == null ? Collections.emptyList() :
+                request.departmentIds().stream()
+                        .map(departmentId -> {
+                            Department department = departmentService.getDepartmentById(departmentId, organization.getId());
+                            return StorageDepartment.builder()
+                                    .storage(saved)
+                                    .department(department)
+                                    .build();
+                        })
+                        .toList();
+
+        storageDepartmentRepository.saveAll(storageDepartments);
+
         return StorageDetailResponse.from(saved);
     }
 

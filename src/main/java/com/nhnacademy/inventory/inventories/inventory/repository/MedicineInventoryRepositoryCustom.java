@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.repository;
 
+import com.nhnacademy.inventory.inventories.expiration.dto.ExpiringInventoryResponse;
+import com.nhnacademy.inventory.inventories.expiration.dto.ExpiringInventorySearchRequest;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoryInfoResponse;
@@ -26,4 +28,9 @@ public interface MedicineInventoryRepositoryCustom {
 
 
 
+    Page<ExpiringInventoryResponse> findExpiringInventories(
+            Long organizationId,
+            ExpiringInventorySearchRequest request,
+            Pageable pageable
+    );
 }

@@ -32,4 +32,5 @@ public interface StorageRepository extends JpaRepository<Storage, Long> {
 
 
 
+    List<Storage> findAllByOrganizationAndStatus(Organization organization, StorageStatus status);
 }

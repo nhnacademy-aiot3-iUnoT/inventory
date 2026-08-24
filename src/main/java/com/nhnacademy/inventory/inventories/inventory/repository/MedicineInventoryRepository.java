@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.inventories.inventory.repository;
 
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
+import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,9 +10,10 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 
+import java.time.LocalDate;
+
 
 public interface MedicineInventoryRepository extends JpaRepository<MedicineInventory, Long>, MedicineInventoryRepositoryCustom{
-
 
 
     @Query("""
@@ -26,5 +28,7 @@ public interface MedicineInventoryRepository extends JpaRepository<MedicineInven
 
 
 
+    long countByZone_StorageAndExpirationDateBefore(Storage zoneStorage, LocalDate expirationDateBefore);
 
+    long countByZone_StorageAndExpirationDateBetween(Storage zoneStorage, LocalDate expirationDateAfter, LocalDate expirationDateBefore);
 }
