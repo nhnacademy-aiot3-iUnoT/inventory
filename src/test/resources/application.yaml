@@ -14,6 +14,10 @@ spring:
   mail:
     host: localhost
     port: 1025
+  ai:
+    google:
+      genai:
+        api-key: dummy
 
 eureka:
   client:
@@ -43,3 +47,5 @@ app:
 clients:
   account:
     base-url: ${ACCOUNT_BASE_URL:http://localhost:10413}
+  rule-engine:
+    base-url: ${RULE_ENGINE_BASE_URL:http://localhost:10406}

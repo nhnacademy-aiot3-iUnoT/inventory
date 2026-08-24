@@ -2,11 +2,13 @@ package com.nhnacademy.inventory.organizations.member.service;
 
 import com.nhnacademy.inventory.global.client.AccountClient;
 import com.nhnacademy.inventory.global.dto.account.AccountResponse;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationMemberSearchRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRoleUpdateRequest;
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
+import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberRoleResponse;
 import com.nhnacademy.inventory.organizations.member.exception.OrgMemberNotFoundException;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -55,6 +57,13 @@ public class OrganizationMemberService {
                 .orElseThrow(UserOrgNotFoundException::new);
 
         orgMemberRepository.delete(member);
+    }
+
+    public OrganizationMemberRoleResponse getRole(){
+        OrganizationMember member = orgMemberRepository.findByAccountUuid(UserContext.getUserUuid())
+                .orElseThrow(UserOrgNotFoundException::new);
+
+        return new OrganizationMemberRoleResponse(member.getOrganizationRole());
     }
 
     /**

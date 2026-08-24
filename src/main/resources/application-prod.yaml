@@ -8,6 +8,8 @@ eureka:
 clients:
   account:
     base-url: ${ACCOUNT_BASE_URL:http://account}
+  rule-engine:
+    base-url: ${RULE_ENGINE_BASE_URL:http://rule-engine}
 
 logging:
   level:
@@ -29,4 +31,4 @@ app:
 
 security:
   jwt:
-    jwk-set-uri: https://iunot.cloud/.well-known/jwks.json
+    jwk-set-uri: http://team1-account-1:10413/.well-known/jwks.json
