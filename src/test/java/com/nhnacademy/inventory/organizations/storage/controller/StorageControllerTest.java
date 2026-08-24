@@ -49,7 +49,7 @@ class StorageControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            StorageCreateRequest request = new StorageCreateRequest("테스트 저장소" , "테스트 설명");
+            StorageCreateRequest request = new StorageCreateRequest("테스트 저장소" , "테스트 설명", List.of(1111L));
             StorageDetailResponse response = new StorageDetailResponse(
                     1L, 11L,
                     "테스트 조직", "테스트 저장소", "테스트 설명",
@@ -72,7 +72,9 @@ class StorageControllerTest extends SupportControllerTest {
                     .andDo(document("storage-create",
                             requestFields(
                                     fieldWithPath("name").description("생성할 저장소 이름(필수)"),
-                                    fieldWithPath("description").description("생성할 저장소 설명(선택)").optional()
+                                    fieldWithPath("description").description("생성할 저장소 설명(선택)").optional(),
+                                    fieldWithPath("departmentIds").description("부서 ID 리스트"),
+                                    fieldWithPath("departmentIds[]").description("부서 ID")
                             ),
                             responseFields(
                                     responseFields
@@ -83,7 +85,7 @@ class StorageControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("실패 - 잘못된 입력")
         void fail_InvalidInput() throws Exception {
-            StorageCreateRequest request = new StorageCreateRequest("" , "테스트 설명");
+            StorageCreateRequest request = new StorageCreateRequest("" , "테스트 설명", List.of(1111L));
 
             mockMvc.perform(post("/api/core/storages")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -95,7 +97,7 @@ class StorageControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("실패 - 권한 없음")
         void fail_Forbidden() throws Exception {
-            StorageCreateRequest request = new StorageCreateRequest("테스트 저장소" , "테스트 설명");
+            StorageCreateRequest request = new StorageCreateRequest("테스트 저장소" , "테스트 설명", List.of(1111L));
 
             given(storageService.createStorage(request))
                     .willThrow(new ForbiddenException());
@@ -110,7 +112,7 @@ class StorageControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("실패 - 중복 이름")
         void fail_DuplicationName() throws Exception {
-            StorageCreateRequest request = new StorageCreateRequest("테스트 저장소" , "테스트 설명");
+            StorageCreateRequest request = new StorageCreateRequest("테스트 저장소" , "테스트 설명", List.of(1111L));
 
             given(storageService.createStorage(request))
                     .willThrow(new StorageNameAlreadyExistsException());
