@@ -58,20 +58,15 @@ public class InventoryService {
 
        Page<InventoryResponse> result = inventoryRepository.findByZonesAndPackUnitId(zoneIds,packUnitId,pageable);
 
-
        if(result.isEmpty()){
-
            throw new InventoryNotFoundException();
-
        }
-
 
         Page<InventoryDetailResponse> page = result.map(i ->
                 InventoryDetailResponse.from(i)
                 );
 
         InventoryResponse first = result.getContent().getFirst();
-
         InventoryInfoResponse info = InventoryInfoResponse.from(first, PageResponse.from(page));
 
         log.info("inventory info response : {}",info);

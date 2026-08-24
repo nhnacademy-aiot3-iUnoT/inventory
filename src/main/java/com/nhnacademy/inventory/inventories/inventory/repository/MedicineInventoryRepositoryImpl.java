@@ -318,6 +318,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     }
 
 
+    // 상세 조회
     @Override
     public Page<InventoryResponse> findByZonesAndPackUnitId(List<Long> zoneIds, Long packUnitId,Pageable pageable) {
 
