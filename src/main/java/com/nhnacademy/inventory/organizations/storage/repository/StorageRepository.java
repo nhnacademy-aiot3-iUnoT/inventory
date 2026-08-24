@@ -26,4 +26,6 @@ public interface StorageRepository extends JpaRepository<Storage, Long> {
         where s.organization.id = :organizationId
     """)
     void closeByOrganizationId(Long organizationId);
+
+    List<Storage> findAllByOrganizationAndStatus(Organization organization, StorageStatus status);
 }
