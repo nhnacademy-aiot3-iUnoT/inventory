@@ -15,6 +15,8 @@ public interface StorageRepository extends JpaRepository<Storage, Long> {
 
     Optional<Storage> findByIdAndOrganization(Long id, Organization organization);
 
+    List<Storage> findAllByOrganizationId(Long organizationId);
+
     boolean existsByOrganizationAndNameAndStatusNotAndIdNot(Organization organization, String name, StorageStatus status, Long id);
 
     boolean existsByOrganizationAndNameAndStatusNot(Organization organization, String name, StorageStatus status);
@@ -26,6 +28,9 @@ public interface StorageRepository extends JpaRepository<Storage, Long> {
         where s.organization.id = :organizationId
     """)
     void closeByOrganizationId(Long organizationId);
+
+
+
 
     List<Storage> findAllByOrganizationAndStatus(Organization organization, StorageStatus status);
 }

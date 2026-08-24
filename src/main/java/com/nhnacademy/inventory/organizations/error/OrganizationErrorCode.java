@@ -50,11 +50,21 @@ public enum OrganizationErrorCode implements ErrorCode {
 
     // 부서 에러코드
     DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "부서를 찾을 수 없습니다."),
-    DEPARTMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "D002", "이미 존재하는 부서 입니다.");
+    DEPARTMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "D002", "이미 존재하는 부서 입니다."),
+
+
+    // 멤버-부서
+    MEMBER_DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"MD001","부서내 멤버를 찾을 수 없습니다."),
+
+
+    //저장소-부서
+    STORAGE_DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"SD001","부서와 해당하는 저장소를 찾을 수 없습니다.");
+
 
     private final HttpStatus status;
     private final String code;
     private final String message;
+
 
     @Override
     public HttpStatus getStatus() {

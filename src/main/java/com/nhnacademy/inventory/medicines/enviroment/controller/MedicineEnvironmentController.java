@@ -20,6 +20,7 @@ public class MedicineEnvironmentController {
     private final EnvironmentTypeSearchService environmentTypeSearchService;
     private final MedicineEnvironmentService medicineEnvironmentService;
 
+
     // 환경기준 조회
     @GetMapping("/package-units/{package-unit-id}/medicine-environment-types")
     public ResponseEntity<ApiResponse<List<MedicineEnvironmentTypeResponse>>> getEnvironmentTypes(
