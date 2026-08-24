@@ -51,10 +51,10 @@ public class InventoryController {
     }
 
     // 상세 재고 조회
-    @GetMapping("/storages/{storage-id}/package-units/{medicine-package-unit-id}")
-    public ResponseEntity<ApiResponse<PageResponse<InventoryInfoResponse>>> getInventoryInfo(@PathVariable(name = "storage-id")Long storageId,
-                                                                                                   @PathVariable(name = "medicine-package-unit-id")Long packUnitId,
-                                                                                                   Pageable pageable
+    @GetMapping("/storages/{storage-id}/pack-units/{medicine-package-unit-id}")
+    public ResponseEntity<ApiResponse<InventoryInfoResponse>> getInventoryInfo(@PathVariable(name = "storage-id")Long storageId,
+                                                                                             @PathVariable(name = "medicine-package-unit-id")Long packUnitId,
+                                                                                             Pageable pageable
                                                                                              ){
         return ResponseEntity.ok(ApiResponse.success(inventoryService.getInventoryInfo(storageId, packUnitId, pageable)));
     }

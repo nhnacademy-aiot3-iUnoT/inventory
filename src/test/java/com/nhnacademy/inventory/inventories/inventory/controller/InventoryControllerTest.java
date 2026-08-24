@@ -269,8 +269,14 @@ class InventoryControllerTest {
     }
 
 
+    @Test
+    @DisplayName("상세 재고 조회")
+    void getInventoryInfo() {
 
 
 
 
+
+
+    }
 }

@@ -61,7 +61,7 @@ public class InventoriesSearchService {
 
             
 
-            page = medicineInventoryRepository.findAllInventories(search,storageId,storageIds,pageable);
+            page = medicineInventoryRepository.findAllInventories(trimmed,storageId,storageIds,pageable);
 
 
             log.info("Boss : 전체 재고 조회 : {} ",page);
