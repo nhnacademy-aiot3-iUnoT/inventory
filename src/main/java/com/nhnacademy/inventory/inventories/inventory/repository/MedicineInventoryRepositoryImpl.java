@@ -125,8 +125,6 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
 
                         inventory.managementStatus.in(
                                 ManagementStatus.NORMAL,
-                                ManagementStatus.LOW_STOCK,
-                                ManagementStatus.NEAR_EXPIRATION,
                                 ManagementStatus.UNDER_REVIEW
                         ),
 
@@ -169,8 +167,6 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
 
                         inventory.managementStatus.in(
                                 ManagementStatus.NORMAL,
-                                ManagementStatus.LOW_STOCK,
-                                ManagementStatus.NEAR_EXPIRATION,
                                 ManagementStatus.UNDER_REVIEW
                         ),
 
