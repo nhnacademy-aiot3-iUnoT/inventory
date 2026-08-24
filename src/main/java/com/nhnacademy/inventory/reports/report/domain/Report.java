@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -35,6 +37,7 @@ public class Report {
     @Column(name = "storage_id", nullable = false)
     private Long storageId;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
     @Column(name = "report_type", length = 30, nullable = false)
     private ReportType reportType;
@@ -48,8 +51,9 @@ public class Report {
     @Column(name = "ai_summary", columnDefinition = "TEXT")
     private String aiSummary;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
-    @Column(name = "ai_summary_status", nullable = false)
+    @Column(name = "ai_summary_status", length = 20, nullable = false)
     private AiSummaryStatus aiSummaryStatus;
 
     @Column(name = "created_at", nullable = false, updatable = false)

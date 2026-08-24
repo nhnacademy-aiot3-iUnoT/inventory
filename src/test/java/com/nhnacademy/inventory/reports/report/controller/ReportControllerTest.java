@@ -67,7 +67,7 @@ class ReportControllerTest extends SupportControllerTest {
         long storageId = 1L;
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
         ReportCreateRequest request = new ReportCreateRequest(periodStart);
-        ReportInfoResponse response = new ReportInfoResponse(1L, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), null, AiSummaryStatus.PENDING, LocalDateTime.now(), List.of());
+        ReportInfoResponse response = new ReportInfoResponse(1L, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), null, AiSummaryStatus.PENDING, LocalDateTime.now(), List.of(), List.of(), List.of());
 
         given(reportCreateFacade.createWeeklyReport(storageId, periodStart))
                 .willReturn(response);
@@ -106,7 +106,7 @@ class ReportControllerTest extends SupportControllerTest {
         long organizationId = 1L;
         long storageId = 1L;
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
-        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
+        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of(), List.of(), List.of());
 
         given(reportGetUseCase.getWeeklyReportById(storageId, reportId))
                 .willReturn(response);
@@ -175,7 +175,7 @@ class ReportControllerTest extends SupportControllerTest {
         long organizationId = 1L;
         long storageId = 1L;
         LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
-        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of());
+        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), "AI Summary", AiSummaryStatus.COMPLETED, LocalDateTime.now(), List.of(), List.of(), List.of());
 
         given(reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart))
                 .willReturn(Optional.of(response));

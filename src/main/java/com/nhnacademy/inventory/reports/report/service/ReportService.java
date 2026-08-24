@@ -35,6 +35,12 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
+    public Report getReportWithoutItem(Long reportId) {
+        return reportRepository.findById(reportId)
+                .orElseThrow(ReportNotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
     public Report getReportByStorage(Long reportId, Long storageId) {
         return reportRepository.findByIdAndStorageId(reportId, storageId)
                 .orElseThrow(ReportNotFoundException::new);

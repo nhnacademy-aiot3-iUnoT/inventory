@@ -14,32 +14,55 @@ import org.springframework.web.client.RestClient;
 @EnableConfigurationProperties(MedicineProperties.class)
 public class RestClientConfig {
 
-//    @Bean("medicineRestClient")
-//    public RestClient medicineRestClient(MedicineProperties medicineProperties) {
-//        return RestClient.builder()
-//                .baseUrl(medicineProperties.baseUrl())
-//                .build();
-//    }
+    @Bean("medicineRestClient")
+    public RestClient medicineRestClient(MedicineProperties medicineProperties) {
+        return RestClient.builder()
+                .baseUrl(medicineProperties.baseUrl())
+                .build();
+    }
 
-    @Bean("loadBalancedAccountRestClientBuilder")
-//    @LoadBalanced
-//    @Profile("prod")
-    public RestClient.Builder loadBalancedAccountRestClientBuilder() {
+    @Bean("loadBalancedRestClientBuilder")
+    @LoadBalanced
+    public RestClient.Builder loadBalancedRestClientBuilder() {
         return RestClient.builder();
     }
 
     @Bean("accountRestClient")
     @Profile("prod")
     public RestClient prodAccountRestClient(
-            @Qualifier("loadBalancedAccountRestClientBuilder") RestClient.Builder builder,
+            @Qualifier("loadBalancedRestClientBuilder") RestClient.Builder builder,
             @Value("${clients.account.base-url}") String baseUrl
     ) {
-        return builder.baseUrl(baseUrl).build();
+        // Builder는 가변 객체라 빈을 공유하면 나중에 설정된 baseUrl이 덮어씀.
+        return builder.clone()
+                .baseUrl(baseUrl)
+                .build();
     }
 
     @Bean("accountRestClient")
     @Profile("!prod")
     public RestClient localAccountRestClient(@Value("${clients.account.base-url}") String baseUrl) {
-        return RestClient.builder().baseUrl(baseUrl).build();
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .build();
+    }
+
+    @Bean("ruleEngineRestClient")
+    @Profile("prod")
+    public RestClient prodRuleEngineRestClient(
+            @Qualifier("loadBalancedRestClientBuilder") RestClient.Builder builder,
+            @Value("${clients.rule-engine.base-url}") String baseUrl
+    ) {
+        return builder.clone()
+                .baseUrl(baseUrl)
+                .build();
+    }
+
+    @Bean("ruleEngineRestClient")
+    @Profile("!prod")
+    public RestClient localRuleEngineRestClient(@Value("${clients.rule-engine.base-url}") String baseUrl) {
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .build();
     }
 }

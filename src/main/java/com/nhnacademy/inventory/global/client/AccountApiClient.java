@@ -2,7 +2,6 @@ package com.nhnacademy.inventory.global.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.nhnacademy.inventory.global.error.UpstreamServiceException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
@@ -16,10 +15,14 @@ import java.util.function.Supplier;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class AccountApiClient {
-    @Qualifier("accountRestClient")
     private final RestClient restClient;
+
+    // Lombok @RequiredArgsConstructor는 필드의 @Qualifier를 생성자 파라미터로 복사하지 않아 직접 작성함.
+    // RestClient 빈이 둘 이상이면 이게 없을 때 주입 대상을 특정하지 못해 기동에 실패한다.
+    public AccountApiClient(@Qualifier("accountRestClient") RestClient restClient) {
+        this.restClient = restClient;
+    }
 
     public <T> T get(String path, TypeReference<T> dataType) {
         return execute(() -> restClient.get()
