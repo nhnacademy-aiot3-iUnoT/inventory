@@ -5,11 +5,12 @@ import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 
 
+import com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
 
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoryResponse;
 
-import com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory;
+
 import com.nhnacademy.inventory.inventories.inventory.dto.QInventoriesResponse;
 import com.nhnacademy.inventory.inventories.inventory.dto.QInventoryResponse;
 import com.nhnacademy.inventory.medicines.medicine.domain.QMedicine;
@@ -323,6 +324,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     public Page<InventoryResponse> findByZonesAndPackUnitId(List<Long> zoneIds, Long packUnitId,Pageable pageable) {
 
         List<InventoryResponse> content = queryFactory.select(new QInventoryResponse(
+                inventory.id,
                 medicinePackageUnit.id,
                 storage.id,
                 zone.id,

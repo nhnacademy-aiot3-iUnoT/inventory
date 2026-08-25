@@ -286,6 +286,7 @@ class InventoryControllerTest {
         List<InventoryDetailResponse> details = List.of(
                 new InventoryDetailResponse(
                         1L,
+                        1L,
                         "A 구역",
                         "lot-3452",
                         LocalDate.of(2026,Month.FEBRUARY,24),
@@ -324,17 +325,18 @@ class InventoryControllerTest {
                          "storageName": "A 저장소",
                          "itemCode": "ABC-123",
                          "productName": "테스트 약",
-                         "inventories": 
+                         "inventories":
                             {
                               "content" : [
                             {
+                                 "inventoryId": 1,
                                  "zoneId": 1,
                                  "zoneName": "A 구역",
                                  "lotNumber": "lot-3452",
                                  "expirationDate": "2026-02-24",
                                  "currentQuantity": 50,
                                  "managementStatus":"NORMAL"
-                             
+
                             }
    
                          ],
@@ -343,17 +345,16 @@ class InventoryControllerTest {
                             "totalElements": 1,
                             "totalPages": 1,
                             "last": true
-                            
-                            
-                            }
-                         
-                    
-                         
 
-                    
+
+                            }
+
+  
+
+
                     },
                   "error":null
-              
+
                 }
 
         """));
