@@ -3,7 +3,7 @@ package com.nhnacademy.inventory.reports.report.usecase;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import com.nhnacademy.inventory.reports.report.domain.Report;
-import com.nhnacademy.inventory.reports.report.dto.ReportCreatedEvent;
+import com.nhnacademy.inventory.reports.event.ReportGenerationRequestedEvent;
 import com.nhnacademy.inventory.reports.report.service.ReportService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -94,6 +94,6 @@ class ReportRetrySummaryUseCaseTest {
                 .resetSummary(reportId);
         then(eventPublisher)
                 .should()
-                .publishEvent(any(ReportCreatedEvent.class));
+                .publishEvent(any(ReportGenerationRequestedEvent.class));
     }
 }

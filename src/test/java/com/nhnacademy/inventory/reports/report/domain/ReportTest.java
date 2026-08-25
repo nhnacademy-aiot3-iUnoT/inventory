@@ -159,8 +159,8 @@ class ReportTest {
         assertThat(report.getAiSummaryStatus())
                 .isEqualTo(AiSummaryStatus.FAILED);
 
-        // resetSummaryToPending -> PENDING
-        report.resetSummaryToPending();
+        // setPendingSummary -> PENDING
+        report.setPendingSummary();
         assertThat(report.getAiSummaryStatus())
                 .isEqualTo(AiSummaryStatus.PENDING);
     }

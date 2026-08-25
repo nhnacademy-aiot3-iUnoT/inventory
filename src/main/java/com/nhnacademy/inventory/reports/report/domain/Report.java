@@ -101,8 +101,8 @@ public class Report {
         this.aiSummaryStatus = AiSummaryStatus.FAILED;
     }
 
-    public void resetSummaryToPending() {
-        this.aiSummaryStatus = AiSummaryStatus.PENDING;
+    public boolean isAlreadyGeneratingSummary() {
+        return this.aiSummaryStatus == AiSummaryStatus.PROGRESS;
     }
 
     public void addInbound(MedicinePackageUnit unit, int quantity) {
@@ -115,5 +115,11 @@ public class Report {
 
     public void addDisposal(MedicinePackageUnit unit, int quantity) {
         this.reportItems.add(ReportItem.disposal(this, unit, quantity));
+    }
+
+    public void reset() {
+        this.reportItems.clear();
+        this.aiSummaryStatus = AiSummaryStatus.PENDING;
+        this.aiSummary = null;
     }
 }
