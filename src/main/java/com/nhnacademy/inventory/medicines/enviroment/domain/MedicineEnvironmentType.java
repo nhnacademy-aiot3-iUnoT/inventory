@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 
@@ -36,6 +38,7 @@ public class MedicineEnvironmentType {
     @JoinColumn(name = "medicine_environment_standard_id", nullable = false)
     private MedicineEnvironmentStandard medicineEnvironmentStandard;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
     @Column(name = "environment_type", length = 30, nullable = false)
     private EnvironmentType environmentType;
