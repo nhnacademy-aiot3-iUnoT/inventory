@@ -48,6 +48,7 @@ public class MedicineSearchService {
                 throw new ProductNameInvalidException();
             }
 
+
             searchResponse = packageUnitRepository.findAllWithMedicineByProductName(trimmed,pageable);
             log.info("product name : {} , searchResponse : {}",trimmed,searchResponse.getContent());
 
