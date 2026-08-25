@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -54,8 +56,9 @@ public class MedicineInventory {
     @Column(name = "current_quantity", nullable = false)
     private Integer currentQuantity;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
-    @Column(name = "management_status", nullable = false)
+    @Column(name = "management_status", length = 30, nullable = false)
     private ManagementStatus managementStatus;
 
     @Column(name = "created_at", nullable = false, updatable = false)

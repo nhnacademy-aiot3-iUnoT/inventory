@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -31,12 +33,14 @@ public class Zone {
     @Column(name = "description", length = 255)
     private String description;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", length = 30, nullable = false)
     private ZoneStatus status;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
-    @Column(name = "env_status", nullable = false)
+    @Column(name = "env_status", length = 30, nullable = false)
     private EnvStatus envStatus;
 
     @Column(name = "created_at", nullable = false, updatable = false)
