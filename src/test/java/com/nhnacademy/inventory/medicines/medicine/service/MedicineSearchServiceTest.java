@@ -226,8 +226,8 @@ class MedicineSearchServiceTest {
     @DisplayName("비정상 데이터")
     void errorTest(){
 
-        // 품목기준코드가 9자가 아닐때
-        MedicineSearchRequest codeRequest = new MedicineSearchRequest(SearchType.ITEM_CODE,"1234");
+        // 품목기준코드가 숫자가 아닌 값
+        MedicineSearchRequest codeRequest = new MedicineSearchRequest(SearchType.ITEM_CODE,"test-itemCode");
         assertThrows(ItemCodeInvalidException.class, () -> medicineSearchService.getMedicines(codeRequest,pageable));
 
 

@@ -17,12 +17,13 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/core/medicines")
 public class MedicineController {
 
-    private final MedicineApiService medicineApiService;
     private final MedicineSearchService medicineSearchService;
 
 
@@ -44,6 +45,8 @@ public class MedicineController {
 
     }
 
+
+
     // 특정 의약품 조회
     @GetMapping("/package-units/{medicine-package-unit-id}")
     public ResponseEntity<ApiResponse<MedicinePackageDetailResponse>> getDetailMedicine(@PathVariable(name = "medicine-package-unit-id") Long medicinePackageUnitId){
@@ -51,6 +54,12 @@ public class MedicineController {
         return ResponseEntity.ok(ApiResponse.success(medicineSearchService.getDetail(medicinePackageUnitId)));
 
     }
+
+
+
+    // http://localhost:10400/api/core/organizations/18/storages
+    // GET http://localhost:10400/api/core/medicines/package-units/58581
+    //GET http://localhost:10400/api/core/medicine-environment/package-units/58581
 
 
 }

@@ -54,10 +54,7 @@ public class StorageService {
                 request.departmentIds().stream()
                         .map(departmentId -> {
                             Department department = departmentService.getDepartmentById(departmentId, organization.getId());
-                            return StorageDepartment.builder()
-                                    .storage(saved)
-                                    .department(department)
-                                    .build();
+                            return StorageDepartment.create(saved, department);
                         })
                         .toList();
 
@@ -69,11 +66,22 @@ public class StorageService {
     public List<StorageInfoResponse> getStorages(){
         Organization organization = validateOrganizationMember();
 
-        List<Storage> storages = storageRepository.findAllByOrganizationAndStatusNot(organization, StorageStatus.CLOSED);
+        List<Storage> storages = storageRepository.findAllByOrganizationAndStatusNot(
+                organization, StorageStatus.CLOSED);
 
         return storages.stream()
                 .map(StorageInfoResponse::from)
                 .toList();
+    }
+
+    public List<StorageInfoResponse> searchStorages(String name) {
+        Organization organization = validateOrganizationMember();
+
+        List<Storage> storages = name == null || name.isBlank()
+                ? storageRepository.findAllByOrganizationAndStatusNot(organization, StorageStatus.CLOSED)
+                : storageRepository.findAllByOrganizationAndNameContainingIgnoreCaseAndStatusNot(organization, name, StorageStatus.CLOSED);
+
+        return storages.stream().map(StorageInfoResponse::from).toList();
     }
 
     public StorageDetailResponse getStorage(Long storageId){

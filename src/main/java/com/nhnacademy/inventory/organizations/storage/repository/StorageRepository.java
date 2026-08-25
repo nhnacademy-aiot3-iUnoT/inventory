@@ -12,8 +12,11 @@ import java.util.Optional;
 
 public interface StorageRepository extends JpaRepository<Storage, Long> {
     List<Storage> findAllByOrganizationAndStatusNot(Organization organization, StorageStatus status);
+    List<Storage> findAllByOrganizationAndNameContainingIgnoreCaseAndStatusNot(Organization organization, String name, StorageStatus status);
 
     Optional<Storage> findByIdAndOrganization(Long id, Organization organization);
+
+    List<Storage> findAllByOrganizationId(Long organizationId);
 
     boolean existsByOrganizationAndNameAndStatusNotAndIdNot(Organization organization, String name, StorageStatus status, Long id);
 
@@ -26,6 +29,9 @@ public interface StorageRepository extends JpaRepository<Storage, Long> {
         where s.organization.id = :organizationId
     """)
     void closeByOrganizationId(Long organizationId);
+
+
+
 
     List<Storage> findAllByOrganizationAndStatus(Organization organization, StorageStatus status);
 }

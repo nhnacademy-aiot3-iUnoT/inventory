@@ -17,6 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Objects;
+
 
 @Service
 @RequiredArgsConstructor
@@ -32,11 +35,19 @@ public class MedicineSearchService {
 
         log.info("==== 의약품 정보 검색 시작 ====");
 
+        log.info("searchType = {}, search = {}", request.searchType(), request.search());
+
+
         String trimmed = request.search().trim();
 
         Page<MedicinePackageSearchResponse> searchResponse;
 
         if(request.searchType() == SearchType.PRODUCT_NAME){
+
+            if(trimmed.isBlank()|| trimmed.length() > 50){
+                throw new ProductNameInvalidException();
+            }
+
 
             searchResponse = packageUnitRepository.findAllWithMedicineByProductName(trimmed,pageable);
             log.info("product name : {} , searchResponse : {}",trimmed,searchResponse.getContent());
@@ -45,8 +56,12 @@ public class MedicineSearchService {
 
         else{
 
-            if(!trimmed.matches("\\d{9}")){
+            if(!trimmed.matches("\\d+")){
                 throw new ItemCodeInvalidException();
+            }
+
+            if(trimmed.length() < 6 || trimmed.length() > 9){
+                throw new ItemCodeLengthInvalidException();
             }
 
             // 빈 리스트 반환
@@ -62,6 +77,8 @@ public class MedicineSearchService {
 
 
     }
+
+
 
 
     // 특정 의약품 조회

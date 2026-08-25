@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -29,8 +31,9 @@ public class OrganizationMember {
     @Column(name = "account_uuid", columnDefinition = "BINARY(16)", nullable = false, unique = true)
     private UUID accountUuid;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
-    @Column(name = "organization_role", nullable = false)
+    @Column(name = "organization_role", length = 30, nullable = false)
     private OrganizationRole organizationRole;
 
     @Column(name = "joined_at", nullable = false, updatable = false)
