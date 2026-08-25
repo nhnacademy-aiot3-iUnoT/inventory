@@ -54,10 +54,7 @@ public class StorageService {
                 request.departmentIds().stream()
                         .map(departmentId -> {
                             Department department = departmentService.getDepartmentById(departmentId, organization.getId());
-                            return StorageDepartment.builder()
-                                    .storage(saved)
-                                    .department(department)
-                                    .build();
+                            return StorageDepartment.create(saved, department);
                         })
                         .toList();
 
