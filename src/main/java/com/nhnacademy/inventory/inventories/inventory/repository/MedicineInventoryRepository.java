@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.inventories.inventory.repository;
 
+import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
@@ -31,4 +32,6 @@ public interface MedicineInventoryRepository extends JpaRepository<MedicineInven
     long countByZone_StorageAndExpirationDateBefore(Storage zoneStorage, LocalDate expirationDateBefore);
 
     long countByZone_StorageAndExpirationDateBetween(Storage zoneStorage, LocalDate expirationDateAfter, LocalDate expirationDateBefore);
+
+    List<MedicineInventory> findAllByZoneAndManagementStatus(Zone zone, ManagementStatus managementStatus);
 }
