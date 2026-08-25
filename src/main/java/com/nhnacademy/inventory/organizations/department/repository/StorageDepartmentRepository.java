@@ -21,9 +21,21 @@ public interface StorageDepartmentRepository extends JpaRepository<StorageDepart
             "where sd.department.id = :departmentId")
     void deleteByDepartmentId(Long departmentId);
 
-    List<StorageDepartment> findAllByDepartmentId(Long departmentId);
-    List<StorageDepartment> findAllByStorageId(Long storageId);
-    boolean existsByDepartmentIdAndStorageId(Long departmentId, Long storageId);
+    @Query("""
+        select sd
+        from StorageDepartment sd
+        join fetch sd.storage
+        where sd.department.id = :departmentId
+    """)
+    List<StorageDepartment> findAllWithStorageByDepartmentId(Long departmentId);
+
+    @Query("""
+    select sd
+    from StorageDepartment sd
+    join fetch sd.department
+    where sd.storage.id = :storageId
+""")
+    List<StorageDepartment> findAllWithDepartmentByStorageId(Long storageId);
 
     @Modifying
     @Query("""
@@ -33,6 +45,6 @@ public interface StorageDepartmentRepository extends JpaRepository<StorageDepart
     """)
     void deleteByDepartmentIdAndStorageId(Long departmentId, Long storageId);
 
-
+    boolean existsByDepartmentIdAndStorageId(Long departmentId, Long storageId);
     Optional<StorageDepartment> findByDepartmentId(Long departmentId);
 }

@@ -67,7 +67,7 @@ class StorageDepartmentServiceTest {
         @Test
         @DisplayName("성공")
         void success() {
-            given(storageDepartmentRepository.findAllByDepartmentId(1L)).willReturn(List.of(relation));
+            given(storageDepartmentRepository.findAllWithStorageByDepartmentId(1L)).willReturn(List.of(relation));
 
             var result = service.getStoragesByDepartmentId(1L);
 
@@ -80,7 +80,7 @@ class StorageDepartmentServiceTest {
         @Test
         @DisplayName("성공 - 결과 없음")
         void empty() {
-            given(storageDepartmentRepository.findAllByDepartmentId(1L)).willReturn(List.of());
+            given(storageDepartmentRepository.findAllWithStorageByDepartmentId(1L)).willReturn(List.of());
 
             assertEquals(0, service.getStoragesByDepartmentId(1L).size());
         }
@@ -93,7 +93,7 @@ class StorageDepartmentServiceTest {
 
             assertThrows(DepartmentNotFoundException.class,
                     () -> service.getStoragesByDepartmentId(1L));
-            verify(storageDepartmentRepository, never()).findAllByDepartmentId(1L);
+            verify(storageDepartmentRepository, never()).findAllWithStorageByDepartmentId(1L);
         }
     }
 
@@ -106,7 +106,7 @@ class StorageDepartmentServiceTest {
             OrganizationMember member = TestFixtures.createOrganizationMember(organization);
             given(orgAccessService.getCurrentMember()).willReturn(member);
             given(storageRepository.findByIdAndOrganization(1L, organization)).willReturn(Optional.of(storage));
-            given(storageDepartmentRepository.findAllByStorageId(1L)).willReturn(List.of(relation));
+            given(storageDepartmentRepository.findAllWithDepartmentByStorageId(1L)).willReturn(List.of(relation));
 
             var result = service.getDepartmentsByStorageId(1L);
 
@@ -120,7 +120,7 @@ class StorageDepartmentServiceTest {
             OrganizationMember member = TestFixtures.createOrganizationMember(organization);
             given(orgAccessService.getCurrentMember()).willReturn(member);
             given(storageRepository.findByIdAndOrganization(1L, organization)).willReturn(Optional.of(storage));
-            given(storageDepartmentRepository.findAllByStorageId(1L)).willReturn(List.of());
+            given(storageDepartmentRepository.findAllWithDepartmentByStorageId(1L)).willReturn(List.of());
 
             assertEquals(0, service.getDepartmentsByStorageId(1L).size());
         }
@@ -134,7 +134,7 @@ class StorageDepartmentServiceTest {
 
             assertThrows(StorageNotFoundException.class,
                     () -> service.getDepartmentsByStorageId(1L));
-            verify(storageDepartmentRepository, never()).findAllByStorageId(1L);
+            verify(storageDepartmentRepository, never()).findAllWithDepartmentByStorageId(1L);
         }
     }
 

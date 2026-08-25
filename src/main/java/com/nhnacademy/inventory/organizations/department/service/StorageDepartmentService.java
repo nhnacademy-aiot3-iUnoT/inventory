@@ -30,7 +30,8 @@ public class StorageDepartmentService {
     public List<StorageByDepartmentResponse> getStoragesByDepartmentId(Long departmentId) {
         departmentService.getDepartment(departmentId);
 
-        return storageDepartmentRepository.findAllByDepartmentId(departmentId).stream()
+        return storageDepartmentRepository.findAllWithStorageByDepartmentId(departmentId)
+                .stream()
                 .map(sd -> new StorageByDepartmentResponse(
                         sd.getStorage().getId(),
                         sd.getStorage().getName(),
@@ -44,7 +45,7 @@ public class StorageDepartmentService {
         storageRepository.findByIdAndOrganization(storageId, organization)
                 .orElseThrow(StorageNotFoundException::new);
 
-        return storageDepartmentRepository.findAllByStorageId(storageId).stream()
+        return storageDepartmentRepository.findAllWithDepartmentByStorageId(storageId).stream()
                 .map(sd -> new DepartmentByStorageResponse(
                         sd.getDepartment().getId(),
                         sd.getDepartment().getName(),

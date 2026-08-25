@@ -75,19 +75,19 @@ class MemberDepartmentServiceTest {
         @DisplayName("성공")
         void success() {
             given(orgAccessService.getCurrentMember()).willReturn(member);
-            given(memberDepartmentRepository.findAllByOrganizationMemberId(member.getId())).willReturn(List.of(memberDepartment));
+            given(memberDepartmentRepository.findAllWithDepartmentByMemberId(member.getId())).willReturn(List.of(memberDepartment));
 
             List<DepartmentListResponse> responses = memberDepartmentService.getMyDepartments();
 
             assertEquals(1, responses.size());
-            verify(memberDepartmentRepository).findAllByOrganizationMemberId(member.getId());
+            verify(memberDepartmentRepository).findAllWithDepartmentByMemberId(member.getId());
         }
 
         @Test
         @DisplayName("성공 - 조회 결과 없음")
         void successEmpty() {
             given(orgAccessService.getCurrentMember()).willReturn(member);
-            given(memberDepartmentRepository.findAllByOrganizationMemberId(member.getId())).willReturn(List.of());
+            given(memberDepartmentRepository.findAllWithDepartmentByMemberId(member.getId())).willReturn(List.of());
 
             assertTrue(memberDepartmentService.getMyDepartments().isEmpty());
         }
@@ -102,7 +102,7 @@ class MemberDepartmentServiceTest {
             given(orgAccessService.getCurrentMember()).willReturn(member);
             given(departmentRepository.findByIdAndOrganizationId(1L, 1L))
                     .willReturn(java.util.Optional.of(memberDepartment.getDepartment()));
-            given(memberDepartmentRepository.findAllByDepartmentId(1L))
+            given(memberDepartmentRepository.findAllWithMemberByDepartmentId(1L))
                     .willReturn(List.of(memberDepartment));
             given(accountClient.findByUuids(List.of(member.getAccountUuid())))
                     .willReturn(List.of(new AccountResponse(member.getAccountUuid(), "member@test.com")));

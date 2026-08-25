@@ -41,16 +41,20 @@ public class MemberDepartmentService {
         Organization organization = orgAccessService.getCurrentMember().getOrganization();
         validateDepartment(departmentId, organization.getId());
 
-        List<OrganizationMember> members = memberDepartmentRepository.findAllByDepartmentId(departmentId).stream()
-                .map(MemberDepartment::getOrganizationMember).toList();
+        List<OrganizationMember> members = memberDepartmentRepository.findAllWithMemberByDepartmentId(departmentId)
+                .stream()
+                .map(MemberDepartment::getOrganizationMember)
+                .toList();
 
         Map<UUID, String> emails = getEmailMap(members);
 
         return members.stream()
-                .map(member -> new OrganizationMemberResponse(
-                        member.getId(), emails.get(member.getAccountUuid()),
-                        member.getOrganizationRole(), member.getJoinedAt()))
-                .toList();
+                .map(member -> new OrganizationMemberResponse (
+                        member.getId(),
+                        emails.get(member.getAccountUuid()),
+                        member.getOrganizationRole(),
+                        member.getJoinedAt())
+                ).toList();
     }
 
     @Transactional
@@ -79,7 +83,7 @@ public class MemberDepartmentService {
         OrganizationMember member = orgAccessService.getCurrentMember();
 
         return memberDepartmentRepository
-                .findAllByOrganizationMemberId(member.getId())
+                .findAllWithDepartmentByMemberId(member.getId())
                 .stream()
                 .map(MemberDepartment::getDepartment)
                 .map(DepartmentListResponse::from)
