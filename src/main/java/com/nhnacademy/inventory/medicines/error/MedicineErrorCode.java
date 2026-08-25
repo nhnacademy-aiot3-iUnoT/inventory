@@ -24,7 +24,7 @@ public enum MedicineErrorCode implements ErrorCode {
     MEDICINE_NOT_FOUND(HttpStatus.NOT_FOUND,"M002","해당하는 의약품을 찾을 수 없습니다."),
 
     // 제품명
-    PRODUCT_NAME_LENGTH_INVALID(HttpStatus.BAD_REQUEST,"P001","제품명은 1자에서 50자 이하로 작성해주세요."),
+    PRODUCT_NAME_LENGTH_INVALID(HttpStatus.BAD_REQUEST,"PN001","제품명은 1자에서 50자 이하로 작성해주세요."),
 
 
     // 포장단위
