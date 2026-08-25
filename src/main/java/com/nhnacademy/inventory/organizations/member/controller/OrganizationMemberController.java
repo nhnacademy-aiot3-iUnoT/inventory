@@ -52,7 +52,7 @@ public class OrganizationMemberController {
      * 조직원 이메일로 검색
      */
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<OrganizationMemberResponse>>> searchMembers(@ModelAttribute MemberByEmailRequest request) {
+    public ResponseEntity<ApiResponse<List<OrganizationMemberResponse>>> searchMembers(@Valid @ModelAttribute MemberByEmailRequest request) {
         List<OrganizationMemberResponse> members = organizationMemberService.findAllMembers(request);
         return ResponseEntity.ok(ApiResponse.success(members));
     }
