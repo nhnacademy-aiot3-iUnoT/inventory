@@ -3,7 +3,9 @@ package com.nhnacademy.inventory.organizations.storage.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.department.domain.Department;
+import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.department.domain.StorageDepartment;
+import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
 import com.nhnacademy.inventory.organizations.department.repository.StorageDepartmentRepository;
 import com.nhnacademy.inventory.organizations.department.service.DepartmentService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
@@ -21,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +37,7 @@ public class StorageService {
     private final OrganizationMemberRepository memberRepository;
     private final DepartmentService departmentService;
     private final StorageDepartmentRepository storageDepartmentRepository;
+    private final MemberDepartmentRepository memberDepartmentRepository;
 
     @Transactional
     public StorageDetailResponse createStorage(StorageCreateRequest request){
@@ -81,6 +85,65 @@ public class StorageService {
 
         return StorageDetailResponse.from(storage);
     }
+
+    public List<StorageInfoResponse> getStoragesInbound(){
+
+        Organization organization = validateOrganizationMember();
+        OrganizationMember organizationMember = memberRepository.findByOrganization(organization)
+                .orElseThrow(ForbiddenException::new);
+
+
+        if(organizationMember.isBoss()){
+
+            List<Storage> storages = storageRepository.findAllByOrganization(organization);
+
+            List<StorageInfoResponse> infoResponses = storages.stream()
+                    .map(StorageInfoResponse::from
+                    ).toList();
+
+
+            log.info("boss - storages count : {}",infoResponses.size());
+
+            return infoResponses;
+
+        }
+
+        List<MemberDepartment> memberDepartments = memberDepartmentRepository.findAllByOrganizationMember(organizationMember);
+
+        // 부서-조직원 없음 조직원은 부서가 꼭 있어야 함.
+        if(memberDepartments.isEmpty()){
+            throw new ForbiddenException();
+        }
+
+        List<Long> departmentIds = memberDepartments.stream()
+                .map(
+                        md -> md.getDepartment().getId()
+                ).toList();
+
+
+        List<StorageDepartment> storageDepartments = storageDepartmentRepository.findAllByDepartmentIdIn(departmentIds);
+
+        List<Storage> storages = storageDepartments.stream()
+                .map(
+                        StorageDepartment::getStorage
+                )
+                .distinct()
+                .toList();
+
+        List<StorageInfoResponse> infoResponses = storages.stream()
+                .map(
+                        StorageInfoResponse::from
+                ).toList();
+
+
+        log.info("owner,member - storages count : {}",infoResponses.size());
+
+
+        return infoResponses;
+
+    }
+
+
 
     @Transactional
     public StorageDetailResponse updateStorage(Long storageId, StorageUpdateRequest request){
