@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 public record InventoryDetailResponse(
 
+        Long inventoryId,
         Long zoneId,
         String zoneName,
         String lotNumber,
@@ -16,10 +17,10 @@ public record InventoryDetailResponse(
 
 ) {
 
-
     public static InventoryDetailResponse from(InventoryResponse response){
 
         return new InventoryDetailResponse(
+                response.inventoryId(),
                 response.zoneId(),
                 response.zoneName(),
                 response.lotNumber(),

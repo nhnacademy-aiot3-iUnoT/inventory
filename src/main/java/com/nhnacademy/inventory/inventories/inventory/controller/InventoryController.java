@@ -59,7 +59,7 @@ public class InventoryController {
         return ResponseEntity.ok(ApiResponse.success(inventoryService.getInventoryInfo(storageId, packUnitId, pageable)));
     }
 
-
+    
 
 
 }
