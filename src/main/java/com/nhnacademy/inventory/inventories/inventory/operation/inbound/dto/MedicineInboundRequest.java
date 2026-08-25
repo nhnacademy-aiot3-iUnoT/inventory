@@ -13,7 +13,7 @@ public record MedicineInboundRequest(
         @NotNull(message = "보관 구역을 선택해주세요.")
         Long zoneId,
         @NotBlank(message = "제조번호를 입력해주세요.")
-        @Size(max=50, message = "제조번호는 50자 이하여야 합니다.")
+        @Size(min = 5, max=50, message = "제조번호는 50자 이하여야 합니다.")
         String lotNumber,
         @NotNull(message = "유통기한을 입력해주세요.")
         @FutureOrPresent(message = "실제 유통기한은 현재 날짜 이후여야 합니다.")

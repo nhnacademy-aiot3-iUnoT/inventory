@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 public record InventoryResponse(
 
+        Long inventoryId,
         Long medicinePackUnitId,
         Long storageId,
         Long zoneId,
