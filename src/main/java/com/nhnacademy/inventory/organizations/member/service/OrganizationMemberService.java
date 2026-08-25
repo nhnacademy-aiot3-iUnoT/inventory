@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.member.service;
 import com.nhnacademy.inventory.global.client.AccountClient;
 import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.organizations.member.dto.request.MemberByEmailRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationMemberSearchRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRoleUpdateRequest;
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
@@ -99,6 +100,39 @@ public class OrganizationMemberService {
         return toResponse(members);
     }
 
+    public List<OrganizationMemberResponse> findAllMembers(MemberByEmailRequest request) {
+        OrganizationMember currentMember = orgAccessService.requireOwnerOrBoss();
+
+        if (request.email() == null || request.email().isBlank()) {
+            return List.of();
+        }
+
+        List<AccountResponse> accounts = accountClient.searchByEmail(request.email());
+        if (accounts.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> accountUuids = accounts.stream()
+                .map(AccountResponse::accountUuid)
+                .toList();
+
+        List<OrganizationMember> members = orgMemberRepository.findAllByOrganizationIdAndAccountUuidIn(
+                currentMember.getOrganization().getId(), accountUuids
+        );
+
+        Map<UUID, String> emailMap = accounts.stream()
+                .collect(Collectors.toMap(AccountResponse::accountUuid, AccountResponse::email));
+
+        return members.stream()
+                .map(member -> new OrganizationMemberResponse(
+                        member.getId(),
+                        emailMap.get(member.getAccountUuid()),
+                        member.getOrganizationRole(),
+                        member.getJoinedAt()
+                ))
+                .toList();
+    }
+
     @Transactional
     public void updateRole(Long memberId, OrganizationRoleUpdateRequest roleUpdateRequest) {
         // Boss만 변경 가능
@@ -128,14 +162,6 @@ public class OrganizationMemberService {
     public OrganizationMember getMemberById(Long memberId, Long organizationId) {
         return orgMemberRepository.findByIdAndOrganizationId(memberId, organizationId)
                 .orElseThrow(OrgMemberNotFoundException::new);
-    }
-
-    /**
-     *  현재 로그인한 사용자의 조직원 정보
-     */
-    public OrganizationMember getCurrentOrganizationMember(UUID userId) {
-        return orgMemberRepository.findByAccountUuid(userId)
-                .orElseThrow(UserOrgNotFoundException::new);
     }
 
     /**

@@ -36,10 +36,17 @@ public class StorageDepartment {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Builder
+    @Builder(access = AccessLevel.PROTECTED)
     private StorageDepartment(Storage storage, Department department) {
         this.storage = storage;
         this.department = department;
+    }
+
+    public static StorageDepartment create(Storage storage, Department department) {
+        return StorageDepartment.builder()
+                .storage(storage)
+                .department(department)
+                .build();
     }
 
     @PrePersist

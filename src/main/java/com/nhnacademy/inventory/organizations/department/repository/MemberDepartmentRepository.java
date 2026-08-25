@@ -17,12 +17,32 @@ public interface MemberDepartmentRepository extends JpaRepository<MemberDepartme
     """)
     void deleteByOrganizationId(Long organizationId);
 
+    @Modifying
+    @Query("delete from MemberDepartment md " +
+            "where md.department.id = :departmentId")
+    void deleteByDepartmentId(Long departmentId);
+
+    @Query("""
+        select md
+        from MemberDepartment md
+        join fetch md.department
+        where md.organizationMember.id = :memberId
+    """)
+    List<MemberDepartment> findAllWithDepartmentByMemberId(Long memberId);
+
+    @Query("""
+        select md
+        from MemberDepartment md
+        join fetch md.organizationMember
+        where md.department.id = :departmentId
+    """)
+    List<MemberDepartment> findAllWithMemberByDepartmentId(Long departmentId);
+
     List<MemberDepartment> findAllByOrganizationMember(OrganizationMember organizationMember);
 
-
-
     void deleteByOrganizationMemberId(Long organizationMemberId);
+    void deleteByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 
-    List<MemberDepartment> findAllByOrganizationMemberId(Long organizationMemberId);
+    boolean existsByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 
 }
