@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.organizations.department.repository;
 
 import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -43,6 +44,8 @@ public interface MemberDepartmentRepository extends JpaRepository<MemberDepartme
     void deleteByOrganizationMemberId(Long organizationMemberId);
     void deleteByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 
+
+    List<MemberDepartment> findAllByOrganizationMemberId(Long organizationMemberId);
     boolean existsByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 
 }
