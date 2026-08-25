@@ -10,6 +10,8 @@ import com.nhnacademy.inventory.organizations.department.dto.response.Department
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentNotFoundException;
 import com.nhnacademy.inventory.organizations.department.repository.DepartmentRepository;
+import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
+import com.nhnacademy.inventory.organizations.department.repository.StorageDepartmentRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,8 @@ public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final OrganizationAccessService orgAccessService;
+    private final MemberDepartmentRepository memberDepartmentRepository;
+    private final StorageDepartmentRepository storageDepartmentRepository;
 
     @Transactional
     public DepartmentCreateResponse createDepartment(DepartmentCreateRequest request) {
@@ -98,6 +102,8 @@ public class DepartmentService {
 
         Department department = getDepartmentById(departmentId, organization.getId());
 
+        memberDepartmentRepository.deleteByDepartmentId(departmentId);
+        storageDepartmentRepository.deleteByDepartmentId(departmentId);
         departmentRepository.delete(department);
     }
 }

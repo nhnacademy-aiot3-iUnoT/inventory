@@ -13,14 +13,14 @@ import java.util.UUID;
 public interface OrganizationMemberRepository extends JpaRepository<OrganizationMember, Long>, OrganizationMemberCustom {
     Optional<OrganizationMember> findByAccountUuid(UUID accountUuid);
 
+    List<OrganizationMember> findAllByOrganizationIdAndAccountUuidIn(Long organizationId, List<UUID> accountUuids);
+
     @Modifying
     @Query("""
         delete from OrganizationMember om
         where om.organization.id = :organizationId
     """)
     void deleteByOrganizationId(Long organizationId);
-
-    Optional<OrganizationMember> findByAccountUuidAndOrganizationId(UUID accountUuid, Long organizationId);
 
     Optional<OrganizationMember> findByIdAndOrganizationId(Long memberId, Long organizationId);
 

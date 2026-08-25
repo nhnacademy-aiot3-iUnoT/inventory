@@ -31,8 +31,8 @@ public class StorageController {
     }
 
     @GetMapping("/storages")
-    public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorages(){
-        List<StorageInfoResponse> responses = storageService.getStorages();
+    public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorages(@RequestParam(required = false) String name) {
+        List<StorageInfoResponse> responses = name == null ? storageService.getStorages() : storageService.searchStorages(name);
 
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
