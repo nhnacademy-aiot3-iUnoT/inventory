@@ -1,16 +1,18 @@
 package com.nhnacademy.inventory.inventories.inventory.service;
 
 import com.nhnacademy.inventory.global.dto.PageResponse;
+import com.nhnacademy.inventory.inventories.inventory.dto.InventoryDetailResponse;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoryInfoResponse;
+import com.nhnacademy.inventory.inventories.inventory.dto.InventoryResponse;
+import com.nhnacademy.inventory.inventories.inventory.exception.InventoryNotFoundException;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 
-import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepositoryImpl;
-import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,23 +44,37 @@ public class InventoryService {
     }
 
 
-    // 상세 재고 조회
-    public PageResponse<InventoryInfoResponse> getInventoryInfo(Long storageId, Long packUnitId, Pageable pageable){
+    //상세 재고 조회
+    public InventoryInfoResponse getInventoryInfo(Long storageId, Long packUnitId, Pageable pageable){
+
+        log.info("==== 상세 재고 조회 시작 ====");
 
         List<Zone> zones = zoneRepository.findAllByStorageId(storageId);
 
         List<Long> zoneIds = zones.stream()
                         .map(z -> z.getId()).toList();
 
+        log.info("zoneIds {}",zoneIds);
 
-       Page<InventoryInfoResponse> result = inventoryRepository.findByZonesAndPackUnitId(zoneIds,packUnitId,pageable);
+       Page<InventoryResponse> result = inventoryRepository.findByZonesAndPackUnitId(zoneIds,packUnitId,pageable);
 
-       log.info("inventory response list{}",result.getContent());
+       if(result.isEmpty()){
+           throw new InventoryNotFoundException();
+       }
 
+        Page<InventoryDetailResponse> page = result.map(i ->
+                InventoryDetailResponse.from(i)
+                );
 
-        return PageResponse.from(result);
+        InventoryResponse first = result.getContent().getFirst();
+        InventoryInfoResponse info = InventoryInfoResponse.from(first, PageResponse.from(page));
+
+        log.info("inventory info response : {}",info);
+
+        return info;
 
     }
+
 
 
 

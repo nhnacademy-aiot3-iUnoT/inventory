@@ -15,7 +15,6 @@ public interface ZoneRepository extends JpaRepository<Zone, Long> {
 
     Optional<Zone> findByIdAndStorage(Long id, Storage storage);
 
-    List<Zone> findAllByStorage(Storage storage);
 
     List<Zone> findAllByStorageId(Long storageId);
 

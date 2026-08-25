@@ -51,6 +51,11 @@ public class MedicineSearchService {
                 throw new ItemCodeInvalidException();
             }
 
+            if(trimmed.length() < 6 || trimmed.length() > 9){
+                throw new ItemCodeLengthInvalidException();
+            }
+
+
             // 빈 리스트 반환
             searchResponse = packageUnitRepository.findAllWithMedicineByItemCode(trimmed,pageable);
             log.info("item code : {} , searchResponse : {}",request.search(),searchResponse.getContent());

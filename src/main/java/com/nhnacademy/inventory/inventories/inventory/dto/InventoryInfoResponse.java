@@ -1,32 +1,34 @@
 package com.nhnacademy.inventory.inventories.inventory.dto;
 
-import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
-import com.querydsl.core.annotations.QueryProjection;
 
-import java.time.LocalDate;
+import com.nhnacademy.inventory.global.dto.PageResponse;
+
 
 public record InventoryInfoResponse(
 
-
         Long medicinePackUnitId,
         Long storageId,
-        Long zoneId,
-        String productName,
-        String lotNumber,
-        LocalDate expirationDate,
-        Integer currentQuantity,
         String storageName,
-        String zoneName,
-        ManagementStatus managementStatus
+        String itemCode,
+        String productName,
+        PageResponse<InventoryDetailResponse> inventories
 
 
 ) {
 
+    public static InventoryInfoResponse from(InventoryResponse response,PageResponse<InventoryDetailResponse> details){
 
-    @QueryProjection
-    public InventoryInfoResponse{
+        return new InventoryInfoResponse(
+                response.medicinePackUnitId(),
+                response.storageId(),
+                response.storageName(),
+                response.itemCode(),
+                response.productName(),
+                details
+                );
 
     }
+
 
 
 }

@@ -17,7 +17,13 @@ public enum InventoryErrorCode implements ErrorCode {
 
 
     //알림 에러코드
-    ALERT_NOT_FOUND(HttpStatus.NOT_FOUND, "A001", "존재하지 않거나 이미 삭제된 알림입니다.");
+    ALERT_NOT_FOUND(HttpStatus.NOT_FOUND, "A001", "존재하지 않거나 이미 삭제된 알림입니다."),
+
+
+    // zone - packUnitId
+    INVENTORY_NOT_FOUND(HttpStatus.NOT_FOUND,"ZP001","해당하는 의약품이 존재하지 않습니다.");
+
+
 
     private final HttpStatus status;
     private final String code;

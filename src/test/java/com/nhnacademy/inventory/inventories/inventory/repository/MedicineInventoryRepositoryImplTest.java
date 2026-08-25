@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.global.config.QuerydslConfig;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
+import com.nhnacademy.inventory.inventories.inventory.dto.InventoryResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,4 +156,40 @@ class MedicineInventoryRepositoryImplTest {
 
 
     }
+
+
+    @Test
+    @DisplayName("zoneIds, packUnitId로 의약품 상세 조회")
+    void detailMedicineTest(){
+
+        List<Long> zoneIds = List.of(1L);
+        Long packUnitId = 1L;
+        Pageable pageable = Pageable.ofSize(10);
+
+        Page<InventoryResponse> result = medicineInventoryRepository.findByZonesAndPackUnitId(zoneIds,packUnitId,pageable);
+        List<InventoryResponse> content = result.getContent();
+
+
+        assertAll(
+
+                () -> assertEquals(1L,content.getFirst().medicinePackUnitId()),
+                () -> assertEquals(1L,content.getFirst().storageId()),
+                () -> assertEquals(1L,content.getFirst().zoneId()),
+                () -> assertEquals("LOT-TY-001",content.getFirst().lotNumber()),
+                () -> assertEquals(LocalDate.of(2027,Month.JANUARY,31),content.getFirst().expirationDate()),
+                () -> assertEquals(100,content.getFirst().currentQuantity()),
+                () -> assertEquals(ManagementStatus.NORMAL,content.getFirst().managementStatus()),
+                () -> assertEquals("타이레놀정",content.getFirst().productName()),
+                () -> assertEquals("일반구역 A",content.getFirst().zoneName()),
+                () -> assertEquals("약품창고 A",content.getFirst().storageName()),
+                () -> assertEquals("001",content.getFirst().itemCode())
+
+
+        );
+
+
+
+    }
+
+
 }

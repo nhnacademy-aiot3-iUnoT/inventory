@@ -5,6 +5,5 @@ public enum ManagementStatus {
     UNDER_REVIEW,
     DEPLETED,
     DISPOSAL,
-    LOW_STOCK,
-    NEAR_EXPIRATION
+
 }

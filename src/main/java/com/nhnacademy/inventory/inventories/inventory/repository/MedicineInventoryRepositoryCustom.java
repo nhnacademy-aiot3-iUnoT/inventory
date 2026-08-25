@@ -4,7 +4,8 @@ import com.nhnacademy.inventory.inventories.expiration.dto.ExpiringInventoryResp
 import com.nhnacademy.inventory.inventories.expiration.dto.ExpiringInventorySearchRequest;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
-import com.nhnacademy.inventory.inventories.inventory.dto.InventoryInfoResponse;
+
+import com.nhnacademy.inventory.inventories.inventory.dto.InventoryResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -24,7 +25,7 @@ public interface MedicineInventoryRepositoryCustom {
     Page<InventoriesResponse> findAllInventories(String search, Long storageId, List<Long> storageIds, Pageable pageable);
 
 
-    Page<InventoryInfoResponse> findByZonesAndPackUnitId(List<Long> zoneIds, Long packUnitId, Pageable pageable);
+    Page<InventoryResponse> findByZonesAndPackUnitId(List<Long> zoneIds, Long packUnitId, Pageable pageable);
 
 
 

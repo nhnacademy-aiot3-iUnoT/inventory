@@ -1,9 +1,14 @@
 package com.nhnacademy.inventory.inventories.inventory.controller;
 
+import com.nhnacademy.inventory.global.dto.PageResponse;
+import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
+import com.nhnacademy.inventory.inventories.inventory.dto.InventoryDetailResponse;
+import com.nhnacademy.inventory.inventories.inventory.dto.InventoryInfoResponse;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.service.InboundService;
 import com.nhnacademy.inventory.inventories.inventory.service.InventoriesSearchService;
+import com.nhnacademy.inventory.inventories.inventory.service.InventoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +21,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
+
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,6 +44,8 @@ class InventoryControllerTest {
     InboundService inboundService;
     @MockitoBean
     InventoriesSearchService inventoriesSearchService;
+    @MockitoBean
+    InventoryService inventoryService;
 
 
     @Test
@@ -269,8 +278,88 @@ class InventoryControllerTest {
     }
 
 
+    @Test
+    @DisplayName("상세 재고 조회")
+    void getInventoryInfo() throws Exception{
+
+
+        List<InventoryDetailResponse> details = List.of(
+                new InventoryDetailResponse(
+                        1L,
+                        "A 구역",
+                        "lot-3452",
+                        LocalDate.of(2026,Month.FEBRUARY,24),
+                        50,
+                        ManagementStatus.NORMAL
+
+                )
+        );
+
+
+        InventoryInfoResponse info = new InventoryInfoResponse(
+                1L,
+                1L,
+                "A 저장소",
+                "ABC-123",
+                "테스트 약",
+                PageResponse.from(new PageImpl<>(details))
+        );
+
+        given(inventoryService.getInventoryInfo(eq(1L),eq(1L),any(Pageable.class)))
+                .willReturn(info);
+
+
+        mockMvc.perform(get("/api/core/inventories/storages/1/pack-units/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("""
+
+                {
+
+                    "success": true,
+                    "data" : {
+
+                         "medicinePackUnitId": 1,
+                         "storageId": 1,
+                         "storageName": "A 저장소",
+                         "itemCode": "ABC-123",
+                         "productName": "테스트 약",
+                         "inventories": 
+                            {
+                              "content" : [
+                            {
+                                 "zoneId": 1,
+                                 "zoneName": "A 구역",
+                                 "lotNumber": "lot-3452",
+                                 "expirationDate": "2026-02-24",
+                                 "currentQuantity": 50,
+                                 "managementStatus":"NORMAL"
+                             
+                            }
+   
+                         ],
+                            "page": 0,
+                            "size": 1,
+                            "totalElements": 1,
+                            "totalPages": 1,
+                            "last": true
+                            
+                            
+                            }
+                         
+                    
+                         
+
+                    
+                    },
+                  "error":null
+              
+                }
+
+        """));
 
 
 
 
+    }
 }
