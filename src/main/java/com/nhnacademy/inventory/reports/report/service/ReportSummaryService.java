@@ -58,7 +58,7 @@ public class ReportSummaryService {
                 .call()
                 .content();
 
-        log.info("생성된 리포트 요약: {}", summary);
+        log.debug("생성된 리포트 요약: {}", summary);
 
         return summary;
     }
