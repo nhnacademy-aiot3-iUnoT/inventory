@@ -54,6 +54,8 @@ spring:
     google:
       genai:
         api-key: ${GOOGLE_API_KEY:dummy}
+        chat:
+          model: gemini-3.1-flash-lite
 
 server:
   port: ${SERVER_PORT:10411}
