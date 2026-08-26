@@ -1,13 +1,12 @@
 package com.nhnacademy.inventory.reports.report.usecase;
 
-import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
-import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 import com.nhnacademy.inventory.reports.event.ReportGenerationRequestedEvent;
+import com.nhnacademy.inventory.reports.report.service.ReportItemCollector;
 import com.nhnacademy.inventory.reports.report.service.ReportService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,6 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -35,10 +33,10 @@ class ReportCreateUseCaseTest {
     private ReportService reportService;
 
     @Mock
-    private StockTransactionService stockTransactionService;
+    private StorageService storageService;
 
     @Mock
-    private StorageService storageService;
+    private ReportItemCollector reportItemCollector;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -103,12 +101,6 @@ class ReportCreateUseCaseTest {
                 .willReturn(Optional.empty());
         given(reportService.register(any(Report.class)))
                 .willReturn(report);
-        given(stockTransactionService.findTransactionsForStorageReport(
-                storageId,
-                List.of(TransactionType.INBOUND, TransactionType.OUTBOUND, TransactionType.DISPOSAL),
-                report.getPeriodStart(),
-                report.getPeriodEnd()))
-                .willReturn(List.of());
 
         // when
         reportCreateUseCase.createWeekly(storageId, periodStart);
