@@ -12,6 +12,8 @@ import com.nhnacademy.inventory.organizations.department.dto.response.Department
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentNotFoundException;
 import com.nhnacademy.inventory.organizations.department.repository.DepartmentRepository;
+import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
+import com.nhnacademy.inventory.organizations.department.repository.StorageDepartmentRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
@@ -39,6 +41,12 @@ class DepartmentServiceTest {
 
     @Mock
     private DepartmentRepository departmentRepository;
+
+    @Mock
+    private MemberDepartmentRepository memberDepartmentRepository;
+
+    @Mock
+    private StorageDepartmentRepository storageDepartmentRepository;
 
     @Mock
     private OrganizationAccessService orgAccessService;
@@ -211,7 +219,8 @@ class DepartmentServiceTest {
 
             DepartmentStatusUpdateRequest request = new DepartmentStatusUpdateRequest(DepartmentStatus.INACTIVE);
 
-            assertThrows(ForbiddenException.class, () -> departmentService.updateDepartmentStatus(request, department.getId()));
+            Long departmentId = department.getId();
+            assertThrows(ForbiddenException.class, () -> departmentService.updateDepartmentStatus(request, departmentId));
 
             verify(departmentRepository, never()).findByIdAndOrganizationId(anyLong(), anyLong());
         }
@@ -236,7 +245,8 @@ class DepartmentServiceTest {
 
             DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
 
-            DepartmentInfoResponse response = departmentService.updateDepartment(request, department.getId());
+            Long departmentId = department.getId();
+            DepartmentInfoResponse response = departmentService.updateDepartment(request, departmentId);
 
             assertEquals("기획팀", response.name());
             assertEquals("기획 부서", response.description());
@@ -249,7 +259,8 @@ class DepartmentServiceTest {
 
             DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
 
-            assertThrows(ForbiddenException.class, () -> departmentService.updateDepartment(request, department.getId()));
+            Long departmentId = department.getId();
+            assertThrows(ForbiddenException.class, () -> departmentService.updateDepartment(request, departmentId));
 
             verify(departmentRepository, never()).findByIdAndOrganizationId(anyLong(), anyLong());
         }
@@ -262,7 +273,8 @@ class DepartmentServiceTest {
 
             DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
 
-            assertThrows(DepartmentNotFoundException.class, () -> departmentService.updateDepartment(request, department.getId()));
+            Long departmentId = department.getId();
+            assertThrows(DepartmentNotFoundException.class, () -> departmentService.updateDepartment(request, departmentId));
         }
 
         @Test
@@ -274,7 +286,8 @@ class DepartmentServiceTest {
 
             DepartmentUpdateRequest request = new DepartmentUpdateRequest("기획팀", "기획 부서");
 
-            assertThrows(DepartmentAlreadyExistsException.class, () -> departmentService.updateDepartment(request, department.getId()));
+            Long departmentId = department.getId();
+            assertThrows(DepartmentAlreadyExistsException.class, () -> departmentService.updateDepartment(request, departmentId));
         }
     }
 
@@ -291,6 +304,8 @@ class DepartmentServiceTest {
             departmentService.deleteDepartment(department.getId());
 
             verify(orgAccessService).requireOwnerOrBossOrganization();
+            verify(memberDepartmentRepository).deleteByDepartmentId(department.getId());
+            verify(storageDepartmentRepository).deleteByDepartmentId(department.getId());
             verify(departmentRepository).delete(department);
         }
 
@@ -299,8 +314,11 @@ class DepartmentServiceTest {
         void forbidden() {
             given(orgAccessService.requireOwnerOrBossOrganization()).willThrow(new ForbiddenException());
 
-            assertThrows(ForbiddenException.class, () -> departmentService.deleteDepartment(department.getId()));
+            Long departmentId = department.getId();
+            assertThrows(ForbiddenException.class, () -> departmentService.deleteDepartment(departmentId));
 
+            verify(memberDepartmentRepository, never()).deleteByDepartmentId(anyLong());
+            verify(storageDepartmentRepository, never()).deleteByDepartmentId(anyLong());
             verify(departmentRepository, never()).delete(any());
         }
 
@@ -310,8 +328,11 @@ class DepartmentServiceTest {
             given(orgAccessService.requireOwnerOrBossOrganization()).willReturn(organization);
             given(departmentRepository.findByIdAndOrganizationId(anyLong(), anyLong())).willReturn(Optional.empty());
 
-            assertThrows(DepartmentNotFoundException.class, () -> departmentService.deleteDepartment(department.getId()));
+            Long departmentId = department.getId();
+            assertThrows(DepartmentNotFoundException.class, () -> departmentService.deleteDepartment(departmentId));
 
+            verify(memberDepartmentRepository, never()).deleteByDepartmentId(anyLong());
+            verify(storageDepartmentRepository, never()).deleteByDepartmentId(anyLong());
             verify(departmentRepository, never()).delete(any());
         }
     }

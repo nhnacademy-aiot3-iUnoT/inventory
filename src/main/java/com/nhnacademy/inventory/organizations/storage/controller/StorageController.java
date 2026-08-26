@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/core")
 @RequiredArgsConstructor
+@Slf4j
 public class StorageController {
     private final StorageService storageService;
 
@@ -29,8 +31,8 @@ public class StorageController {
     }
 
     @GetMapping("/storages")
-    public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorages(){
-        List<StorageInfoResponse> responses = storageService.getStorages();
+    public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorages(@RequestParam(required = false) String name) {
+        List<StorageInfoResponse> responses = name == null ? storageService.getStorages() : storageService.searchStorages(name);
 
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
@@ -43,6 +45,17 @@ public class StorageController {
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @GetMapping("/inbound/storages")
+    public ResponseEntity<ApiResponse<List<StorageInfoResponse>>> getStorageInbound(){
+
+
+        List<StorageInfoResponse> responses = storageService.getStoragesInbound();
+        log.info("storage responses count: {}",responses);
+
+        return ResponseEntity.ok(ApiResponse.success(responses));
+    }
+
 
     @PutMapping("/storages/{storage-id}")
     public ResponseEntity<ApiResponse<StorageDetailResponse>> updateStorage(
