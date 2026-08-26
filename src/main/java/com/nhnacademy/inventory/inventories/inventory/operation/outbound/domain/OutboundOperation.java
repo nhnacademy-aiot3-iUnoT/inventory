@@ -2,7 +2,6 @@ package com.nhnacademy.inventory.inventories.inventory.operation.outbound.domain
 
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.exception.InsufficientStockException;
-import com.nhnacademy.inventory.inventories.inventory.exception.InvalidOutboundTypeException;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundRequest;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
@@ -27,12 +26,6 @@ public class OutboundOperation {
             MedicineOutboundRequest request,
             UUID processedBy
     ) {
-
-        if (request.transactionType() != TransactionType.OUTBOUND
-                && request.transactionType() != TransactionType.TRANSFER_OUT) {
-            throw new InvalidOutboundTypeException();
-        }
-
         int totalQuantity = 0;
 
         for (MedicineInventory inventory : inventories) {
@@ -64,13 +57,18 @@ public class OutboundOperation {
         MedicinePackageUnit medicinePackageUnit =
                 inventories.getFirst().getMedicinePackageUnit();
 
+        TransactionType transactionType =
+                request.reason() == OutboundReason.STORAGE_TRANSFER
+                        ? TransactionType.TRANSFER_OUT
+                        : TransactionType.OUTBOUND;
+
         StockTransactionCommand command =
                 new StockTransactionCommand(
                         medicinePackageUnit,
                         zone,
-                        request.transactionType(),
+                        transactionType,
                         request.quantity(),
-                        null,
+                        request.reason().name(),
                         request.memo(),
                         processedBy
                 );

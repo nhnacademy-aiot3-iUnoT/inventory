@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.disposal.domain;
 
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalRequest;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
@@ -18,10 +19,13 @@ public class DisposalOperation {
 
     public void process(
             MedicineInventory inventory,
-            MedicineDisposalRequest request,
-            UUID processedBy
+            MedicineDisposalRequest request
     ) {
         inventory.disposeQuantity(request.quantity());
+
+        String memo = request.reason() == DisposalReason.OTHER
+                ? request.memo().trim()
+                : null;
 
         StockTransactionCommand command =
                 new StockTransactionCommand(
@@ -29,9 +33,9 @@ public class DisposalOperation {
                         inventory.getZone(),
                         TransactionType.DISPOSAL,
                         request.quantity(),
-                        request.reason(),
-                        request.memo(),
-                        processedBy
+                        request.reason().name(),
+                        memo,
+                        UserContext.getUserUuid()
                 );
 
         stockTransactionService.createStockTransaction(command);

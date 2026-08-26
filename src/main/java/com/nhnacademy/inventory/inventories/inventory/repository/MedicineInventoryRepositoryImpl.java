@@ -70,6 +70,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                         inventory.zone.id.eq(zoneId),
                         inventory.lotNumber.eq(lotNumber),
                         inventory.expirationDate.eq(expiration)
+
                 )
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE) //비관적 락
                 .fetchOne();

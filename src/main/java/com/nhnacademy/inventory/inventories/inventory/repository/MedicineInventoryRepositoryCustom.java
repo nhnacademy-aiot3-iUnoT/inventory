@@ -39,5 +39,6 @@ public interface MedicineInventoryRepositoryCustom {
             ExpiringInventorySearchRequest request,
             Pageable pageable
     );
+
     Optional<MedicineInventory> findByIdForUpdate(Long inventoryId);
 }
