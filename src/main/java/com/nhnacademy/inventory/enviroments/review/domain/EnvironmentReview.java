@@ -1,7 +1,6 @@
 package com.nhnacademy.inventory.enviroments.review.domain;
 
-import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
-import com.nhnacademy.inventory.organizations.zone.domain.Zone;
+import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -23,12 +22,8 @@ public class EnvironmentReview {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "medicine_package_unit_id", nullable = false)
-    private MedicinePackageUnit medicinePackageUnit;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "zone_id", nullable = false)
-    private Zone zone;
+    @JoinColumn(name = "inventory_id", nullable = false)
+    private MedicineInventory medicineInventory;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -46,10 +41,9 @@ public class EnvironmentReview {
     private String memo;
 
     @Builder
-    private EnvironmentReview(MedicinePackageUnit medicinePackageUnit, Zone zone, UUID reviewerId,
+    private EnvironmentReview(MedicineInventory medicineInventory, UUID reviewerId,
                               Boolean isOut, Integer quantityAtReview, String memo) {
-        this.medicinePackageUnit = medicinePackageUnit;
-        this.zone = zone;
+        this.medicineInventory = medicineInventory;
         this.reviewerId = reviewerId;
         this.isOut = isOut;
         this.quantityAtReview = quantityAtReview;
