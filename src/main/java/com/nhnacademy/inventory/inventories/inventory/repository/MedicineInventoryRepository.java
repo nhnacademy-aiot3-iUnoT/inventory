@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 
@@ -28,10 +29,9 @@ public interface MedicineInventoryRepository extends JpaRepository<MedicineInven
     Long findByZoneAndPackUnitSum(@Param("zones")List<Zone> zones,@Param("packUnitId") Long packUnitId);
 
 
+    long countByZone_StorageAndExpirationDateBeforeAndManagementStatusIn(Storage zoneStorage, LocalDate expirationDateBefore, Collection<ManagementStatus> managementStatuses);
 
-    long countByZone_StorageAndExpirationDateBefore(Storage zoneStorage, LocalDate expirationDateBefore);
-
-    long countByZone_StorageAndExpirationDateBetween(Storage zoneStorage, LocalDate expirationDateAfter, LocalDate expirationDateBefore);
+    long countByZone_StorageAndExpirationDateBetweenAndManagementStatusIn(Storage zoneStorage, LocalDate expirationDateAfter, LocalDate expirationDateBefore, Collection<ManagementStatus> managementStatuses);
 
     List<MedicineInventory> findAllByZoneAndManagementStatus(Zone zone, ManagementStatus managementStatus);
 }
