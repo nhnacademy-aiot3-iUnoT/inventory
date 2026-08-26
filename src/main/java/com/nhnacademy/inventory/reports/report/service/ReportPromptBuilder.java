@@ -5,15 +5,20 @@ import com.nhnacademy.inventory.reports.environment.dto.ReportEnvironmentSummary
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportItem;
 import com.nhnacademy.inventory.reports.report.domain.ReportItemType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+@Slf4j
 @Component
 public class ReportPromptBuilder {
     private static final int DISPLAY_SCALE = 1;
@@ -23,7 +28,7 @@ public class ReportPromptBuilder {
             List<ReportEnvironmentSummary> environments,
             List<ReportEnvironmentDoorSummary> doors
     ) {
-        return """
+        String prompt = """
             기간: %s ~ %s (%s)
 
             [입고]
@@ -41,36 +46,77 @@ public class ReportPromptBuilder {
                 report.getPeriodStart(),
                 report.getPeriodEnd(),
                 report.getReportType().getName(),
-                toItemLines(report, ReportItemType.INBOUND),
-                toItemLines(report, ReportItemType.OUTBOUND),
-                toItemLines(report, ReportItemType.DISPOSAL),
+                toItemLines(report, ReportItemType.INBOUND, "입고량"),
+                toItemLines(report, ReportItemType.OUTBOUND, "사용량"),
+                toItemLines(report, ReportItemType.DISPOSAL, "폐기량"),
                 toEnvironmentLines(environments, doors));
+
+        log.debug("AI 프롬프트: {}", prompt);
+
+        return prompt;
     }
 
-    private String toItemLines(Report report, ReportItemType type) {
-        String text = report.getReportItems().stream()
+    private String toItemLines(Report report, ReportItemType type, String totalLabel) {
+        List<ReportItem> items = report.getReportItems().stream()
                 .filter(item -> item.getReportItemType() == type)
                 .sorted(Comparator.comparing(ReportItem::getQuantity).reversed())
-                .map(this::toItemLine)
-                .collect(Collectors.joining("\n"));
+                .toList();
 
-        return (text.isBlank()) ? "없음" : text;
+        if (items.isEmpty()) {
+            return "없음";
+        }
+
+        int total = items.stream().mapToInt(ReportItem::getQuantity).sum();
+
+        return items.stream()
+                .map(item -> toItemLine(item, total, totalLabel))
+                .collect(Collectors.joining("\n"));
     }
 
-    private String toItemLine(ReportItem item) {
-        return String.format("%s / %s : %d개", item.getMedicineName(), item.getPackUnit(), item.getQuantity());
+    // LLM 에게 나눗셈을 맡기면 틀린 값을 그럴듯하게 써내기 때문에 비중을 여기서 계산함
+    private String toItemLine(ReportItem item, int total, String totalLabel) {
+        return "%s / %s : %d개 (%s의 %s%%)".formatted(
+                item.getMedicineName(),
+                item.getPackUnit(),
+                item.getQuantity(),
+                totalLabel,
+                formatShare(item.getQuantity(), total));
+    }
+
+    private String formatShare(int quantity, int total) {
+        if (total <= 0) {
+            return "-";
+        }
+
+        return BigDecimal.valueOf(quantity * 100.0 / total)
+                .setScale(DISPLAY_SCALE, RoundingMode.HALF_UP)
+                .toPlainString();
     }
 
     private String toEnvironmentLines(
             List<ReportEnvironmentSummary> environments,
             List<ReportEnvironmentDoorSummary> doors
     ) {
-        String text = Stream.concat(
-                        environments.stream().map(this::toSensorLine),
-                        doors.stream().map(this::toDoorLine))
-                .collect(Collectors.joining("\n"));
+        Map<Long, ReportEnvironmentDoorSummary> doorsByZone = doors.stream()
+                .collect(Collectors.toMap(ReportEnvironmentDoorSummary::zoneId, Function.identity(), (a, b) -> a));
 
-        return text.isBlank() ? "없음" : text;
+        List<String> lines = new ArrayList<>();
+
+        for (ReportEnvironmentSummary summary : environments) {
+            lines.add(toSensorLine(summary));
+
+            // 이탈은 특정 날짜에 일어난 일이므로 주간 합계로는 근거를 댈 수 없음
+            // 해당 구역의 일별 수치와 문 개폐 데이터를 함께 넘겨서 의미 있는 문장을 생성하도록 함
+            if (summary.hasOutOfRange()) {
+                lines.addAll(toDailyLines(summary, doorsByZone.get(summary.zoneId())));
+            }
+        }
+
+        doors.stream()
+                .map(this::toDoorLine)
+                .forEach(lines::add);
+
+        return lines.isEmpty() ? "없음" : String.join("\n", lines);
     }
 
     private String toSensorLine(ReportEnvironmentSummary summary) {
@@ -83,6 +129,31 @@ public class ReportPromptBuilder {
                 format(summary.maxValue()),
                 formatThreshold(summary),
                 formatOutOfRange(summary));
+    }
+
+    private List<String> toDailyLines(ReportEnvironmentSummary summary, ReportEnvironmentDoorSummary door) {
+        if (summary.dailyPoints() == null || summary.dailyPoints().isEmpty()) {
+            return List.of();
+        }
+
+        Map<LocalDate, ReportEnvironmentDoorSummary.DailyPoint> doorByDate = (door == null || door.dailyPoints() == null)
+                ? Map.of()
+                : door.dailyPoints().stream()
+                        .collect(Collectors.toMap(
+                                ReportEnvironmentDoorSummary.DailyPoint::date, Function.identity(), (a, b) -> a));
+
+        return summary.dailyPoints().stream()
+                .map(point -> "  %s : 평균 %s, 범위 %s~%s%s".formatted(
+                        point.date(),
+                        format(point.avgValue()),
+                        format(point.minValue()),
+                        format(point.maxValue()),
+                        formatDoorOfDay(doorByDate.get(point.date()))))
+                .toList();
+    }
+
+    private String formatDoorOfDay(ReportEnvironmentDoorSummary.DailyPoint door) {
+        return (door == null) ? "" : ", 문 개폐 %d회 %d분".formatted(door.openCount(), door.openMinutes());
     }
 
     private String toDoorLine(ReportEnvironmentDoorSummary summary) {
