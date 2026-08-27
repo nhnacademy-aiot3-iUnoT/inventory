@@ -3,12 +3,9 @@ package com.nhnacademy.inventory.inventories.inventory.domain;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,6 +53,7 @@ public class MedicineInventory {
     @Column(name = "current_quantity", nullable = false)
     private Integer currentQuantity;
 
+    @Setter
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
     @Column(name = "management_status", length = 30, nullable = false)
@@ -67,7 +65,7 @@ public class MedicineInventory {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "last_")
+    @Column(name = "last_review_at", nullable = false)
     private LocalDateTime lastReviewAt;
 
     @Builder
@@ -87,6 +85,7 @@ public class MedicineInventory {
         LocalDateTime now = LocalDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;
+        this.lastReviewAt = now;
     }
 
     @PreUpdate
@@ -113,6 +112,8 @@ public class MedicineInventory {
         this.currentQuantity += quantity;
     }
 
-
+    public void review(){
+        this.lastReviewAt = LocalDateTime.now();
+    }
 
 }

@@ -146,6 +146,11 @@ public class ZoneService {
         return zone;
     }
 
+    public Zone findZone(Long zoneId){
+        return zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
+    }
+
     private Zone findByIdAndValidateOwner(Long storageId, Long zoneId){
         Storage storage = storageService.validateOwnerAndGetStorage(storageId);
 
