@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.organizations.department.repository;
 
 import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -45,4 +46,12 @@ public interface MemberDepartmentRepository extends JpaRepository<MemberDepartme
 
     boolean existsByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 
+    @Query("""
+        select distinct sd.storage.id
+        from MemberDepartment md
+        join StorageDepartment sd on sd.department = md.department
+        where md.organizationMember.id = :organizationMemberId
+          and sd.storage.status <> 'CLOSED'
+        """)
+    List<Long> findAccessibleStorageIds(Long organizationMemberId);
 }

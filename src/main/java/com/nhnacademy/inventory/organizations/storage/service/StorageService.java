@@ -3,7 +3,9 @@ package com.nhnacademy.inventory.organizations.storage.service;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.department.domain.Department;
+import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.department.domain.StorageDepartment;
+import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
 import com.nhnacademy.inventory.organizations.department.repository.StorageDepartmentRepository;
 import com.nhnacademy.inventory.organizations.department.service.DepartmentService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
@@ -15,6 +17,7 @@ import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNameAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
+import com.nhnacademy.inventory.organizations.storage.repository.StoragePermissionRepository;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +37,8 @@ public class StorageService {
     private final OrganizationMemberRepository memberRepository;
     private final DepartmentService departmentService;
     private final StorageDepartmentRepository storageDepartmentRepository;
+    private final MemberDepartmentRepository memberDepartmentRepository;
+    private final StoragePermissionRepository storagePermissionRepository;
 
     @Transactional
     public StorageDetailResponse createStorage(StorageCreateRequest request){
@@ -89,6 +94,66 @@ public class StorageService {
 
         return StorageDetailResponse.from(storage);
     }
+
+    public List<StorageInfoResponse> getStoragesInbound(){
+
+
+        OrganizationMember organizationMember = memberRepository.findByAccountUuid(UserContext.getUserUuid())
+                .orElseThrow(ForbiddenException::new);
+
+
+
+        if(organizationMember.isBoss()){
+
+            List<Storage> storages = storageRepository.findAllByOrganization(organizationMember.getOrganization());
+
+            List<StorageInfoResponse> infoResponses = storages.stream()
+                    .map(StorageInfoResponse::from
+                    ).toList();
+
+
+            log.info("boss - storages count : {}",infoResponses.size());
+
+            return infoResponses;
+
+        }
+
+        List<MemberDepartment> memberDepartments = memberDepartmentRepository.findAllByOrganizationMember(organizationMember);
+
+        // 부서-조직원 없음 조직원은 부서가 꼭 있어야 함.
+        if(memberDepartments.isEmpty()){
+            throw new ForbiddenException();
+        }
+
+        List<Long> departmentIds = memberDepartments.stream()
+                .map(
+                        md -> md.getDepartment().getId()
+                ).toList();
+
+
+        List<StorageDepartment> storageDepartments = storageDepartmentRepository.findAllByDepartmentIdIn(departmentIds);
+
+        List<Storage> storages = storageDepartments.stream()
+                .map(
+                        StorageDepartment::getStorage
+                )
+                .distinct()
+                .toList();
+
+        List<StorageInfoResponse> infoResponses = storages.stream()
+                .map(
+                        StorageInfoResponse::from
+                ).toList();
+
+
+        log.info("owner,member - storages count : {}",infoResponses.size());
+
+
+        return infoResponses;
+
+    }
+
+
 
     @Transactional
     public StorageDetailResponse updateStorage(Long storageId, StorageUpdateRequest request){
@@ -196,5 +261,29 @@ public class StorageService {
         if (exists) {
             throw new StorageNameAlreadyExistsException();
         }
+    }
+
+    public void checkStoragePermission(Long storageId){
+        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
+                .orElseThrow(ForbiddenException::new);
+
+        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
+            return;
+        }
+
+        boolean hasPermission = storagePermissionRepository.hasStoragePermission(
+                UserContext.getUserUuid(), storageId
+        );
+
+        if(!hasPermission){
+            throw new ForbiddenException();
+        }
+    }
+
+    public List<Long> getAccessibleStorageIds(OrganizationMember member){
+        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
+            return storageRepository.findActiveIdsByOrganizationId(member.getOrganization().getId());
+        }
+        return storageRepository.findActiveIdsByOrganizationMemberId(member.getId());
     }
 }

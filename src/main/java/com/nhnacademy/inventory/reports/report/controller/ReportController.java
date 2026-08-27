@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.reports.report.dto.ReportCreateRequest;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
 import com.nhnacademy.inventory.reports.report.usecase.ReportCreateFacade;
 import com.nhnacademy.inventory.reports.report.usecase.ReportGetUseCase;
+import com.nhnacademy.inventory.reports.report.usecase.ReportRecreateUseCase;
 import com.nhnacademy.inventory.reports.report.usecase.ReportRetrySummaryUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class ReportController {
     private final ReportCreateFacade reportCreateFacade;
+    private final ReportRecreateUseCase reportRecreateUseCase;
     private final ReportGetUseCase reportGetUseCase;
     private final ReportRetrySummaryUseCase reportRetrySummaryUseCase;
 
@@ -27,8 +29,6 @@ public class ReportController {
             @PathVariable(name = "storage-id") Long storageId,
             @RequestParam(name = "periodStart") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate periodStart
     ) {
-        // 404로 던지면 GatewayClient가 ApiException으로 변환해 던져서 처리가 복잡해짐
-        // 따라서 리포트가 없어도 200으로 반환
         ReportInfoResponse response = reportGetUseCase.getWeeklyReportByPeriod(storageId, periodStart)
                 .orElse(null);
 
@@ -55,7 +55,17 @@ public class ReportController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/{report-id}/ai-summary/retry")
+    @PostMapping("/{report-id}/recreations")
+    public ResponseEntity<ApiResponse<ReportInfoResponse>> recreateReport(
+            @PathVariable(name = "storage-id") Long storageId,
+            @PathVariable(name = "report-id") Long reportId
+    ) {
+        ReportInfoResponse response = reportRecreateUseCase.recreateWeekly(storageId, reportId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/{report-id}/ai-summary/recreations")
     public ResponseEntity<Void> retryAiSummary(
             @PathVariable(name = "storage-id") Long storageId,
             @PathVariable(name = "report-id") Long reportId

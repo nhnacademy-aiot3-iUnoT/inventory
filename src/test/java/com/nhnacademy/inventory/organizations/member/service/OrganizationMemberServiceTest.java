@@ -7,6 +7,7 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationMemberSearchRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRoleUpdateRequest;
+import com.nhnacademy.inventory.organizations.member.dto.response.MemberOrganizationResponse;
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
 import com.nhnacademy.inventory.organizations.member.exception.OrgMemberNotFoundException;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
@@ -381,6 +382,37 @@ class OrganizationMemberServiceTest {
 
             verify(orgAccessService).getCurrentMember();
             verify(orgDeletionService, never()).deleteMember(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("내부 서버 전용 - 조직 정보 조회")
+    class GetMemberOrganization {
+
+        @Test
+        @DisplayName("성공")
+        void success() {
+            UUID accountUuid = owner.getAccountUuid();
+
+            given(orgMemberRepository.findByAccountUuid(accountUuid)).willReturn(Optional.of(owner));
+
+            MemberOrganizationResponse response = orgMemberService.getMemberOrganization(accountUuid);
+
+            assertEquals(accountUuid, response.accountUuid());
+            assertEquals(organization.getId(), response.organizationId());
+            assertEquals(OrganizationRole.ORG_OWNER, response.organizationRole());
+
+            verify(orgMemberRepository).findByAccountUuid(accountUuid);
+        }
+
+        @Test
+        @DisplayName("실패 - 소속된 조직이 없음")
+        void user_org_not_found() {
+            UUID accountUuid = UUID.randomUUID();
+
+            given(orgMemberRepository.findByAccountUuid(accountUuid)).willReturn(Optional.empty());
+
+            assertThrows(UserOrgNotFoundException.class, () -> orgMemberService.getMemberOrganization(accountUuid));
         }
     }
 }

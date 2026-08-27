@@ -220,7 +220,8 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 .where(
                         organization.id.eq(organizationId),
                         storageIdEq(request.storageId()),
-                        filterTypeEq(request.getFilterType(), today)
+                        filterTypeEq(request.getFilterType(), today),
+                        activeStatusEq()
                 ).orderBy(getOrderSpecifier(pageable))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -236,7 +237,8 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 .where(
                         organization.id.eq(organizationId),
                         storageIdEq(request.storageId()),
-                        filterTypeEq(request.getFilterType(), today)
+                        filterTypeEq(request.getFilterType(), today),
+                        activeStatusEq()
                 )
                 .fetchOne();
 
@@ -395,5 +397,12 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
 
         Sort.Order order = pageable.getSort().iterator().next();
         return order.isAscending() ? inventory.expirationDate.asc() : inventory.expirationDate.desc();
+    }
+
+    private BooleanExpression activeStatusEq() {
+        return inventory.managementStatus.in(
+                ManagementStatus.NORMAL,
+                ManagementStatus.UNDER_REVIEW
+        );
     }
 }

@@ -16,7 +16,7 @@ import java.util.List;
 @Component
 public class RuleEngineApiClient {
 
-    private static final String DAILY_SUMMARIES_PATH = "/api/rule-engine/storages/{storageId}/daily-summaries";
+    private static final String DAILY_SUMMARIES_PATH = "/api/rule-engine/internal/storages/{storageId}/daily-summaries";
 
     private final RestClient restClient;
 

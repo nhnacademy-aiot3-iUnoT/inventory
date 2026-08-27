@@ -11,13 +11,13 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 public class ReportCreateFacade {
-    private final WeeklyReportCreateUseCase weeklyReportCreateUseCase;
+    private final ReportCreateUseCase reportCreateUseCase;
 
     @Retryable(
             includes = {DataIntegrityViolationException.class},
             maxRetries = 1
     )
     public ReportInfoResponse createWeeklyReport(Long storageId, LocalDate periodStart) {
-        return weeklyReportCreateUseCase.execute(storageId, periodStart);
+        return reportCreateUseCase.createWeekly(storageId, periodStart);
     }
 }

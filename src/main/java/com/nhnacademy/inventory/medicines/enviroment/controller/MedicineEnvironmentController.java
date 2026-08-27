@@ -7,6 +7,7 @@ import com.nhnacademy.inventory.medicines.enviroment.service.EnvironmentTypeSear
 import com.nhnacademy.inventory.medicines.enviroment.service.MedicineEnvironmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,15 @@ public class MedicineEnvironmentController {
        return ResponseEntity.ok(ApiResponse.success(environmentTypeSearchService.getTypes(medicinePackageUnitId)));
     }
 
+    // 환경기준 생성
+    @PostMapping("/package-units/{package-unit-id}/medicine-environment-types")
+    public ResponseEntity<Void> createEnvironmentTypes(@PathVariable(name = "package-unit-id") Long packUnitId,
+                                                       @Valid @RequestBody MedicineEnvironmentRequest medicineEnvironmentRequest){
+
+        medicineEnvironmentService.createTypes(packUnitId,medicineEnvironmentRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+
+    }
 
     // 환경기준 수정
     @PutMapping("/package-units/{package-unit-id}/medicine-environment-standards")

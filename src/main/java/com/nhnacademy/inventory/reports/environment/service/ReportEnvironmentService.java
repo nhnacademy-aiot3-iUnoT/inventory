@@ -17,9 +17,11 @@ public class ReportEnvironmentService {
     private final ReportEnvironmentStatRepository statRepository;
     private final ReportEnvironmentDoorStatRepository doorStatRepository;
 
-    // 환경 통계와 문열림 통계를 하나의 트랜잭션으로 저장
     @Transactional
-    public void registerAll(List<ReportEnvironmentStat> stats, List<ReportEnvironmentDoorStat> doorStats) {
+    public void registerReportEnvironment(Long reportId, List<ReportEnvironmentStat> stats, List<ReportEnvironmentDoorStat> doorStats) {
+        statRepository.deleteAllByReport_Id(reportId);
+        doorStatRepository.deleteAllByReport_Id(reportId);
+
         statRepository.saveAll(stats);
         doorStatRepository.saveAll(doorStats);
     }

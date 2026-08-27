@@ -45,6 +45,7 @@ public class InventoriesSearchService {
         OrganizationMember member=  organizationMemberRepository.findByAccountUuid(accountId)
                         .orElseThrow(ForbiddenException::new);
 
+
         String trimmed = search == null ? null : search.trim();
 
         Page<InventoriesResponse> page;
@@ -56,7 +57,7 @@ public class InventoriesSearchService {
             Long organizationId = member.getOrganization().getId();
             List<Storage> allStorages = storageRepository.findAllByOrganizationId(organizationId);
             List<Long> storageIds = allStorages.stream()
-                    .map(s -> s.getId()).toList();
+                    .map(Storage::getId).toList();
 
 
             
@@ -94,9 +95,6 @@ public class InventoriesSearchService {
         return page;
 
     }
-
-
-
 
 
 

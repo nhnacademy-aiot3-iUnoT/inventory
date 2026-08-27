@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.reports.environment.domain.ReportEnvironmentStat
 import com.nhnacademy.inventory.reports.environment.service.ReportEnvironmentAggregator;
 import com.nhnacademy.inventory.reports.environment.service.ReportEnvironmentService;
 import com.nhnacademy.inventory.reports.report.domain.Report;
+import com.nhnacademy.inventory.reports.report.service.ReportPromptBuilder;
 import com.nhnacademy.inventory.reports.report.service.ReportService;
 import com.nhnacademy.inventory.reports.report.service.ReportSummaryService;
 import com.nhnacademy.inventory.support.TestFixtures;
@@ -44,6 +45,10 @@ class ReportSummaryUseCaseTest {
     @Spy
     private ReportEnvironmentAggregator reportEnvironmentAggregator = new ReportEnvironmentAggregator();
 
+    // 프롬프트에 집계 결과가 실제로 담기는지 검증하므로 실제 빌더 사용
+    @Spy
+    private ReportPromptBuilder reportPromptBuilder = new ReportPromptBuilder();
+
     @InjectMocks
     private ReportSummaryUseCase reportSummaryUseCase;
 
@@ -54,6 +59,8 @@ class ReportSummaryUseCaseTest {
         long reportId = 1L;
         Report report = Report.weeklyOf(1L, 1L, PERIOD_START);
 
+        given(reportService.acquireSummary(reportId))
+                .willReturn(true);
         given(reportService.getReport(reportId))
                 .willReturn(report);
 
@@ -76,6 +83,8 @@ class ReportSummaryUseCaseTest {
         long reportId = 1L;
         Report report = Report.weeklyOf(1L, 1L, PERIOD_START);
 
+        given(reportService.acquireSummary(reportId))
+                .willReturn(true);
         given(reportService.getReport(reportId))
                 .willReturn(report);
         given(reportEnvironmentService.getStats(reportId))
@@ -99,6 +108,8 @@ class ReportSummaryUseCaseTest {
         long reportId = 1L;
         Report report = Report.weeklyOf(1L, 1L, PERIOD_START);
 
+        given(reportService.acquireSummary(reportId))
+                .willReturn(true);
         given(reportService.getReport(reportId))
                 .willReturn(report);
         given(reportEnvironmentService.getStats(reportId))
@@ -129,6 +140,8 @@ class ReportSummaryUseCaseTest {
         Report report = Report.weeklyOf(1L, 1L, PERIOD_START);
         report.addOutbound(TestFixtures.createPackageUnit(TestFixtures.createMedicine("202106092", "타이레놀")), 10);
 
+        given(reportService.acquireSummary(reportId))
+                .willReturn(true);
         given(reportService.getReport(reportId))
                 .willReturn(report);
         given(reportSummaryService.generateSummary(anyString()))

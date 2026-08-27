@@ -95,6 +95,13 @@ public class ZoneService {
         return ZoneDetailResponse.from(zone);
     }
 
+    public ZoneLocationResponse getZoneLocation(Long zoneId){
+        Zone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
+
+        return ZoneLocationResponse.from(zone);
+    }
+
     @Transactional
     public void internalUpdateEnvStatus(Long zoneId, EnvStatus envStatus){
         Zone zone = zoneRepository.findById(zoneId)
@@ -137,6 +144,11 @@ public class ZoneService {
         }
 
         return zone;
+    }
+
+    public Zone findZone(Long zoneId){
+        return zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
     }
 
     private Zone findByIdAndValidateOwner(Long storageId, Long zoneId){
