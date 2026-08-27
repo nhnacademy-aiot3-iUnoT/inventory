@@ -9,6 +9,7 @@ import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRol
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
+import com.nhnacademy.inventory.organizations.member.dto.response.MemberOrganizationResponse;
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberRoleResponse;
 import com.nhnacademy.inventory.organizations.member.exception.OrgMemberNotFoundException;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
@@ -65,6 +66,14 @@ public class OrganizationMemberService {
                 .orElseThrow(UserOrgNotFoundException::new);
 
         return new OrganizationMemberRoleResponse(member.getOrganizationRole());
+    }
+
+
+    public MemberOrganizationResponse getMemberOrganization(UUID accountUuid) {
+        OrganizationMember member = orgMemberRepository.findByAccountUuid(accountUuid)
+                .orElseThrow(UserOrgNotFoundException::new);
+
+        return MemberOrganizationResponse.from(member);
     }
 
     /**
