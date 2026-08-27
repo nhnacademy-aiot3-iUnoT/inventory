@@ -29,19 +29,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
     open-in-view: false
-
-  # H2 콘솔 사용 (웹에서 데이터베이스 보기)
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: true
 
   # Redis Connection Configuration
   data:
@@ -63,14 +55,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, service-registry
+        include: health, service-registry, prometheus
   endpoint:
     health:
       show-details: never
-  # 메일 연동 후 제거
   health:
     mail:
-      enabled: false
+      enabled: false # 메일이 안된다고 서버가 못뜨면 안되기 때문에 메일 헬스체크 비활성화
 
 # medicine API
 medicine:

@@ -14,12 +14,9 @@ clients:
 logging:
   level:
     com.nhnacademy.inventory: INFO
+    org.springframework: WARN
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health, service-registry, prometheus
   tracing:
     export:
       zipkin:
