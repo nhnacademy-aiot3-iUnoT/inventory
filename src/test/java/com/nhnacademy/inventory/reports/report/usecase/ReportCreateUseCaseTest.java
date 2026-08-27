@@ -1,13 +1,12 @@
 package com.nhnacademy.inventory.reports.report.usecase;
 
-import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
-import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
-import com.nhnacademy.inventory.reports.report.dto.ReportCreatedEvent;
+import com.nhnacademy.inventory.reports.event.ReportGenerationRequestedEvent;
+import com.nhnacademy.inventory.reports.report.service.ReportItemCollector;
 import com.nhnacademy.inventory.reports.report.service.ReportService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,6 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -29,26 +27,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
-class WeeklyReportCreateUseCaseTest {
+class ReportCreateUseCaseTest {
 
     @Mock
     private ReportService reportService;
 
     @Mock
-    private StockTransactionService stockTransactionService;
+    private StorageService storageService;
 
     @Mock
-    private StorageService storageService;
+    private ReportItemCollector reportItemCollector;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
-    private WeeklyReportCreateUseCase weeklyReportCreateUseCase;
+    private ReportCreateUseCase reportCreateUseCase;
 
     @Test
     @DisplayName("해당 날짜에 이미 생성된 리포트가 있다면, 리포트를 생성하지 않고 해당 리포트를 반환한다.")
-    void execute_WhenReportExist_DoesNotGenerate() {
+    void createWeekly_WhenReportExist_DoesNotGenerate() {
         // given
         long organizationId = 1L;
         long storageId = 1L;
@@ -68,7 +66,7 @@ class WeeklyReportCreateUseCaseTest {
                 .willReturn(Optional.of(report));
 
         // when
-        weeklyReportCreateUseCase.execute(storageId, periodStart);
+        reportCreateUseCase.createWeekly(storageId, periodStart);
 
         // then
         then(reportService)
@@ -76,12 +74,12 @@ class WeeklyReportCreateUseCaseTest {
                 .register(any(Report.class));
         then(eventPublisher)
                 .should(never())
-                .publishEvent(any(ReportCreatedEvent.class));
+                .publishEvent(any(ReportGenerationRequestedEvent.class));
     }
 
     @Test
     @DisplayName("해당 날짜에 생성된 리포트가 없다면, 리포트를 생성하고 리포트 생성 이벤트를 발행한다.")
-    void execute_WhenReportNotExist_GenerateReportAndPublishEvent() {
+    void createWeekly_WhenReportNotExist_GenerateReportAndPublishEvent() {
         // given
         long organizationId = 1L;
         long storageId = 1L;
@@ -103,15 +101,9 @@ class WeeklyReportCreateUseCaseTest {
                 .willReturn(Optional.empty());
         given(reportService.register(any(Report.class)))
                 .willReturn(report);
-        given(stockTransactionService.findTransactionsForStorageReport(
-                storageId,
-                List.of(TransactionType.INBOUND, TransactionType.OUTBOUND, TransactionType.DISPOSAL),
-                report.getPeriodStart(),
-                report.getPeriodEnd()))
-                .willReturn(List.of());
 
         // when
-        weeklyReportCreateUseCase.execute(storageId, periodStart);
+        reportCreateUseCase.createWeekly(storageId, periodStart);
 
         // then
         then(reportService)
@@ -119,6 +111,6 @@ class WeeklyReportCreateUseCaseTest {
                 .register(any(Report.class));
         then(eventPublisher)
                 .should()
-                .publishEvent(any(ReportCreatedEvent.class));
+                .publishEvent(any(ReportGenerationRequestedEvent.class));
     }
 }

@@ -7,6 +7,7 @@ import com.nhnacademy.inventory.reports.report.dto.ReportCreateRequest;
 import com.nhnacademy.inventory.reports.report.dto.ReportInfoResponse;
 import com.nhnacademy.inventory.reports.report.usecase.ReportCreateFacade;
 import com.nhnacademy.inventory.reports.report.usecase.ReportGetUseCase;
+import com.nhnacademy.inventory.reports.report.usecase.ReportRecreateUseCase;
 import com.nhnacademy.inventory.reports.report.usecase.ReportRetrySummaryUseCase;
 import com.nhnacademy.inventory.support.SupportControllerTest;
 import org.junit.jupiter.api.AfterEach;
@@ -41,6 +42,9 @@ class ReportControllerTest extends SupportControllerTest {
 
     @MockitoBean
     private ReportGetUseCase reportGetUseCase;
+
+    @MockitoBean
+    private ReportRecreateUseCase reportRecreateUseCase;
 
     @MockitoBean
     private ReportRetrySummaryUseCase reportRetrySummaryUseCase;
@@ -136,7 +140,7 @@ class ReportControllerTest extends SupportControllerTest {
         long storageId = 1L;
 
         // when
-        ResultActions result = mockMvc.perform(post("/api/core/storages/{storage-id}/reports/{report-id}/ai-summary/retry", storageId, reportId));
+        ResultActions result = mockMvc.perform(post("/api/core/storages/{storage-id}/reports/{report-id}/ai-summary/recreations", storageId, reportId));
 
         // then
         result.andExpect(status().isNoContent());
@@ -192,5 +196,33 @@ class ReportControllerTest extends SupportControllerTest {
                 .andExpect(jsonPath("$.data.storageId").value(storageId))
                 .andExpect(jsonPath("$.data.reportType").value("WEEKLY"))
                 .andExpect(jsonPath("$.data.aiSummaryStatus").value("COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("리포트를 재생성하면 초기화된 리포트 정보를 반환한다.")
+    void recreateReport() throws Exception {
+        // given
+        UUID accountUuid = UUID.randomUUID();
+        UserContext.setUserUuid(accountUuid);
+
+        long organizationId = 1L;
+        long storageId = 1L;
+        long reportId = 1L;
+        LocalDate periodStart = LocalDate.of(2026, Month.AUGUST, 10);
+        ReportInfoResponse response = new ReportInfoResponse(reportId, organizationId, storageId, ReportType.WEEKLY, periodStart, periodStart.plusDays(6), null, AiSummaryStatus.PENDING, LocalDateTime.now(), List.of(), List.of(), List.of());
+
+        given(reportRecreateUseCase.recreateWeekly(storageId, reportId))
+                .willReturn(response);
+
+        // when
+        ResultActions result = mockMvc.perform(
+                post("/api/core/storages/{storage-id}/reports/{report-id}/recreations", storageId, reportId));
+
+        // then
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.reportId").value(reportId))
+                .andExpect(jsonPath("$.data.aiSummaryStatus").value("PENDING"))
+                .andExpect(jsonPath("$.data.aiSummary").doesNotExist())
+                .andExpect(jsonPath("$.data.items").isEmpty());
     }
 }

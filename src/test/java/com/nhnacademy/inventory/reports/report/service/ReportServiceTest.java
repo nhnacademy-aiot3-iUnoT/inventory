@@ -90,18 +90,4 @@ class ReportServiceTest {
         assertThatThrownBy(() -> reportService.failSummary(reportId))
                 .isInstanceOf(ReportNotFoundException.class);
     }
-
-    @Test
-    @DisplayName("존재하지 않는 리포트의 AI 요약을 초기화하면 예외가 발생한다.")
-    void resetSummary_WhenNotExists_ThrowsException() {
-        // given
-        long reportId = 1L;
-
-        given(reportRepository.findById(reportId))
-                .willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> reportService.resetSummary(reportId))
-                .isInstanceOf(ReportNotFoundException.class);
-    }
 }
