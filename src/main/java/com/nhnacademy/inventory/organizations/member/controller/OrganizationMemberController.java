@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.organizations.member.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.global.dto.PageResponse;
+import com.nhnacademy.inventory.organizations.member.dto.request.MemberByEmailRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationMemberSearchRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRoleUpdateRequest;
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/core/members")
@@ -46,6 +48,18 @@ public class OrganizationMemberController {
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(members)));
     }
 
+    /**
+     * 조직원 이메일로 검색
+     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<OrganizationMemberResponse>>> searchMembers(@Valid @ModelAttribute MemberByEmailRequest request) {
+        List<OrganizationMemberResponse> members = organizationMemberService.findAllMembers(request);
+        return ResponseEntity.ok(ApiResponse.success(members));
+    }
+
+    /**
+     * 조직원 Role
+     */
     @GetMapping("/me/role")
     public ResponseEntity<ApiResponse<OrganizationMemberRoleResponse>> getRole(){
         OrganizationMemberRoleResponse response = organizationMemberService.getRole();

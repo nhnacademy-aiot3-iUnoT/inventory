@@ -157,6 +157,27 @@ class StorageControllerTest extends SupportControllerTest {
         }
 
         @Test
+        @DisplayName("이름으로 검색 정상 처리 테스트")
+        void success_searchByName() throws Exception {
+            StorageInfoResponse response = new StorageInfoResponse(
+                    1L, 11L,
+                    "테스트 조직", "테스트 저장소", StorageStatus.ACTIVE
+            );
+
+            given(storageService.searchStorages("테스트"))
+                    .willReturn(List.of(response));
+
+            mockMvc.perform(get("/api/core/storages")
+                            .queryParam("name", "테스트"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].name").value("테스트 저장소"));
+
+            verify(storageService).searchStorages("테스트");
+        }
+
+        @Test
         @DisplayName("정상 처리 테스트(빈 배열)")
         void success_empty() throws Exception {
             given(storageService.getStorages())

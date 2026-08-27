@@ -27,8 +27,13 @@ public interface InvitationRepository extends JpaRepository<Invitation, Long>, I
             from Invitation i
             where i.organization.id = :organizationId
               and i.email = :email
-              and (i.invitationStatus = 'ACTIVE' or i.invitationStatus ='USED')
-              and i.expiredAt > :now
+              and (
+                  i.invitationStatus = 'USED'
+                  or (
+                      i.invitationStatus = 'ACTIVE'
+                      and i.expiredAt > :now
+                  )
+              )
         """)
     boolean existsInvitationBy(Long organizationId, String email, LocalDateTime now);
 
