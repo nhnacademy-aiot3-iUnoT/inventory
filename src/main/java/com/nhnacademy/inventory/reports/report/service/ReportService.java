@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.reports.report.service;
 
+import com.nhnacademy.inventory.reports.report.domain.AiSummaryStatus;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 import com.nhnacademy.inventory.reports.report.exception.ReportNotFoundException;
@@ -65,10 +66,7 @@ public class ReportService {
     }
 
     @Transactional
-    public void resetSummary(Long reportId) {
-        Report report = reportRepository.findById(reportId)
-                .orElseThrow(ReportNotFoundException::new);
-
-        report.resetSummaryToPending();
+    public boolean acquireSummary(Long reportId) {
+        return reportRepository.acquireSummary(reportId, AiSummaryStatus.PROGRESS) == 1;
     }
 }

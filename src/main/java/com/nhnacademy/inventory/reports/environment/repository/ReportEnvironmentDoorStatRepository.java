@@ -8,4 +8,6 @@ import java.util.List;
 public interface ReportEnvironmentDoorStatRepository extends JpaRepository<ReportEnvironmentDoorStat, Long> {
 
     List<ReportEnvironmentDoorStat> findAllByReportId(Long reportId);
+
+    void deleteAllByReport_Id(Long reportId);
 }

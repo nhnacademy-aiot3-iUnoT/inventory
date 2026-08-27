@@ -24,7 +24,7 @@ public class ReportEnvironmentCollectUseCase {
 
     /**
      * 리포트 기간의 환경 데이터를 룰엔진에서 수집해 저장한다.
-     * 룰엔진 호출은 외부 HTTP 통신이므로 트랜잭션 밖에서 하고, 저장만 트랜잭션으로 묶는다.
+     * 룰엔진 호출은 외부 HTTP 통신이므로 트랜잭션 밖에서 하고, 초기화 및 저장만 트랜잭션으로 묶는다.
      */
     public void execute(Long reportId) {
         Report report = reportService.getReportWithoutItem(reportId);
@@ -39,7 +39,8 @@ public class ReportEnvironmentCollectUseCase {
             return;
         }
 
-        reportEnvironmentService.registerAll(
+        reportEnvironmentService.registerReportEnvironment(
+                reportId,
                 toEnvironmentStats(report, summaries),
                 toDoorStats(report, summaries));
     }
@@ -64,8 +65,6 @@ public class ReportEnvironmentCollectUseCase {
                 .toList();
     }
 
-    // 문 센서가 없는 구역(door == null)은 엔티티를 만들지 않는다.
-    // 0회로 채우면 "문이 안 열렸다"와 "문 센서가 없다"가 구분되지 않는다.
     private List<ReportEnvironmentDoorStat> toDoorStats(Report report, List<StorageDailySummaryResponse> summaries) {
         return summaries.stream()
                 .flatMap(day -> day.zones().stream()

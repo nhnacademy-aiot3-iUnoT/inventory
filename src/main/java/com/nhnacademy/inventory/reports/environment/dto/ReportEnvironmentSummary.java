@@ -13,7 +13,7 @@ public record ReportEnvironmentSummary(
         // 전체 기간 평균
         BigDecimal avgValue,
 
-        // 전체 기잔 중 최저 / 최고
+        // 전체 기간 중 최저 / 최고
         BigDecimal minValue,
         BigDecimal maxValue,
 
