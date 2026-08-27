@@ -45,6 +45,7 @@ public class InventoriesSearchService {
         OrganizationMember member=  organizationMemberRepository.findByAccountUuid(accountId)
                         .orElseThrow(ForbiddenException::new);
 
+
         String trimmed = search == null ? null : search.trim();
 
         Page<InventoriesResponse> page;
