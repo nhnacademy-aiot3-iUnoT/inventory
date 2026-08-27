@@ -12,6 +12,10 @@ import com.nhnacademy.inventory.chatbot.dto.query.FindLowStockInventoryQuery;
 import com.nhnacademy.inventory.chatbot.dto.query.SearchMedicineInventoryQuery;
 import static com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory.medicineInventory;
 import static com.nhnacademy.inventory.inventories.threshold.domain.QStockThreshold.stockThreshold;
+import static com.nhnacademy.inventory.organizations.storage.domain.QStorage.storage;
+import static com.nhnacademy.inventory.organizations.zone.domain.QZone.zone;
+import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicine.medicine;
+import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit.medicinePackageUnit;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -34,18 +38,20 @@ public class MedicineInventoryChatbotRepositoryImpl implements MedicineInventory
 
         return queryFactory.select(searchRowProjection())
                 .from(medicineInventory)
-                .join(medicineInventory.medicinePackageUnit.medicine)
-                .join(medicineInventory.zone.storage)
+                .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
+                .join(medicinePackageUnit.medicine, medicine)
+                .join(medicineInventory.zone, zone)
+                .join(zone.storage, storage)
                 // 저장소 접근 권한, 의약품명 포함, 실제 재고 있는 것만
-                .where(medicineInventory.zone.storage.id.in(storageIds),
-                        medicineInventory.medicinePackageUnit.medicine.productName.containsIgnoreCase(query.keyword()),
+                .where(storage.id.in(storageIds),
+                        medicine.productName.containsIgnoreCase(query.keyword()),
                         medicineInventory.currentQuantity.gt(0),
                         storageNameCondition(query.storageName()),
                         zoneNameCondition(query.zoneName()))
                 .orderBy(
                         // 제품명 -> 포장단위 -> 유통기한
-                        medicineInventory.medicinePackageUnit.medicine.productName.asc(),
-                        medicineInventory.medicinePackageUnit.packUnit.asc(),
+                        medicine.productName.asc(),
+                        medicinePackageUnit.packUnit.asc(),
                         medicineInventory.expirationDate.asc())
                 .limit(query.limit())
                 .fetch();
@@ -61,10 +67,12 @@ public class MedicineInventoryChatbotRepositoryImpl implements MedicineInventory
 
         return queryFactory.select(expiringRowProjection())
                 .from(medicineInventory)
-                .join(medicineInventory.medicinePackageUnit.medicine)
-                .join(medicineInventory.zone.storage)
+                .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
+                .join(medicinePackageUnit.medicine, medicine)
+                .join(medicineInventory.zone, zone)
+                .join(zone.storage, storage)
                 .where(
-                        medicineInventory.zone.storage.id.in(storageIds),
+                        storage.id.in(storageIds),
                         medicineInventory.expirationDate.between(query.today(), query.limitDate()),
                         medicineInventory.currentQuantity.gt(0),
                         medicineNameCondition(query.medicineName()),
@@ -88,20 +96,22 @@ public class MedicineInventoryChatbotRepositoryImpl implements MedicineInventory
 
         return queryFactory.select(lowStockRowProjection())
                 .from(medicineInventory)
-                .join(medicineInventory.medicinePackageUnit.medicine)
-                .join(medicineInventory.zone.storage)
+                .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
+                .join(medicinePackageUnit.medicine, medicine)
+                .join(medicineInventory.zone, zone)
+                .join(zone.storage, storage)
                 .join(stockThreshold)
                 .on(stockThreshold.medicinePackageUnit.eq(medicineInventory.medicinePackageUnit)
-                        .and(stockThreshold.storage.eq(medicineInventory.zone.storage))
+                        .and(stockThreshold.storage.eq(storage))
                         .and(stockThreshold.isActive.isTrue()))
                 .where(
-                        medicineInventory.zone.storage.id.in(storageIds),
+                        storage.id.in(storageIds),
                         lowStock,
                         storageNameCondition(query.storageName()),
                         zoneNameCondition(query.zoneName()))
                 .orderBy(
                         medicineInventory.currentQuantity.asc(),
-                        medicineInventory.medicinePackageUnit.medicine.productName.asc()
+                        medicine.productName.asc()
                 )
                 .limit(query.limit())
                 .fetch();
@@ -109,49 +119,49 @@ public class MedicineInventoryChatbotRepositoryImpl implements MedicineInventory
 
     private QMedicineInventorySearchRow searchRowProjection() {
         return new QMedicineInventorySearchRow(
-                medicineInventory.medicinePackageUnit.id,
-                medicineInventory.medicinePackageUnit.medicine.productName,
-                medicineInventory.medicinePackageUnit.packUnit,
-                medicineInventory.zone.storage.name,
-                medicineInventory.zone.name,
+                medicinePackageUnit.id,
+                medicine.productName,
+                medicinePackageUnit.packUnit,
+                storage.name,
+                zone.name,
                 medicineInventory.currentQuantity
         );
     }
 
     private QExpiringInventoryRow expiringRowProjection() {
         return new QExpiringInventoryRow(
-                medicineInventory.medicinePackageUnit.medicine.productName,
-                medicineInventory.medicinePackageUnit.packUnit,
+                medicine.productName,
+                medicinePackageUnit.packUnit,
                 medicineInventory.lotNumber,
                 medicineInventory.expirationDate,
                 medicineInventory.currentQuantity,
-                medicineInventory.zone.storage.name,
-                medicineInventory.zone.name
+                storage.name,
+                zone.name
         );
     }
 
     private QLowStockInventoryRow lowStockRowProjection() {
         return new QLowStockInventoryRow(
-                medicineInventory.medicinePackageUnit.medicine.productName,
-                medicineInventory.medicinePackageUnit.packUnit,
+                medicine.productName,
+                medicinePackageUnit.packUnit,
                 medicineInventory.currentQuantity,
                 stockThreshold.threshold,
-                medicineInventory.zone.storage.name,
-                medicineInventory.zone.name
+                storage.name,
+                zone.name
         );
     }
 
     private BooleanExpression medicineNameCondition(String name) {
         return name == null || name.isBlank()
                 ? null
-                : medicineInventory.medicinePackageUnit.medicine.productName.containsIgnoreCase(name.trim());
+                : medicine.productName.containsIgnoreCase(name.trim());
     }
 
     private BooleanExpression storageNameCondition(String name) {
-        return name == null || name.isBlank() ? null : medicineInventory.zone.storage.name.containsIgnoreCase(name.trim());
+        return name == null || name.isBlank() ? null : storage.name.containsIgnoreCase(name.trim());
     }
 
     private BooleanExpression zoneNameCondition(String name) {
-        return name == null || name.isBlank() ? null : medicineInventory.zone.name.containsIgnoreCase(name.trim());
+        return name == null || name.isBlank() ? null : zone.name.containsIgnoreCase(name.trim());
     }
 }
