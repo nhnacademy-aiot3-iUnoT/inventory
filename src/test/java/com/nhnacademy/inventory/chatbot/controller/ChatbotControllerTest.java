@@ -30,7 +30,7 @@ class ChatbotControllerTest {
     void chat() throws Exception {
         given(chatbotService.chat(anyString())).willReturn(new ChatResponse("재고가 없습니다."));
 
-        mockMvc.perform(post("/api/core/chatbot/chat")
+        mockMvc.perform(post("/api/core/chatbot")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"message\":\"타이레놀 재고 알려줘\"}"))
                 .andExpect(status().isOk())
@@ -43,7 +43,7 @@ class ChatbotControllerTest {
     @Test
     @DisplayName("질문이 비어 있으면 validation 오류를 반환한다")
     void chatWithBlankMessage() throws Exception {
-        mockMvc.perform(post("/api/core/chatbot/chat")
+        mockMvc.perform(post("/api/core/chatbot")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"message\":\" \"}"))
                 .andExpect(status().is4xxClientError());
