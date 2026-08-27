@@ -60,6 +60,8 @@ public class GlobalExceptionHandler{
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(ObjectOptimisticLockingFailureException e){
 
+        log.warn("낙관적 락 충돌", e);
+
         return ResponseEntity.status(InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getStatus())
                 .body(ApiResponse.error(InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getCode(),
                         InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getMessage()
