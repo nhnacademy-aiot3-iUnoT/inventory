@@ -51,12 +51,12 @@ public class MedicineEnvironmentService {
         // 기준이 있다 그럼 저장 x 사용자는 조회된 기준으로 사용
         // -> 환경 기준 수정 부분에서 수정가능
 
+
         if(standard != null){
             return;
         }
         //기준이 없다..! 그럼 저장
         environmentStandardCreator.createStandard(medicinePackageUnitId,organization,accountId,request);
-
 
     }
 
@@ -79,7 +79,7 @@ public class MedicineEnvironmentService {
             return;
         }
 
-        //기존이 있다.
+        //기준이 있다.
         typeRepository.deleteAllByMedicineEnvironmentStandardId(standard.getId());
         List<MedicineEnvironmentType> types = environmentStandardCreator.makeTypes(standard,request);
 
@@ -105,6 +105,13 @@ public class MedicineEnvironmentService {
         standardRepository.deleteById(standard.getId());
 
     }
+
+
+
+
+
+
+
 
 
 

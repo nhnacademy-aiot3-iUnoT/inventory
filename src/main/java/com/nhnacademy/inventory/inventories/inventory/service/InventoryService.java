@@ -43,7 +43,6 @@ public class InventoryService {
 
     }
 
-
     //상세 재고 조회
     public InventoryInfoResponse getInventoryInfo(Long storageId, Long packUnitId, Pageable pageable){
 

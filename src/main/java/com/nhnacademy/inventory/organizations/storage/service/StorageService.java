@@ -96,14 +96,15 @@ public class StorageService {
 
     public List<StorageInfoResponse> getStoragesInbound(){
 
-        Organization organization = validateOrganizationMember();
-        OrganizationMember organizationMember = memberRepository.findByOrganization(organization)
+
+        OrganizationMember organizationMember = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
+
 
 
         if(organizationMember.isBoss()){
 
-            List<Storage> storages = storageRepository.findAllByOrganization(organization);
+            List<Storage> storages = storageRepository.findAllByOrganization(organizationMember.getOrganization());
 
             List<StorageInfoResponse> infoResponses = storages.stream()
                     .map(StorageInfoResponse::from
