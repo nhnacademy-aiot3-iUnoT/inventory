@@ -20,7 +20,7 @@ public enum InventoryErrorCode implements ErrorCode {
     ALERT_NOT_FOUND(HttpStatus.NOT_FOUND, "A001", "존재하지 않거나 이미 삭제된 알림입니다."),
 
     //검토 내역 에러코드
-    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "존재하지 않는 검토내역 입니다."),
+    ENVIRONMENT_REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "ER001", "존재하지 않는 검토내역 입니다."),
 
 
     // zone - packUnitId

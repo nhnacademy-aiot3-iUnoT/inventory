@@ -5,6 +5,6 @@ import com.nhnacademy.inventory.inventories.error.InventoryErrorCode;
 
 public class ReviewNotFoundException extends BaseException {
     public ReviewNotFoundException() {
-        super(InventoryErrorCode.REVIEW_NOT_FOUND);
+        super(InventoryErrorCode.ENVIRONMENT_REVIEW_NOT_FOUND);
     }
 }
