@@ -6,16 +6,17 @@ import com.nhnacademy.inventory.enviroments.review.dto.UnderReviewInventoryRespo
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface EnvironmentReviewRepositoryCustom {
     Page<UnderReviewInventoryResponse> getUnderReviewInventories(
-            Long zoneId,
+            List<Long> storageIds,
             Pageable pageable
     );
 
     Page<ReviewHistorySummaryResponse> getReviewHistories(
-            Long zoneId,
+            List<Long> storageIds,
             Pageable pageable
     );
 

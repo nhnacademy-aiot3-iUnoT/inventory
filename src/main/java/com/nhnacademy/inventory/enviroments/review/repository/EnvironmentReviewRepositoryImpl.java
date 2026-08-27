@@ -6,8 +6,10 @@ import com.nhnacademy.inventory.enviroments.review.dto.QUnderReviewInventoryResp
 import com.nhnacademy.inventory.enviroments.review.dto.ReviewHistorySummaryResponse;
 import com.nhnacademy.inventory.enviroments.review.dto.UnderReviewInventoryResponse;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
+import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,7 +37,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<UnderReviewInventoryResponse> getUnderReviewInventories(Long zoneId, Pageable pageable) {
+    public Page<UnderReviewInventoryResponse> getUnderReviewInventories(List<Long> storageIds, Pageable pageable) {
         List<UnderReviewInventoryResponse> content = queryFactory
                 .select(new QUnderReviewInventoryResponse(
                         medicineInventory.id,
@@ -63,7 +65,8 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
                 .join(medicinePackageUnit.medicine, medicine)
                 .where(
-                        inventoryZoneIdEq(zoneId),
+                        inventoryStorageIdEq(storageIds),
+                        storage.status.eq(StorageStatus.ACTIVE),
                         medicineInventory.managementStatus.eq(ManagementStatus.UNDER_REVIEW)
                 )
                 .orderBy(getUnderReviewPageOrderSpecifier(pageable))
@@ -75,7 +78,8 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .select(medicineInventory.count())
                 .from(medicineInventory)
                 .where(
-                        inventoryZoneIdEq(zoneId),
+                        inventoryStorageIdEq(storageIds),
+                        storage.status.eq(StorageStatus.ACTIVE),
                         medicineInventory.managementStatus.eq(ManagementStatus.UNDER_REVIEW)
                 )
                 .fetchOne();
@@ -86,7 +90,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
     }
 
     @Override
-    public Page<ReviewHistorySummaryResponse> getReviewHistories(Long zoneId, Pageable pageable) {
+    public Page<ReviewHistorySummaryResponse> getReviewHistories(List<Long> storageIds, Pageable pageable) {
         List<ReviewHistorySummaryResponse> content = queryFactory
                 .select(new QReviewHistorySummaryResponse(
                         environmentEvent.id,
@@ -105,7 +109,8 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
                 .join(medicinePackageUnit.medicine, medicine)
                 .where(
-                        reviewZoneIdEq(zoneId)
+                        reviewStorageIdEq(storageIds),
+                        storage.status.eq(StorageStatus.ACTIVE)
                 )
                 .orderBy(getReviewHistoryPageOrderSpecifier(pageable))
                 .offset(pageable.getOffset())
@@ -116,7 +121,8 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .select(environmentReview.count())
                 .from(environmentReview)
                 .where(
-                        reviewZoneIdEq(zoneId)
+                        reviewStorageIdEq(storageIds),
+                        storage.status.eq(StorageStatus.ACTIVE)
                 )
                 .fetchOne();
 
@@ -141,12 +147,20 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
         return Optional.ofNullable(review);
     }
 
-    private BooleanExpression inventoryZoneIdEq(Long zoneId){
-        return zoneId != null ? medicineInventory.zone.id.eq(zoneId) : null;
+    private BooleanExpression inventoryStorageIdEq(List<Long> storageIds){
+        if(storageIds == null || storageIds.isEmpty()){
+            return Expressions.asBoolean(false).isTrue();
+        }{
+            return medicineInventory.zone.storage.id.in(storageIds);
+        }
     }
 
-    private BooleanExpression reviewZoneIdEq(Long zoneId){
-        return zoneId != null ? environmentReview.medicineInventory.zone.id.eq(zoneId) : null;
+    private BooleanExpression reviewStorageIdEq(List<Long> storageIds){
+        if(storageIds == null || storageIds.isEmpty()){
+            return Expressions.asBoolean(false).isTrue();
+        }{
+            return environmentReview.medicineInventory.zone.storage.id.in(storageIds);
+        }
     }
 
     private OrderSpecifier<?> getUnderReviewPageOrderSpecifier(Pageable pageable){

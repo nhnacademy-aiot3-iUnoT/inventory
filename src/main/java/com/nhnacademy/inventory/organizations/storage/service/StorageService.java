@@ -17,13 +17,13 @@ import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNameAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
+import com.nhnacademy.inventory.organizations.storage.repository.StoragePermissionRepository;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +38,7 @@ public class StorageService {
     private final DepartmentService departmentService;
     private final StorageDepartmentRepository storageDepartmentRepository;
     private final MemberDepartmentRepository memberDepartmentRepository;
+    private final StoragePermissionRepository storagePermissionRepository;
 
     @Transactional
     public StorageDetailResponse createStorage(StorageCreateRequest request){
@@ -259,5 +260,29 @@ public class StorageService {
         if (exists) {
             throw new StorageNameAlreadyExistsException();
         }
+    }
+
+    public void checkStoragePermission(Long storageId){
+        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
+                .orElseThrow(ForbiddenException::new);
+
+        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
+            return;
+        }
+
+        boolean hasPermission = storagePermissionRepository.hasStoragePermission(
+                UserContext.getUserUuid(), storageId
+        );
+
+        if(!hasPermission){
+            throw new ForbiddenException();
+        }
+    }
+
+    public List<Long> getAccessibleStorageIds(OrganizationMember member){
+        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
+            return storageRepository.findActiveIdsByOrganizationId(member.getOrganization().getId());
+        }
+        return storageRepository.findActiveIdsByOrganizationMemberId(member.getId());
     }
 }

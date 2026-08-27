@@ -25,10 +25,10 @@ public class EnvironmentReviewController {
 
     @GetMapping("/inventories/under-reviews")
     public ResponseEntity<ApiResponse<PageResponse<UnderReviewInventoryResponse>>> getUnderReviewPage(
-            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) Long storageId,
             @PageableDefault(size = 20, sort = "lastReviewAt", direction = Sort.Direction.ASC) Pageable pageable
     ){
-        Page<UnderReviewInventoryResponse> responsePage = environmentReviewService.getUnderReviewPage(zoneId, pageable);
+        Page<UnderReviewInventoryResponse> responsePage = environmentReviewService.getUnderReviewPage(storageId, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(responsePage)));
     }
@@ -45,10 +45,10 @@ public class EnvironmentReviewController {
 
     @GetMapping("/environment-reviews")
     public ResponseEntity<ApiResponse<PageResponse<ReviewHistorySummaryResponse>>> getReviewHistoryPage(
-            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) Long storageId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
-        Page<ReviewHistorySummaryResponse> responsePage = environmentReviewService.getReviewHistoryPage(zoneId, pageable);
+        Page<ReviewHistorySummaryResponse> responsePage = environmentReviewService.getReviewHistoryPage(storageId, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(responsePage)));
     }
