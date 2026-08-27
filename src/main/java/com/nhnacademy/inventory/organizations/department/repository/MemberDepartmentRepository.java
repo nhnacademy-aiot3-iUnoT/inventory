@@ -44,8 +44,14 @@ public interface MemberDepartmentRepository extends JpaRepository<MemberDepartme
     void deleteByOrganizationMemberId(Long organizationMemberId);
     void deleteByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 
-
-    List<MemberDepartment> findAllByOrganizationMemberId(Long organizationMemberId);
     boolean existsByDepartmentIdAndOrganizationMemberId(Long departmentId, Long organizationMemberId);
 
+    @Query("""
+        select distinct sd.storage.id
+        from MemberDepartment md
+        join StorageDepartment sd on sd.department = md.department
+        where md.organizationMember.id = :organizationMemberId
+          and sd.storage.status <> 'CLOSED'
+        """)
+    List<Long> findAccessibleStorageIds(Long organizationMemberId);
 }

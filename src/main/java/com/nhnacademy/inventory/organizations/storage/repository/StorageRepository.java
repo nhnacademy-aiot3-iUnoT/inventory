@@ -15,6 +15,9 @@ public interface StorageRepository extends JpaRepository<Storage, Long> {
     List<Storage> findAllByOrganizationAndStatusNot(Organization organization, StorageStatus status);
     List<Storage> findAllByOrganizationAndNameContainingIgnoreCaseAndStatusNot(Organization organization, String name, StorageStatus status);
 
+    @Query("select s.id from Storage s where s.organization.id = :organizationId and s.status <> :status")
+    List<Long> findIdsByOrganizationIdAndStatusNot(Long organizationId, StorageStatus status);
+
     Optional<Storage> findByIdAndOrganization(Long id, Organization organization);
 
     List<Storage> findAllByOrganizationId(Long organizationId);
