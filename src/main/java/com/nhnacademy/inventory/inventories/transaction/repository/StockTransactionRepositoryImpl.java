@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
@@ -22,6 +23,7 @@ import static com.nhnacademy.inventory.inventories.transaction.domain.QStockTran
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicine.medicine;
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit.medicinePackageUnit;
 
+@Repository
 @RequiredArgsConstructor
 public class StockTransactionRepositoryImpl implements StockTransactionRepositoryCustom{
 

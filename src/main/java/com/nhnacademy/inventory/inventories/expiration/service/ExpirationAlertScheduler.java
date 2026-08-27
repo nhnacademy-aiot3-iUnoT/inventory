@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.inventories.expiration.service;
 
 import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
 import com.nhnacademy.inventory.inventories.alert.service.AlertService;
+import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
@@ -42,13 +43,14 @@ public class ExpirationAlertScheduler {
 
         LocalDate today = LocalDate.now();
         LocalDate warningDate = today.plusDays(7);
+        List<ManagementStatus> validStatuses = List.of(ManagementStatus.NORMAL, ManagementStatus.UNDER_REVIEW);
 
         for(Organization organization : organizationList){
             List<Storage> storageList = storageRepository.findAllByOrganizationAndStatus(organization, StorageStatus.ACTIVE);
 
             for(Storage storage : storageList){
-                long expiredCount = inventoryRepository.countByZone_StorageAndExpirationDateBefore(storage, today);
-                long warningCount = inventoryRepository.countByZone_StorageAndExpirationDateBetween(storage, today, warningDate);
+                long expiredCount = inventoryRepository.countByZone_StorageAndExpirationDateBeforeAndManagementStatusIn(storage, today, validStatuses);
+                long warningCount = inventoryRepository.countByZone_StorageAndExpirationDateBetweenAndManagementStatusIn(storage, today, warningDate, validStatuses);
 
                 if(expiredCount > 0 || warningCount > 0){
                     LocalDateTime now = LocalDateTime.now();

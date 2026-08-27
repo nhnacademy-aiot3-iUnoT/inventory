@@ -43,7 +43,7 @@ public class StockTransaction {
     @Column(name = "reason", length = 100)
     private String reason;
 
-    @Column(name = "memo", length = 500)
+    @Column(name = "memo", length = 255)
     private String memo;
 
     @Column(name = "processed_by", columnDefinition = "BINARY(16)", nullable = false)
