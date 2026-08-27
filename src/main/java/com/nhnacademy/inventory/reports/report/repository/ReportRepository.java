@@ -1,8 +1,10 @@
 package com.nhnacademy.inventory.reports.report.repository;
 
+import com.nhnacademy.inventory.reports.report.domain.AiSummaryStatus;
 import com.nhnacademy.inventory.reports.report.domain.Report;
 import com.nhnacademy.inventory.reports.report.domain.ReportType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -38,4 +40,14 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             @Param("storageId") Long storageId,
             @Param("reportType") ReportType reportType,
             @Param("periodStart") LocalDate periodStart);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        UPDATE Report r
+        SET r.aiSummaryStatus = :progress
+        WHERE r.id = :reportId
+            AND r.aiSummaryStatus <> :progress
+    """)
+    int acquireSummary(@Param("reportId") Long reportId,
+                       @Param("progress")AiSummaryStatus progress);
 }
