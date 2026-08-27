@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/core")
@@ -91,6 +90,15 @@ public class ZoneController {
         zoneService.closeZone(storageId, zoneId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/internal/zones/{zone-id}/location")
+    public ResponseEntity<ApiResponse<ZoneLocationResponse>> internalGetZoneLocation(
+            @PathVariable(name = "zone-id") Long zoneId
+    ){
+        ZoneLocationResponse response = zoneService.getZoneLocation(zoneId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PutMapping("/internal/zones/{zone-id}/env-status")
