@@ -7,7 +7,7 @@ import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 
 import java.util.UUID;
 
-public record StockTransactionCommand (
+public record StockTransactionCommand(
         MedicinePackageUnit medicinePackageUnit,
         Zone zone,
         TransactionType transactionType,
@@ -15,5 +15,5 @@ public record StockTransactionCommand (
         String reason,
         String memo,
         UUID processedBy
-){
+) {
 }
