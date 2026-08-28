@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.outbound.domain;
 
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.exception.InsufficientStockException;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundRequest;
@@ -12,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -23,8 +23,7 @@ public class OutboundOperation {
     public void process(
             Zone zone,
             List<MedicineInventory> inventories,
-            MedicineOutboundRequest request,
-            UUID processedBy
+            MedicineOutboundRequest request
     ) {
         int totalQuantity = 0;
 
@@ -70,7 +69,7 @@ public class OutboundOperation {
                         request.quantity(),
                         request.reason().name(),
                         request.memo(),
-                        processedBy
+                        UserContext.getUserUuid()
                 );
         stockTransactionService.createStockTransaction(command);
     }

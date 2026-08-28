@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.outbound.service;
 
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.exception.InventoryNotFoundException;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.domain.OutboundOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundRequest;
@@ -14,17 +15,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MedicineOutboundService {
 
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final ZoneRepository zoneRepository;
     private final OutboundOperation outboundOperation;
 
-    @Transactional
     public MedicineOutboundTargetResponse getOutboundTarget(
             Long inventoryId
     ) {
@@ -37,15 +37,13 @@ public class MedicineOutboundService {
 
         Long zoneId = selectedInventory.getZone().getId();
 
-        List<MedicineInventory> inventories =
-                medicineInventoryRepository.findOutboundInventories(
+        int availableQuantity = Math.toIntExact(
+                medicineInventoryRepository.sumAvailableQuantity(
                         medicinePackageUnitId,
-                        zoneId
-                );
-
-        int availableQuantity = inventories.stream()
-                .mapToInt(MedicineInventory::getCurrentQuantity)
-                .sum();
+                        zoneId,
+                        ManagementStatus.NORMAL
+                )
+        );
 
         return MedicineOutboundTargetResponse.from(
                 selectedInventory,
@@ -54,10 +52,7 @@ public class MedicineOutboundService {
     }
 
     @Transactional
-    public void outbound(
-            MedicineOutboundRequest request,
-            UUID processedBy
-    ) {
+    public void outbound(MedicineOutboundRequest request) {
         Zone zone = zoneRepository.findById(request.zoneId())
                 .orElseThrow(ZoneNotFoundException::new);
 
@@ -70,8 +65,7 @@ public class MedicineOutboundService {
         outboundOperation.process(
                 zone,
                 inventories,
-                request,
-                processedBy
+                request
         );
     }
 }

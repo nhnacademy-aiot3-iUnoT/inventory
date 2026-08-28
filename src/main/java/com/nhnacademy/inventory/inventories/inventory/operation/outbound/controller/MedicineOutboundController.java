@@ -7,20 +7,16 @@ import com.nhnacademy.inventory.inventories.inventory.operation.outbound.service
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
 @RestController
-@RequestMapping("/api/core")
+@RequestMapping("/api/core/inventories")
 @RequiredArgsConstructor
 public class MedicineOutboundController {
 
     private final MedicineOutboundService medicineOutboundService;
 
-    @GetMapping("/medicine-inventories/{inventoryId}/outbound-target")
+    @GetMapping("/{inventoryId}/outbound-target")
     public ResponseEntity<ApiResponse<MedicineOutboundTargetResponse>>
     getOutboundTarget(
             @PathVariable Long inventoryId
@@ -31,14 +27,11 @@ public class MedicineOutboundController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/medicine-inventories/outbound")
+    @PostMapping("/outbound")
     public ResponseEntity<Void> outbound(
-            @Valid @RequestBody MedicineOutboundRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @Valid @RequestBody MedicineOutboundRequest request
     ) {
-        UUID processedBy = UUID.fromString(jwt.getSubject());
-
-        medicineOutboundService.outbound(request, processedBy);
+        medicineOutboundService.outbound(request);
 
         return ResponseEntity.noContent().build();
     }

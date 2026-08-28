@@ -6,19 +6,19 @@ import com.nhnacademy.inventory.inventories.inventory.operation.disposal.domain.
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalTargetResponse;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MedicineDisposalService {
 
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final DisposalOperation disposalOperation;
 
-    @Transactional
     public MedicineDisposalTargetResponse getDisposalTarget(Long inventoryId) {
         MedicineInventory inventory = medicineInventoryRepository
                 .findById(inventoryId)
