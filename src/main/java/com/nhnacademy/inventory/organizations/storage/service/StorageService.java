@@ -20,6 +20,9 @@ import com.nhnacademy.inventory.organizations.storage.exception.StorageNameAlrea
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.storage.repository.StoragePermissionRepository;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
+import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
+import com.nhnacademy.inventory.organizations.zone.domain.Zone;
+import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,6 +43,7 @@ public class StorageService {
     private final StorageDepartmentRepository storageDepartmentRepository;
     private final MemberDepartmentRepository memberDepartmentRepository;
     private final StoragePermissionRepository storagePermissionRepository;
+    private final ZoneRepository zoneRepository;
 
     @Transactional
     public StorageDetailResponse createStorage(StorageCreateRequest request){
@@ -173,6 +177,10 @@ public class StorageService {
 
         storage.changeStatus(request.status());
 
+        if(!storage.isActive()){
+            resetZoneEnvStatus(storage);
+        }
+
         return StorageDetailResponse.from(storage);
     }
 
@@ -181,6 +189,15 @@ public class StorageService {
         Storage storage = findByIdAndValidateOwner(storageId);
 
         storage.close();
+
+        resetZoneEnvStatus(storage);
+    }
+
+    // 저장소가 비활성이면 소속 구역의 환경 판정도 멈추므로, 남아있던 경고 상태를 되돌린다.
+    private void resetZoneEnvStatus(Storage storage){
+        List<Zone> zones = zoneRepository.findAllByStorageId(storage.getId());
+
+        zones.forEach(zone -> zone.changeEnvStatus(EnvStatus.NORMAL));
     }
 
     public Storage validateMemberAndGetStorage(Long storageId){
