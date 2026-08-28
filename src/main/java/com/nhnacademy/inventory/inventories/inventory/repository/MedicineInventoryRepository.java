@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.inventories.inventory.repository;
 
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,8 +16,21 @@ import java.util.List;
 import java.time.LocalDate;
 
 
-public interface MedicineInventoryRepository extends JpaRepository<MedicineInventory, Long>, MedicineInventoryRepositoryCustom{
+public interface MedicineInventoryRepository extends JpaRepository<MedicineInventory, Long>, MedicineInventoryRepositoryCustom {
 
+    @Query("""
+            select coalesce(sum(mi.currentQuantity), 0)
+            from MedicineInventory mi
+            where mi.medicinePackageUnit.id = :medicinePackageUnitId
+              and mi.zone.id = :zoneId
+              and mi.managementStatus = :managementStatus
+              and mi.currentQuantity > 0
+            """)
+    long sumAvailableQuantity(
+            @Param("medicinePackageUnitId") Long medicinePackageUnitId,
+            @Param("zoneId") Long zoneId,
+            @Param("managementStatus") ManagementStatus managementStatus
+    );
 
     @Query("""
             

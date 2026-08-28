@@ -1,0 +1,76 @@
+package com.nhnacademy.inventory.inventories.inventory.operation.outbound.domain;
+
+import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.inventories.inventory.exception.InsufficientStockException;
+import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundRequest;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
+import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
+import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
+import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.zone.domain.Zone;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+public class OutboundOperation {
+
+    private final StockTransactionService stockTransactionService;
+
+    public void process(
+            Zone zone,
+            List<MedicineInventory> inventories,
+            MedicineOutboundRequest request
+    ) {
+        int totalQuantity = 0;
+
+        for (MedicineInventory inventory : inventories) {
+            totalQuantity += inventory.getCurrentQuantity();
+        }
+
+        if (totalQuantity < request.quantity()) {
+            throw new InsufficientStockException();
+        }
+
+        int remainingQuantity = request.quantity();
+
+        for (MedicineInventory inventory : inventories) {
+            if (remainingQuantity == 0) {
+                break;
+            }
+
+            int inventoryQuantity = inventory.getCurrentQuantity();
+
+            if (inventoryQuantity >= remainingQuantity) {
+                inventory.decreaseQuantity(remainingQuantity);
+                remainingQuantity = 0;
+            } else {
+                inventory.decreaseQuantity(inventoryQuantity);
+                remainingQuantity -= inventoryQuantity;
+            }
+        }
+
+        MedicinePackageUnit medicinePackageUnit =
+                inventories.getFirst().getMedicinePackageUnit();
+
+        TransactionType transactionType =
+                request.reason() == OutboundReason.STORAGE_TRANSFER
+                        ? TransactionType.TRANSFER_OUT
+                        : TransactionType.OUTBOUND;
+
+        StockTransactionCommand command =
+                new StockTransactionCommand(
+                        medicinePackageUnit,
+                        zone,
+                        transactionType,
+                        request.quantity(),
+                        request.reason().name(),
+                        request.memo(),
+                        UserContext.getUserUuid()
+                );
+        stockTransactionService.createStockTransaction(command);
+    }
+}

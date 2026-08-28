@@ -230,6 +230,7 @@
                                 <path>
                                     <groupId>org.projectlombok</groupId>
                                     <artifactId>lombok</artifactId>
+                                    <version>${lombok.version}</version>
                                 </path>
 
                                 <!-- Lombok Binding 등 추가 라이브러리 연동용 API -->
@@ -249,7 +250,13 @@
                                     <classifier>jakarta</classifier>
                                 </path>
                             </annotationProcessorPaths>
-                        </configuration>
+
+                        <annotationProcessors>
+                            <annotationProcessor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor</annotationProcessor>
+                            <annotationProcessor>com.querydsl.apt.jpa.JPAAnnotationProcessor</annotationProcessor>
+                        </annotationProcessors>
+
+                    </configuration>
                     </execution>
                     <execution>
                         <id>default-testCompile</id>
@@ -262,14 +269,20 @@
                                 <path>
                                     <groupId>org.projectlombok</groupId>
                                     <artifactId>lombok</artifactId>
+                                    <version>${lombok.version}</version>
                                 </path>
                             </annotationProcessorPaths>
+
+                            <annotationProcessors>
+                                <annotationProcessor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor</annotationProcessor>
+                            </annotationProcessors>
                         </configuration>
                     </execution>
                 </executions>
                 <configuration>
                     <source>21</source>
                     <target>21</target>
+                    <proc>full</proc>
                 </configuration>
             </plugin>
             <plugin>
