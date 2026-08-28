@@ -73,4 +73,8 @@ public class Storage {
     public void changeStatus(StorageStatus status){
         this.status = status;
     }
+
+    public boolean isActive(){
+        return this.status == StorageStatus.ACTIVE;
+    }
 }

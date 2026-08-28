@@ -83,6 +83,11 @@ public class ZoneService {
 
         zone.changeStatus(request.status());
 
+        // 비활성 구역상태 초기화
+        if (!zone.isActive()){
+            zone.changeEnvStatus(EnvStatus.NORMAL);
+        }
+
         return ZoneDetailResponse.from(zone);
     }
 
@@ -93,6 +98,14 @@ public class ZoneService {
         zone.changeEnvStatus(request.envStatus());
 
         return ZoneDetailResponse.from(zone);
+    }
+
+    // 구역이 활성화인지 검증
+    public ZoneActivationResponse getZoneActivation(Long zoneId){
+        Zone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
+
+        return ZoneActivationResponse.from(zone);
     }
 
     public ZoneLocationResponse getZoneLocation(Long zoneId){
@@ -115,6 +128,7 @@ public class ZoneService {
         Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
         zone.close();
+        zone.changeEnvStatus(EnvStatus.NORMAL);
     }
 
     public Zone validateMemberAndGetZone(Long zoneId){
