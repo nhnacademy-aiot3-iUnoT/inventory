@@ -101,6 +101,15 @@ public class ZoneController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("/internal/zones/{zone-id}/activation")
+    public ResponseEntity<ApiResponse<ZoneActivationResponse>> internalGetZoneActivation(
+            @PathVariable(name = "zone-id") Long zoneId
+    ){
+        ZoneActivationResponse response = zoneService.getZoneActivation(zoneId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PutMapping("/internal/zones/{zone-id}/env-status")
     public ResponseEntity<Void> internalUpdateEnvStatus(
             @PathVariable(name = "zone-id") Long zoneId,

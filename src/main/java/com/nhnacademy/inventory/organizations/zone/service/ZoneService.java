@@ -6,11 +6,13 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
+import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
 import com.nhnacademy.inventory.organizations.zone.dto.*;
+import com.nhnacademy.inventory.organizations.zone.exception.ZoneInactiveException;
 import com.nhnacademy.inventory.organizations.zone.exception.ZoneNameAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
@@ -34,6 +36,8 @@ public class ZoneService {
     @Transactional
     public ZoneDetailResponse createZone(Long storageId, ZoneCreateRequest request){
         Storage storage = storageService.validateOwnerAndGetStorage(storageId);
+
+        storageService.validateStorageStatus(storage);
 
         validateDuplicateZoneName(storage, request.name());
 
@@ -70,6 +74,8 @@ public class ZoneService {
     public ZoneDetailResponse updateZone(Long storageId, Long zoneId, ZoneUpdateRequest request){
         Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
+        storageService.validateStorageStatus(zone.getStorage());
+
         validateDuplicateZoneName(zone.getStorage(), request.name(), zone.getId());
 
         zone.updateInfo(request.name(), request.description());
@@ -81,7 +87,14 @@ public class ZoneService {
     public ZoneDetailResponse updateZoneStatus(Long storageId, Long zoneId, ZoneStatusUpdateRequest request){
         Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
+        storageService.validateStorageStatus(zone.getStorage());
+
         zone.changeStatus(request.status());
+
+        // 비활성 구역상태 초기화
+        if (!zone.isActive()){
+            zone.changeEnvStatus(EnvStatus.NORMAL);
+        }
 
         return ZoneDetailResponse.from(zone);
     }
@@ -90,9 +103,19 @@ public class ZoneService {
     public ZoneDetailResponse updateZoneEnvStatus(Long storageId, Long zoneId, ZoneEnvStatusUpdateRequest request){
         Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
+        storageService.validateStorageStatus(zone.getStorage());
+
         zone.changeEnvStatus(request.envStatus());
 
         return ZoneDetailResponse.from(zone);
+    }
+
+    // 구역이 활성화인지 검증
+    public ZoneActivationResponse getZoneActivation(Long zoneId){
+        Zone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
+
+        return ZoneActivationResponse.from(zone);
     }
 
     public ZoneLocationResponse getZoneLocation(Long zoneId){
@@ -114,14 +137,17 @@ public class ZoneService {
     public void closeZone(Long storageId, Long zoneId){
         Zone zone = findByIdAndValidateOwner(storageId, zoneId);
 
+        storageService.validateStorageStatus(zone.getStorage());
+
         zone.close();
+        zone.changeEnvStatus(EnvStatus.NORMAL);
     }
 
     public Zone validateMemberAndGetZone(Long zoneId){
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        Zone zone = zoneRepository.findById(zoneId)
+        Zone zone = zoneRepository.findByIdWithStorage(zoneId)
                 .orElseThrow(ZoneNotFoundException::new);
 
         if (!Objects.equals(member.getOrganization().getId(), zone.getStorage().getOrganization().getId())){
@@ -135,7 +161,7 @@ public class ZoneService {
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        Zone zone = zoneRepository.findById(zoneId)
+        Zone zone = zoneRepository.findByIdWithStorage(zoneId)
                 .orElseThrow(ZoneNotFoundException::new);
 
         if (!Objects.equals(member.getOrganization().getId(), zone.getStorage().getOrganization().getId()) ||
@@ -147,7 +173,7 @@ public class ZoneService {
     }
 
     public Zone findZone(Long zoneId){
-        return zoneRepository.findById(zoneId)
+        return zoneRepository.findByIdWithStorage(zoneId)
                 .orElseThrow(ZoneNotFoundException::new);
     }
 
@@ -182,6 +208,12 @@ public class ZoneService {
 
         if (exists){
             throw new ZoneNameAlreadyExistsException();
+        }
+    }
+
+    public void validateZoneStatus(Zone zone){
+        if (zone.getStorage().getStatus() != StorageStatus.ACTIVE || zone.getStatus() != ZoneStatus.ACTIVE){
+            throw new ZoneInactiveException();
         }
     }
 }

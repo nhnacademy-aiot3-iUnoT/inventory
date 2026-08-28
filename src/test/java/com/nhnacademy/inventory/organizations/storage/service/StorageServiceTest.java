@@ -11,6 +11,7 @@ import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.storage.dto.*;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
+import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import com.nhnacademy.inventory.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +41,8 @@ class StorageServiceTest {
     private DepartmentService departmentService;
     @Mock
     private StorageDepartmentRepository storageDepartmentRepository;
+    @Mock
+    private ZoneRepository zoneRepository;
 
     @InjectMocks
     private StorageService storageService;

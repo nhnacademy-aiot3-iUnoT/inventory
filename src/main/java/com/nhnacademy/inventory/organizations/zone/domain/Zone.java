@@ -85,6 +85,11 @@ public class Zone {
         this.envStatus = envStatus;
     }
 
+    // 저장소가 비활성이면 소속 구역도 함께 비활성으로 본다.
+    public boolean isActive(){
+        return this.status == ZoneStatus.ACTIVE && storage.isActive();
+    }
+
     public void validationStatus(){
         if(this.status != ZoneStatus.ACTIVE){
             throw new ZoneNotAvailableException();
