@@ -15,6 +15,7 @@ import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.storage.dto.*;
+import com.nhnacademy.inventory.organizations.storage.exception.StorageInactiveException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNameAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.organizations.storage.repository.StoragePermissionRepository;
@@ -285,5 +286,11 @@ public class StorageService {
             return storageRepository.findActiveIdsByOrganizationId(member.getOrganization().getId());
         }
         return storageRepository.findActiveIdsByOrganizationMemberId(member.getId());
+    }
+
+    public void validateStorageStatus(Storage storage){
+        if (storage.getStatus() != StorageStatus.ACTIVE){
+            throw new StorageInactiveException();
+        }
     }
 }

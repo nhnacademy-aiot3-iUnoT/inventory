@@ -14,7 +14,15 @@ public interface ZoneSensorRepository extends JpaRepository<ZoneSensor, Long> {
 
     List<ZoneSensor> findAllByZone(Zone zone);
 
-    Optional<ZoneSensor> findByIdAndZone(Long id, Zone zone);
+    @Query("SELECT zs FROM ZoneSensor zs " +
+            "JOIN FETCH zs.zone z " +
+            "JOIN FETCH z.storage s " +
+            "JOIN FETCH s.organization o " +
+            "WHERE zs.id = :id AND zs.zone = :zone")
+    Optional<ZoneSensor> findByIdAndZone(
+            @Param("id") Long id,
+            @Param("zone") Zone zone
+    );
 
     @Query("SELECT zs FROM ZoneSensor zs " +
             "JOIN FETCH zs.zone z " +
