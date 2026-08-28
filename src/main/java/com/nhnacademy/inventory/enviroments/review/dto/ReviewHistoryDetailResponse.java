@@ -1,9 +1,11 @@
 package com.nhnacademy.inventory.enviroments.review.dto;
 
+import com.nhnacademy.inventory.enviroments.event.dto.EnvironmentEventItemResponse;
 import com.nhnacademy.inventory.enviroments.review.domain.EnvironmentReview;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record ReviewHistoryDetailResponse(
@@ -24,9 +26,16 @@ public record ReviewHistoryDetailResponse(
         UUID reviewerId,
         Boolean isOut,
         Integer quantityAtReview,
-        String memo
+        String memo,
+
+        List<ReviewHistorySummaryResponse> inventoryReviewHistories,
+        List<EnvironmentEventItemResponse> environmentEvents
 ) {
-    public static ReviewHistoryDetailResponse from(EnvironmentReview review){
+    public static ReviewHistoryDetailResponse from(
+            EnvironmentReview review,
+            List<ReviewHistorySummaryResponse> inventoryReviewHistories,
+            List<EnvironmentEventItemResponse> environmentEvents
+    ){
         MedicineInventory medicineInventory = review.getMedicineInventory();
 
         return new ReviewHistoryDetailResponse(
@@ -47,7 +56,10 @@ public record ReviewHistoryDetailResponse(
                 review.getReviewerId(),
                 review.getIsOut(),
                 review.getQuantityAtReview(),
-                review.getMemo()
+                review.getMemo(),
+
+                inventoryReviewHistories,
+                environmentEvents
         );
     }
 }

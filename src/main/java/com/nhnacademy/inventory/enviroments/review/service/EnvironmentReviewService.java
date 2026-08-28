@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.enviroments.review.service;
 
+import com.nhnacademy.inventory.enviroments.event.dto.EnvironmentEventItemResponse;
+import com.nhnacademy.inventory.enviroments.event.repository.EnvironmentEventRepository;
 import com.nhnacademy.inventory.enviroments.review.domain.EnvironmentReview;
 import com.nhnacademy.inventory.enviroments.review.dto.InventoryReviewRequest;
 import com.nhnacademy.inventory.enviroments.review.dto.ReviewHistoryDetailResponse;
@@ -35,6 +37,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class EnvironmentReviewService {
     private final EnvironmentReviewRepository environmentReviewRepository;
+    private final EnvironmentEventRepository environmentEventRepository;
     private final MedicineInventoryRepository inventoryRepository;
     private final OrganizationMemberRepository organizationMemberRepository;
     private final StockTransactionService transactionService;
@@ -91,7 +94,19 @@ public class EnvironmentReviewService {
         EnvironmentReview review = environmentReviewRepository.findByIdWithFetch(environmentReviewId)
                 .orElseThrow(ReviewNotFoundException::new);
 
-        return ReviewHistoryDetailResponse.from(review);
+        List<ReviewHistorySummaryResponse> inventoryReviewHistories = environmentReviewRepository
+                .findAllByMedicineInventoryWithFetch(review.getMedicineInventory())
+                .stream()
+                .map(ReviewHistorySummaryResponse::from)
+                .toList();
+
+        List<EnvironmentEventItemResponse> environmentEvents = environmentEventRepository
+                .findAllByZoneAndCreatedAtAfter(review.getMedicineInventory().getZone(), review.getMedicineInventory().getCreatedAt())
+                .stream()
+                .map(EnvironmentEventItemResponse::from)
+                .toList();
+
+        return ReviewHistoryDetailResponse.from(review, inventoryReviewHistories, environmentEvents);
     }
 
     private List<Long> getTargetStorageIds(Long storageId){

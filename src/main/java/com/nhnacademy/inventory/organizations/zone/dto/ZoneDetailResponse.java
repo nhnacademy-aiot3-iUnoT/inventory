@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.organizations.zone.dto;
 
+import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
@@ -19,6 +20,14 @@ public record ZoneDetailResponse (
     LocalDateTime updatedAt
 ) {
     public static ZoneDetailResponse from(Zone zone) {
+        ZoneStatus zoneStatus;
+
+        if(zone.getStorage().getStatus() == StorageStatus.ACTIVE){
+            zoneStatus = zone.getStatus();
+        }else{
+            zoneStatus = ZoneStatus.INACTIVE;
+        }
+
         return new ZoneDetailResponse(
                 zone.getId(),
                 zone.getStorage().getId(),
@@ -26,7 +35,7 @@ public record ZoneDetailResponse (
                 zone.getStorage().getName(),
                 zone.getName(),
                 zone.getDescription(),
-                zone.getStatus(),
+                zoneStatus,
                 zone.getEnvStatus(),
                 zone.getCreatedAt(),
                 zone.getUpdatedAt()

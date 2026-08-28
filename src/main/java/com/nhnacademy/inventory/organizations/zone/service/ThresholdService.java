@@ -37,6 +37,8 @@ public class ThresholdService {
 
         Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
 
+        zoneService.validateZoneStatus(zone);
+
         SensorType sensorType = sensorTypeRepository.findById(request.sensorTypeId())
                 .orElseThrow(SensorTypeNotFoundException::new);
 
@@ -85,6 +87,8 @@ public class ThresholdService {
     @Transactional
     public void deleteThreshold(Long zoneId, Long thresholdId){
         ZoneThreshold threshold = findByIdAndValidateOwner(zoneId, thresholdId);
+
+        zoneService.validateZoneStatus(threshold.getZone());
 
         thresholdRepository.delete(threshold);
     }

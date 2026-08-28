@@ -27,6 +27,8 @@ public class ZoneSensorService {
     public ZoneSensorDetailResponse createZoneSensor(Long zoneId, ZoneSensorCreateRequest request){
         Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
 
+        zoneService.validateZoneStatus(zone);
+
         if(zoneSensorRepository.existsByDeviceEui(request.deviceEui())){
             throw new ZoneSensorAlreadyExistsException();
         }
@@ -73,6 +75,8 @@ public class ZoneSensorService {
     public ZoneSensorDetailResponse updateZoneSensorInfo(Long zoneId, Long zoneSensorId, ZoneSensorUpdateRequest request){
         Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
 
+        zoneService.validateZoneStatus(zone);
+
         ZoneSensor zoneSensor = zoneSensorRepository.findByIdAndZone(zoneSensorId, zone)
                 .orElseThrow(ZoneSensorNotFoundException::new);
 
@@ -84,6 +88,8 @@ public class ZoneSensorService {
     @Transactional
     public void deleteZoneSensor(Long zoneId, Long zoneSensorId){
         Zone zone = zoneService.validateOwnerAndGetZone(zoneId);
+
+        zoneService.validateZoneStatus(zone);
 
         ZoneSensor zoneSensor = zoneSensorRepository.findByIdAndZone(zoneSensorId, zone)
                 .orElseThrow(ZoneSensorNotFoundException::new);

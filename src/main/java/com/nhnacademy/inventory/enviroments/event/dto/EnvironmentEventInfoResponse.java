@@ -8,12 +8,12 @@ import java.math.BigDecimal;
 
 public record EnvironmentEventInfoResponse(
         Long environmentEventId,
-        Long OrganizationId,
-        Long StorageId,
+        Long organizationId,
+        Long storageId,
         Long zoneId,
-        String OrganizationName,
-        String StorageName,
-        String ZoneName,
+        String organizationName,
+        String storageName,
+        String zoneName,
         BigDecimal detectedValue,
         BigDecimal thresholdValue,
         EnvironmentType environmentType,

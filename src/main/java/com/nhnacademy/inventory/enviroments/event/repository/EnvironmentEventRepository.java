@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface EnvironmentEventRepository extends JpaRepository<EnvironmentEvent, Long>, EnvironmentEventRepositoryCustom {
     List<EnvironmentEvent> findAllByZoneAndCreatedAtAfterOrderByCreatedAtDesc(Zone zone, LocalDateTime createdAtAfter);
+
+    List<EnvironmentEvent> findAllByZoneAndCreatedAtAfter(Zone zone, LocalDateTime createdAtAfter);
 }

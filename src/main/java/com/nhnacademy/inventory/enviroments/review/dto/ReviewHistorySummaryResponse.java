@@ -23,4 +23,18 @@ public record ReviewHistorySummaryResponse(
     public ReviewHistorySummaryResponse{
 
     }
+
+    public static ReviewHistorySummaryResponse from(EnvironmentReview review){
+        return new ReviewHistorySummaryResponse(
+                review.getId(),
+                review.getMedicineInventory().getId(),
+                review.getMedicineInventory().getMedicinePackageUnit().getMedicine().getId(),
+                review.getMedicineInventory().getMedicinePackageUnit().getId(),
+                review.getMedicineInventory().getMedicinePackageUnit().getMedicine().getProductName(),
+                review.getMedicineInventory().getMedicinePackageUnit().getPackUnit(),
+                review.getCreatedAt(),
+                review.getReviewerId(),
+                review.getIsOut()
+        );
+    }
 }
