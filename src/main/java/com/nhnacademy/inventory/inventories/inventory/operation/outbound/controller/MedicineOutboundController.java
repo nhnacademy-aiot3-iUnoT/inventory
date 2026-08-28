@@ -16,7 +16,7 @@ public class MedicineOutboundController {
 
     private final MedicineOutboundService medicineOutboundService;
 
-    @GetMapping("/{inventoryId}/outbound-target")
+    @GetMapping("/{inventory-id}/outbound-target")
     public ResponseEntity<ApiResponse<MedicineOutboundTargetResponse>>
     getOutboundTarget(
             @PathVariable Long inventoryId
