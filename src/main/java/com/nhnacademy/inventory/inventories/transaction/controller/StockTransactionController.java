@@ -1,8 +1,9 @@
 package com.nhnacademy.inventory.inventories.transaction.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
+import com.nhnacademy.inventory.global.dto.PageResponse;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchCondition;
-import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchResponse;
+import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionInfoResponse;
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,14 +24,14 @@ public class StockTransactionController {
     private final StockTransactionService stockTransactionService;
 
     @GetMapping("/zones/{zoneId}/stock-transaction")
-    public ResponseEntity<ApiResponse<Page<StockTransactionSearchResponse>>> search(
+    public ResponseEntity<ApiResponse<PageResponse<StockTransactionInfoResponse>>> search(
             @PathVariable Long zoneId,
             StockTransactionSearchCondition condition,
             @PageableDefault(size = 20, sort = "processedAt", direction = Sort.Direction.DESC)Pageable pageable
             ){
-        Page<StockTransactionSearchResponse> responsePage =
+        Page<StockTransactionInfoResponse> responsePage =
                 stockTransactionService.searchTransactionByCondition(zoneId, condition, pageable);
 
-        return ResponseEntity.ok(ApiResponse.success(responsePage));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(responsePage)));
     }
 }
