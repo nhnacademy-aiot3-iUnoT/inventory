@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ChatbotService {
     private static final String SYSTEM_PROMPT = """
         당신은 의약품 재고 관리 챗봇입니다.
@@ -32,19 +31,25 @@ public class ChatbotService {
         수량이 0이면 품절임을 안내하세요.
         """;
 
-    private final ChatClient.Builder chatClientBuilder;
-    private final MedicineInventorySearchTool medicineInventorySearchTool;
-    private final ExpiringInventoryTool expiringInventoryTool;
-    private final LowStockInventoryTool lowStockInventoryTool;
+    private final ChatClient chatClient;
+
+    public ChatbotService(
+            ChatClient.Builder chatClientBuilder,
+            MedicineInventorySearchTool medicineInventorySearchTool,
+            ExpiringInventoryTool expiringInventoryTool,
+            LowStockInventoryTool lowStockInventoryTool
+    ) {
+        this.chatClient = chatClientBuilder
+                .defaultSystem(SYSTEM_PROMPT)
+                .defaultTools(medicineInventorySearchTool, expiringInventoryTool, lowStockInventoryTool)
+                .build();
+    }
 
     public ChatResponse chat(String message) {
         try {
-            String answer = chatClientBuilder.build()
+            String answer = chatClient
                     .prompt()
-                    .system(SYSTEM_PROMPT)
                     .user(message)
-                    .tools(medicineInventorySearchTool, expiringInventoryTool, lowStockInventoryTool)
-//                    .advisors(new SimpleLoggerAdvisor())
                     .call()
                     .content();
 

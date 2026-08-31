@@ -1,16 +1,15 @@
 package com.nhnacademy.inventory.reports.report.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ReportSummaryService {
 
-    private final ChatClient.Builder chatClientBuilder;
+    private final ChatClient chatClient;
+
     private static final String PROMPT = """
         당신은 병원 의약품 재고 관리 담당자를 위한 주간 리포트를 작성합니다.
 
@@ -50,10 +49,15 @@ public class ReportSummaryService {
         제목과 문장만 쓰고 별표, 샵, 대괄호는 사용하지 않습니다.
         """;
 
+    public ReportSummaryService(ChatClient.Builder chatClientBuilder) {
+        this.chatClient = chatClientBuilder
+                .defaultSystem(PROMPT)
+                .build();
+    }
+
     public String generateSummary(String reportText) {
-        String summary = chatClientBuilder.build()
+        String summary = chatClient
                 .prompt()
-                .system(PROMPT)
                 .user(reportText)
                 .call()
                 .content();
