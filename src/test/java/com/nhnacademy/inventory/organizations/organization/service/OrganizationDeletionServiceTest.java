@@ -134,7 +134,7 @@ class OrganizationDeletionServiceTest {
         ReflectionTestUtils.setField(member, "id", 1L);
 
         UUID accountUuid = member.getAccountUuid();
-        AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+        AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
 
         given(accountClient.deleteAccount(accountUuid)).willReturn(accountResponse);
 

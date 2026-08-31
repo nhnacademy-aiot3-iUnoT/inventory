@@ -14,3 +14,5 @@ include::sensor-type.adoc[]
 include::threshold.adoc[]
 
 include::organization.adoc[]
+
+include::report.adoc[]

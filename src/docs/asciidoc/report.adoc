@@ -1,0 +1,139 @@
+== Report API
+
+저장소의 주간 리포트를 생성하고 조회합니다.
+
+리포트는 월요일부터 일요일까지 7일을 한 주기로 집계하며,
+입출고/폐기 수량, 구역별 환경 센서 요약, 구역별 문 개폐 요약, AI 요약으로 구성됩니다.
+
+AI 요약은 리포트 생성과 별개로 비동기 처리되므로,
+생성 직후 응답의 `aiSummary`는 `null`이고 `aiSummaryStatus`는 `PENDING`입니다.
+
+=== 주간 리포트 조회
+
+기간 시작일로 해당 주의 리포트를 조회합니다.
+
+`periodStart`는 월요일이어야 하며, 리포트가 아직 생성되지 않았다면 `data`가 `null`인 성공 응답을 반환합니다.
+
+==== 요청
+
+include::{snippets}/report-get-weekly/http-request.adoc[]
+
+==== 경로 변수
+
+include::{snippets}/report-get-weekly/path-parameters.adoc[]
+
+==== 요청 파라미터
+
+include::{snippets}/report-get-weekly/query-parameters.adoc[]
+
+==== 응답
+
+include::{snippets}/report-get-weekly/http-response.adoc[]
+
+==== 응답 필드
+
+집계 항목(`items`, `environments`, `doors`)의 상세 필드는 <<report-detail,리포트 단건 조회>>를 참고하세요.
+
+include::{snippets}/report-get-weekly/response-fields.adoc[]
+
+=== 주간 리포트 생성
+
+지정한 주간의 리포트를 생성합니다.
+
+집계가 끝난 주에 대해서만 생성할 수 있으므로 `periodStart`는 지난 주 이전의 월요일이어야 합니다.
+
+같은 저장소/기간의 리포트가 이미 있으면 생성할 수 없습니다.
+
+==== 요청
+
+include::{snippets}/report-create-weekly/http-request.adoc[]
+
+==== 경로 변수
+
+include::{snippets}/report-create-weekly/path-parameters.adoc[]
+
+==== 요청 필드
+
+include::{snippets}/report-create-weekly/request-fields.adoc[]
+
+==== 응답
+
+AI 요약 생성 전의 리포트를 반환합니다.
+
+include::{snippets}/report-create-weekly/http-response.adoc[]
+
+==== 응답 필드
+
+include::{snippets}/report-create-weekly/response-fields.adoc[]
+
+[[report-detail]]
+=== 리포트 단건 조회
+
+리포트 ID로 상세 정보를 조회합니다.
+
+입출고/폐기 집계, 구역·센서별 환경 요약, 구역별 문 개폐 요약을 모두 포함합니다.
+
+환경과 문 개폐의 `dailyPoints`는 집계 기간의 일자별 추이이며, 측정값이 없는 날은 빠집니다.
+
+==== 요청
+
+include::{snippets}/report-get-detail/http-request.adoc[]
+
+==== 경로 변수
+
+include::{snippets}/report-get-detail/path-parameters.adoc[]
+
+==== 응답
+
+include::{snippets}/report-get-detail/http-response.adoc[]
+
+==== 응답 필드
+
+include::{snippets}/report-get-detail/response-fields.adoc[]
+
+=== 리포트 재생성
+
+기존 리포트의 집계를 전부 버리고 다시 만듭니다.
+
+리포트 ID는 유지되며, 집계 항목과 AI 요약이 초기화된 뒤 다시 채워집니다.
+
+입고 내역이 뒤늦게 소급되었거나 집계가 잘못된 경우에 사용합니다.
+
+==== 요청
+
+include::{snippets}/report-recreate/http-request.adoc[]
+
+==== 경로 변수
+
+include::{snippets}/report-recreate/path-parameters.adoc[]
+
+==== 응답
+
+집계가 초기화된 리포트를 반환합니다. AI 요약은 다시 `PENDING`이 됩니다.
+
+include::{snippets}/report-recreate/http-response.adoc[]
+
+==== 응답 필드
+
+include::{snippets}/report-recreate/response-fields.adoc[]
+
+=== AI 요약 재생성
+
+집계는 그대로 두고 AI 요약만 다시 생성합니다.
+
+요약 생성이 실패(`FAILED`)했을 때 재시도하는 용도입니다.
+
+비동기로 처리되므로 응답 본문 없이 204를 반환하며,
+진행 상태는 리포트를 다시 조회해 `aiSummaryStatus`로 확인합니다.
+
+==== 요청
+
+include::{snippets}/report-retry-ai-summary/http-request.adoc[]
+
+==== 경로 변수
+
+include::{snippets}/report-retry-ai-summary/path-parameters.adoc[]
+
+==== 응답
+
+include::{snippets}/report-retry-ai-summary/http-response.adoc[]
