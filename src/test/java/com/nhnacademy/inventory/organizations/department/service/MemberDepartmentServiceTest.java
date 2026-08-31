@@ -105,7 +105,7 @@ class MemberDepartmentServiceTest {
             given(memberDepartmentRepository.findAllWithMemberByDepartmentId(1L))
                     .willReturn(List.of(memberDepartment));
             given(accountClient.findByUuids(List.of(member.getAccountUuid())))
-                    .willReturn(List.of(new AccountResponse(member.getAccountUuid(), "member@test.com")));
+                    .willReturn(List.of(new AccountResponse(member.getAccountUuid(), "테스트 사용자", "member@test.com")));
 
             List<?> responses = memberDepartmentService.getDepartmentMembers(1L);
 

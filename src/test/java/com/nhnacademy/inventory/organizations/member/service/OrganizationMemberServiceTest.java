@@ -90,7 +90,7 @@ class OrganizationMemberServiceTest {
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest("test", OrganizationRole.ORG_OWNER);
-            AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+            AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
             given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
@@ -114,7 +114,7 @@ class OrganizationMemberServiceTest {
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest(null, OrganizationRole.ORG_OWNER);
-            AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+            AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
             given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
@@ -177,7 +177,7 @@ class OrganizationMemberServiceTest {
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest("test", null);
-            AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+            AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
             given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
@@ -201,7 +201,7 @@ class OrganizationMemberServiceTest {
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest(null, null);
-            AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+            AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
             given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
