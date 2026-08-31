@@ -23,9 +23,9 @@ public class StockTransactionController {
 
     private final StockTransactionService stockTransactionService;
 
-    @GetMapping("/zones/{zoneId}/stock-transaction")
+    @GetMapping("/zones/{zone-id}/stock-transaction")
     public ResponseEntity<ApiResponse<PageResponse<StockTransactionInfoResponse>>> search(
-            @PathVariable Long zoneId,
+            @PathVariable("zone-id") Long zoneId,
             StockTransactionSearchCondition condition,
             @PageableDefault(size = 20, sort = "processedAt", direction = Sort.Direction.DESC)Pageable pageable
             ){
