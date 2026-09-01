@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -57,16 +58,30 @@ public class OrganizationDeletionService {
     }
 
     public void deletePendingRelations(Long organizationId) {
+        Optional<UUID> accountUuid = orgMemberRepository.findAccountUuidByOrganizationId(organizationId);
+
         orgMemberRepository.deleteByOrganizationId(organizationId);
 
         invitationRepository.deleteByOrganizationId(organizationId);
+
+        accountUuid.ifPresent(accountClient::deleteAccount);
     }
 
+    // boss가 조직원 삭제
     public void deleteMember(OrganizationMember member) {
         AccountResponse response = accountClient.deleteAccount(member.getAccountUuid());
         String email = response.email();
 
         invitationRepository.deleteByOrganizationIdAndEmail(member.getOrganization().getId(), email);
+        memberDepartmentRepository.deleteByOrganizationMemberId(member.getId());
+        orgMemberRepository.delete(member);
+    }
+
+    // 회원탈퇴 -> 조직탈퇴
+    public void deleteMemberForAccountLeave(OrganizationMember member, String previousEmail) {
+        if (previousEmail != null && !previousEmail.isBlank()) {
+            invitationRepository.deleteByOrganizationIdAndEmail(member.getOrganization().getId(), previousEmail);
+        }
         memberDepartmentRepository.deleteByOrganizationMemberId(member.getId());
         orgMemberRepository.delete(member);
     }

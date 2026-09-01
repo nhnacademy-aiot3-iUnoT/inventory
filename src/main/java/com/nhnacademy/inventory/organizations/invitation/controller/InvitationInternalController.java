@@ -33,5 +33,4 @@ public class InvitationInternalController {
         return ResponseEntity.noContent().build();
     }
 
-    // TODO 회원탈퇴 시 조직원 삭제 api 추가
 }
