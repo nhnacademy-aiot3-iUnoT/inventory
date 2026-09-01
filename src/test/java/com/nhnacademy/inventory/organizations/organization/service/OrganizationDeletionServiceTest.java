@@ -120,11 +120,16 @@ class OrganizationDeletionServiceTest {
     @DisplayName("PENDING 조직 관계 삭제 성공")
     void deletePendingRelations_success() {
         Long organizationId = 1L;
+        UUID accountUuid = UUID.randomUUID();
+        given(organizationMemberRepository.findAccountUuidByOrganizationId(organizationId))
+                .willReturn(java.util.Optional.of(accountUuid));
 
         organizationDeletionService.deletePendingRelations(organizationId);
 
+        verify(organizationMemberRepository).findAccountUuidByOrganizationId(organizationId);
         verify(organizationMemberRepository).deleteByOrganizationId(organizationId);
         verify(invitationRepository).deleteByOrganizationId(organizationId);
+        verify(accountClient).deleteAccount(accountUuid);
     }
 
     @Test
