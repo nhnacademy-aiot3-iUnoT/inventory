@@ -1,6 +1,6 @@
 package com.nhnacademy.inventory.inventories.transaction.repository;
 
-import com.nhnacademy.inventory.dashboards.dto.StockSummaryRow;
+import com.nhnacademy.inventory.inventories.transaction.dto.StockSummaryRow;
 import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchCondition;

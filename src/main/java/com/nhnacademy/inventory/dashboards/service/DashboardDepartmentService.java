@@ -11,13 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-/**
- * 부서 선택 드롭다운 데이터를 한 번에 만들어 준다.
- * 새 쿼리 없이 기존 서비스 두 개를 권한으로 분기해 조합한다.
- */
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -27,32 +22,22 @@ public class DashboardDepartmentService {
     private final MemberDepartmentService memberDepartmentService;
     private final DepartmentService departmentService;
 
+    // 선택가능한 부서 목록 조회
     public DashboardDepartmentsResponse getDepartmentOptions() {
         OrganizationMember member = scopeResolver.getCurrentMember();
         boolean orgAdmin = member.isOwner() || member.isBoss();
 
-        List<DepartmentListResponse> mine = memberDepartmentService.getMyDepartments();
-        Set<Long> myIds = mine.stream()
-                .map(DepartmentListResponse::id)
-                .collect(Collectors.toSet());
-
-        List<DepartmentListResponse> others = orgAdmin
-                ? departmentService.getDepartments().stream()
-                        .filter(department -> !myIds.contains(department.id()))
-                        .toList()
-                : List.of();
+        // 관리자면 전체 부서 조회, 일반 사용자면 소속된 부서만 조회
+        List<DepartmentListResponse> departments = orgAdmin
+                ? departmentService.getDepartments()
+                : memberDepartmentService.getMyDepartments();
 
         return new DashboardDepartmentsResponse(
                 orgAdmin,
                 member.getOrganization().getName(),
-                toOptions(mine),
-                toOptions(others)
+                departments.stream()
+                        .map(department -> new DepartmentOptionResponse(department.id(), department.name()))
+                        .toList()
         );
-    }
-
-    private List<DepartmentOptionResponse> toOptions(List<DepartmentListResponse> departments) {
-        return departments.stream()
-                .map(department -> new DepartmentOptionResponse(department.id(), department.name()))
-                .toList();
     }
 }

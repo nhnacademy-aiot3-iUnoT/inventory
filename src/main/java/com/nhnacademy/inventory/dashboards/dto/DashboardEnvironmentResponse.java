@@ -5,26 +5,24 @@ import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 /**
  * 선택한 저장소의 구역 센서 현황.
- * 구역·임계값은 인벤토리 DB에서, 현재 측정값과 일별 통계는 룰엔진 internal API에서 가져와
+ * 구역·임계값은 인벤토리 DB에서, 현재 측정값은 룰엔진 internal API에서 가져와
  * 여기서 합쳐 내려보낸다. 프론트는 받은 그대로 그리기만 하면 된다.
  */
 public record DashboardEnvironmentResponse(
         Long storageId,
         String storageName,
         StorageStatus storageStatus,
-        LocalDate summaryDate,
         List<ZoneEnvironmentResponse> zones
 ) {
 
     public record ZoneEnvironmentResponse(
             Long zoneId,
             String name,
-            ZoneStatus status,
+            ZoneStatus zoneStatus,
             EnvStatus envStatus,
             List<SensorEnvironmentResponse> sensors,
 
@@ -43,13 +41,7 @@ public record DashboardEnvironmentResponse(
             BigDecimal thresholdMax,
 
             // 룰엔진의 현재 측정값. 측정 기록이 없으면 null
-            Double currentValue,
-
-            // 현재값이 없을 때 대신 보여줄 어제 평균
-            Double avgValue,
-
-            boolean sensorRegistered
+            Double currentValue
     ) {
     }
-
 }

@@ -1,4 +1,4 @@
-package com.nhnacademy.inventory.dashboards.dto;
+package com.nhnacademy.inventory.inventories.transaction.dto;
 
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.querydsl.core.annotations.QueryProjection;

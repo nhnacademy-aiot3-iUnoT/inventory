@@ -10,11 +10,10 @@ import java.util.List;
  */
 public record DashboardExpiringResponse(
         List<ExpiringInventoryResponse> items,
-        long totalCount,
         long within7Count,
         long within30Count
 ) {
     public static DashboardExpiringResponse empty() {
-        return new DashboardExpiringResponse(List.of(), 0L, 0L, 0L);
+        return new DashboardExpiringResponse(List.of(), 0L, 0L);
     }
 }

@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.inventories.transaction.service;
 
 import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
+import com.nhnacademy.inventory.inventories.transaction.dto.StockSummaryRow;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchCondition;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,6 +87,22 @@ public class StockTransactionService {
             log.warn("처리자 정보를 불러오지 못해 재고 변동 내역만 반환합니다. 처리자 수={}", uuids.size(), e);
             return Map.of();
         }
+    }
+
+/**
+     * 저장소 여러 곳의 거래 유형별 합계. 대시보드 KPI 처럼 숫자만 필요할 때 쓴다.
+     */
+    public List<StockSummaryRow> sumByType(
+            List<Long> storageIds,
+            Collection<TransactionType> types,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+        if (storageIds.isEmpty()) {
+            return List.of();
+        }
+
+        return stockTransactionRepository.sumByType(storageIds, types, start, end);
     }
 
     public List<StockTransaction> findTransactionsForStorageReport(Long storageId, List<TransactionType> types, LocalDate start, LocalDate end) {

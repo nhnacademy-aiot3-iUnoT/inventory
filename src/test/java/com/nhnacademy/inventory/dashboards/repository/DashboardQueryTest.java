@@ -1,6 +1,6 @@
 package com.nhnacademy.inventory.dashboards.repository;
 
-import com.nhnacademy.inventory.dashboards.dto.StockSummaryRow;
+import com.nhnacademy.inventory.inventories.transaction.dto.StockSummaryRow;
 import com.nhnacademy.inventory.global.config.QuerydslConfig;
 import com.nhnacademy.inventory.inventories.expiration.dto.ExpiringInventoryResponse;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;

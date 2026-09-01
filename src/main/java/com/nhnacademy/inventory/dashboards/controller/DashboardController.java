@@ -39,7 +39,8 @@ public class DashboardController {
     }
 
     /**
-     * KPI 4장. departmentId 를 생략하면 조직 전체(관리자 전용)로 집계한다.
+     * 부서의 입고,출고,유통기한 임박,환경이탈 임방 알림 조회
+     * departmentId 를 생략시 조직 전체로 조회
      */
     @GetMapping("/summary")
     public ResponseEntity<ApiResponse<DashboardSummaryResponse>> getSummary(

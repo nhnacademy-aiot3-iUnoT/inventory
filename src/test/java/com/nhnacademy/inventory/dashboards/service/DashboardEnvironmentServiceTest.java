@@ -6,7 +6,6 @@ import com.nhnacademy.inventory.dashboards.dto.DashboardEnvironmentResponse.Zone
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
-import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
 import com.nhnacademy.inventory.organizations.zone.dto.ThresholdInfoResponse;
@@ -48,9 +47,6 @@ class DashboardEnvironmentServiceTest {
     DashboardScopeResolver scopeResolver;
 
     @Mock
-    StorageService storageService;
-
-    @Mock
     ZoneService zoneService;
 
     @Mock
@@ -76,10 +72,9 @@ class DashboardEnvironmentServiceTest {
                 .build();
         ReflectionTestUtils.setField(storage, "id", 100L);
 
-        given(storageService.validateMemberAndGetStorage(100L)).willReturn(storage);
+        given(scopeResolver.resolveStorage(100L)).willReturn(storage);
         given(zoneService.getZones(100L)).willReturn(List.of(
                 new ZoneInfoResponse(11L, 100L, "냉장 보관실 A", ZoneStatus.ACTIVE, EnvStatus.NORMAL)));
-        given(ruleEngineApiClient.findDailySummaries(anyLong(), any(), any())).willReturn(List.of());
     }
 
     @Test
@@ -97,8 +92,7 @@ class DashboardEnvironmentServiceTest {
                 () -> assertEquals(10.4, sensor.currentValue()),
                 () -> assertEquals(new BigDecimal("2.0"), sensor.thresholdMin()),
                 () -> assertEquals(new BigDecimal("8.0"), sensor.thresholdMax()),
-                () -> assertEquals("℃", sensor.unit()),
-                () -> assertTrue(sensor.sensorRegistered())
+                () -> assertEquals("℃", sensor.unit())
         );
     }
 
@@ -156,8 +150,7 @@ class DashboardEnvironmentServiceTest {
 
         assertAll(
                 () -> assertNull(sensor.currentValue()),
-                () -> assertEquals(new BigDecimal("8.0"), sensor.thresholdMax()),
-                () -> assertTrue(!sensor.sensorRegistered())
+                () -> assertEquals(new BigDecimal("8.0"), sensor.thresholdMax())
         );
     }
 

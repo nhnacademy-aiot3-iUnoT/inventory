@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -90,7 +91,7 @@ class DashboardServiceIntegrationTest {
         assertAll(
                 () -> assertNotNull(expiring),
                 () -> assertNotNull(expiring.items()),
-                () -> assertTrue(expiring.totalCount() >= 0L)
+                () -> assertTrue(expiring.within30Count() >= 0L)
         );
     }
 
@@ -102,7 +103,8 @@ class DashboardServiceIntegrationTest {
 
         assertAll(
                 () -> assertNotNull(expiring),
-                () -> assertTrue(expiring.totalCount() > 0L),
+                // 조회 기간(3650일) 안에 드는 재고가 목록에 담긴다
+                () -> assertFalse(expiring.items().isEmpty()),
                 () -> assertTrue(expiring.items().stream()
                         .allMatch(item -> item.storageName() != null))
         );
@@ -116,8 +118,8 @@ class DashboardServiceIntegrationTest {
 
         assertAll(
                 () -> assertTrue(departments.orgAdmin()),
-                () -> assertNotNull(departments.myDepartments()),
-                () -> assertNotNull(departments.otherDepartments()),
+                // 관리자는 조직의 모든 부서를 고를 수 있다
+                () -> assertFalse(departments.departments().isEmpty()),
                 () -> assertNotNull(departments.organizationName())
         );
     }

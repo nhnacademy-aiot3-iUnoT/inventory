@@ -3,91 +3,69 @@ package com.nhnacademy.inventory.dashboards.service;
 import com.nhnacademy.inventory.dashboards.exception.DepartmentAccessDeniedException;
 import com.nhnacademy.inventory.dashboards.exception.OrgWideAccessDeniedException;
 import com.nhnacademy.inventory.dashboards.exception.StorageAccessDeniedException;
-import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
-import com.nhnacademy.inventory.organizations.department.repository.StorageDepartmentRepository;
+import com.nhnacademy.inventory.organizations.department.dto.response.StorageByDepartmentResponse;
+import com.nhnacademy.inventory.organizations.department.service.MemberDepartmentService;
+import com.nhnacademy.inventory.organizations.department.service.StorageDepartmentService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
-import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
-import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
+import com.nhnacademy.inventory.organizations.storage.domain.Storage;
+import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * 대시보드가 집계할 범위(저장소 ID 목록)를 구하고 접근 권한을 검증한다.
- * 대시보드 API 4개가 모두 이 클래스를 거쳐 범위를 얻는다.
- */
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DashboardScopeResolver {
 
     private final OrganizationAccessService orgAccessService;
-    private final MemberDepartmentRepository memberDepartmentRepository;
-    private final StorageDepartmentRepository storageDepartmentRepository;
-    private final StorageRepository storageRepository;
+    private final MemberDepartmentService memberDepartmentService;
+    private final StorageDepartmentService storageDepartmentService;
+    private final StorageService storageService;
 
-    /**
-     * 부서의 담당 저장소 ID 목록을 반환한다.
-     * departmentId가 null이면 조직 전체 저장소를 반환하며, 이 경우 관리자만 허용한다.
-     */
+    // 부서의 담당 저장소 ID 목록을 반환한다
     public List<Long> resolveStorageIds(Long departmentId) {
-        OrganizationMember member = orgAccessService.getCurrentMember();
-
         if (departmentId == null) {
-            if (!isOrgAdmin(member)) {
+            if (!isOrgAdmin()) {
                 throw new OrgWideAccessDeniedException();
             }
 
-            return storageRepository.findIdsByOrganizationIdAndStatusNot(
-                    member.getOrganization().getId(), StorageStatus.CLOSED);
+            return storageService.getStorageIds();
         }
 
-        verifyDepartmentAccess(member, departmentId);
+        if (!memberDepartmentService.isMyDepartment(departmentId) && !isOrgAdmin()) {
+            throw new DepartmentAccessDeniedException();
+        }
 
-        return storageDepartmentRepository.findAllWithStorageByDepartmentId(departmentId)
+        return storageDepartmentService.getStoragesByDepartmentId(departmentId)
                 .stream()
-                .map(sd -> sd.getStorage().getId())
+                .map(StorageByDepartmentResponse::storageId)
                 .toList();
     }
 
-    /**
-     * 저장소 단위 조회(환경 현황) 권한을 검증한다.
-     * 내 부서에 배정된 저장소이거나 관리자여야 한다.
-     */
-    public void verifyStorageAccess(Long storageId) {
-        OrganizationMember member = orgAccessService.getCurrentMember();
+    // 저장소 단위 조회의 권한을 검증하고 그 저장소를 반환한다
+    public Storage resolveStorage(Long storageId) {
+        Storage storage = storageService.validateMemberAndGetStorage(storageId);
 
-        if (isOrgAdmin(member)) {
-            storageRepository.findByIdAndOrganization(storageId, member.getOrganization())
-                    .orElseThrow(StorageAccessDeniedException::new);
-            return;
-        }
-
-        boolean accessible = memberDepartmentRepository.findAccessibleStorageIds(member.getId())
-                .contains(storageId);
-
-        if (!accessible) {
+        if (!isOrgAdmin() && !memberDepartmentService.getAccessibleStorageIds().contains(storageId)) {
             throw new StorageAccessDeniedException();
         }
+
+        return storage;
     }
 
     public OrganizationMember getCurrentMember() {
         return orgAccessService.getCurrentMember();
     }
 
-    private void verifyDepartmentAccess(OrganizationMember member, Long departmentId) {
-        boolean mine = memberDepartmentRepository
-                .existsByDepartmentIdAndOrganizationMemberId(departmentId, member.getId());
+    // 조직 관리자 인지 검증
+    private boolean isOrgAdmin() {
+        OrganizationMember member = orgAccessService.getCurrentMember();
 
-        if (!mine && !isOrgAdmin(member)) {
-            throw new DepartmentAccessDeniedException();
-        }
-    }
-
-    private boolean isOrgAdmin(OrganizationMember member) {
         return member.isOwner() || member.isBoss();
     }
 }
