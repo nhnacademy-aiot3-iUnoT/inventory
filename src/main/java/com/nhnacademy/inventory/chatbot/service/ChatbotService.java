@@ -42,6 +42,7 @@ public class ChatbotService {
 
     public ChatbotService(
             ChatClient.Builder chatClientBuilder,
+            ChatMemory chatMemory,
             MedicineInventorySearchTool medicineInventorySearchTool,
             ExpiringInventoryTool expiringInventoryTool,
             LowStockInventoryTool lowStockInventoryTool
@@ -49,6 +50,7 @@ public class ChatbotService {
         this.chatClient = chatClientBuilder
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultTools(medicineInventorySearchTool, expiringInventoryTool, lowStockInventoryTool)
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
     }
 
