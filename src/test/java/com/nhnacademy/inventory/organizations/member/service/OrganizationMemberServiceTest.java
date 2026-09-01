@@ -10,6 +10,8 @@ import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRol
 import com.nhnacademy.inventory.organizations.member.dto.response.MemberOrganizationResponse;
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberResponse;
 import com.nhnacademy.inventory.organizations.member.exception.OrgMemberNotFoundException;
+import com.nhnacademy.inventory.organizations.member.exception.OrgBossLeaveNotAllowedException;
+import com.nhnacademy.inventory.organizations.invitation.dto.request.LeaveOrgRequest;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
@@ -90,7 +92,7 @@ class OrganizationMemberServiceTest {
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest("test", OrganizationRole.ORG_OWNER);
-            AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+            AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
             given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
@@ -114,7 +116,7 @@ class OrganizationMemberServiceTest {
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest(null, OrganizationRole.ORG_OWNER);
-            AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+            AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
             given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
@@ -177,7 +179,7 @@ class OrganizationMemberServiceTest {
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest("test", null);
-            AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+            AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
             given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
@@ -201,7 +203,7 @@ class OrganizationMemberServiceTest {
             UUID accountUuid = owner.getAccountUuid();
             Pageable pageable = PageRequest.of(0, 10);
             OrganizationMemberSearchRequest request = new OrganizationMemberSearchRequest(null, null);
-            AccountResponse accountResponse = new AccountResponse(accountUuid, "test@email.com");
+            AccountResponse accountResponse = new AccountResponse(accountUuid, "테스트 사용자", "test@email.com");
             Page<OrganizationMember> memberPage = new PageImpl<>(List.of(owner));
 
             given(orgAccessService.requireOwnerOrBoss()).willReturn(owner);
@@ -355,6 +357,53 @@ class OrganizationMemberServiceTest {
             verify(orgAccessService).requireBoss();
             verify(orgMemberRepository).findByIdAndOrganizationId(4L, organization.getId());
             verify(orgDeletionService, never()).deleteMember(any());
+        }
+
+        @Test
+        @DisplayName("실패 - 보스는 탈퇴할 수 없음")
+        void boss_not_allowed() {
+            given(orgAccessService.getCurrentMember()).willReturn(boss);
+
+            assertThrows(OrgBossLeaveNotAllowedException.class, () -> orgMemberService.leaveOrganization());
+
+            verify(orgDeletionService, never()).deleteMember(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Account 회원탈퇴 연동")
+    class AccountLeave {
+        @Test
+        @DisplayName("성공 - 조직원 연결 및 기존 초대 정리")
+        void success() {
+            LeaveOrgRequest request = new LeaveOrgRequest(member.getAccountUuid(), "previous@email.com");
+            given(orgMemberRepository.findByAccountUuid(member.getAccountUuid())).willReturn(Optional.of(member));
+
+            orgMemberService.leaveOrgForAccountLeave(request);
+
+            verify(orgDeletionService).deleteMemberForAccountLeave(member, request.previousEmail());
+        }
+
+        @Test
+        @DisplayName("성공 - 조직원이 이미 없음")
+        void already_deleted() {
+            LeaveOrgRequest request = new LeaveOrgRequest(UUID.randomUUID(), null);
+            given(orgMemberRepository.findByAccountUuid(request.accountUuid())).willReturn(Optional.empty());
+
+            orgMemberService.leaveOrgForAccountLeave(request);
+
+            verify(orgDeletionService, never()).deleteMemberForAccountLeave(any(), any());
+        }
+
+        @Test
+        @DisplayName("실패 - 보스는 탈퇴할 수 없음")
+        void boss_not_allowed() {
+            LeaveOrgRequest request = new LeaveOrgRequest(boss.getAccountUuid(), null);
+            given(orgMemberRepository.findByAccountUuid(request.accountUuid())).willReturn(Optional.of(boss));
+
+            assertThrows(OrgBossLeaveNotAllowedException.class, () -> orgMemberService.leaveOrgForAccountLeave(request));
+
+            verify(orgDeletionService, never()).deleteMemberForAccountLeave(any(), any());
         }
     }
 

@@ -31,8 +31,12 @@ public interface OrganizationMemberRepository extends JpaRepository<Organization
     """)
     List<UUID> findAccountUuidsByOrganizationId(Long organizationId);
 
+    @Query("""
+        select om.accountUuid
+        from OrganizationMember om
+        where om.organization.id = :organizationId
+    """)
+    Optional<UUID> findAccountUuidByOrganizationId(Long organizationId);
 
-    Optional<OrganizationMember> findByOrganization(Organization organization);
-    
 
 }

@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.organizations.member.controller;
 
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
+import com.nhnacademy.inventory.organizations.invitation.dto.request.LeaveOrgRequest;
 import com.nhnacademy.inventory.organizations.member.dto.response.MemberOrganizationResponse;
 import com.nhnacademy.inventory.organizations.member.service.OrganizationMemberService;
 import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
@@ -9,10 +10,12 @@ import com.nhnacademy.inventory.support.SupportControllerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,18 +26,50 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrganizationMemberInternalController.class)
 class OrganizationMemberInternalControllerTest extends SupportControllerTest {
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockitoBean
     private OrganizationMemberService orgMemberService;
+
+    @Test
+    @DisplayName("Account 회원탈퇴 연동 성공")
+    void leaveOrg_success() throws Exception {
+        LeaveOrgRequest request = new LeaveOrgRequest(UUID.randomUUID(), "member@example.com");
+
+        mockMvc.perform(post("/api/core/internal/leave-org")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent())
+                .andDo(document("internal-leave-org",
+                        requestFields(
+                                fieldWithPath("accountUuid").type(JsonFieldType.STRING).description("탈퇴한 계정 UUID"),
+                                fieldWithPath("previousEmail").type(JsonFieldType.STRING).optional().description("기존 초대 이메일 (선택)"))));
+
+        verify(orgMemberService).leaveOrgForAccountLeave(request);
+    }
+
+    @Test
+    @DisplayName("Account 회원탈퇴 연동 실패 - accountUuid 누락")
+    void leaveOrg_invalid_request() throws Exception {
+        mockMvc.perform(post("/api/core/internal/leave-org")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"previousEmail\":\"member@example.com\"}"))
+                .andExpect(status().isBadRequest());
+    }
 
     @Nested
     @DisplayName("조직 정보 조회 GET /api/core/internal/members/{account-uuid}/organization")

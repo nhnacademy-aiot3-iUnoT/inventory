@@ -79,7 +79,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .from(medicineInventory)
                 .where(
                         inventoryStorageIdEq(storageIds),
-                        storage.status.eq(StorageStatus.ACTIVE),
+                        medicineInventory.zone.storage.status.eq(StorageStatus.ACTIVE),
                         medicineInventory.managementStatus.eq(ManagementStatus.UNDER_REVIEW)
                 )
                 .fetchOne();
@@ -93,7 +93,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
     public Page<ReviewHistorySummaryResponse> getReviewHistories(List<Long> storageIds, Pageable pageable) {
         List<ReviewHistorySummaryResponse> content = queryFactory
                 .select(new QReviewHistorySummaryResponse(
-                        environmentEvent.id,
+                        environmentReview.id,
                         medicineInventory.id,
                         medicine.id,
                         medicinePackageUnit.id,
@@ -106,6 +106,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .from(environmentReview)
                 .join(environmentReview.medicineInventory, medicineInventory)
                 .join(medicineInventory.zone, zone)
+                .join(zone.storage, storage)
                 .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
                 .join(medicinePackageUnit.medicine, medicine)
                 .where(
@@ -120,6 +121,9 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
         Long total = queryFactory
                 .select(environmentReview.count())
                 .from(environmentReview)
+                .join(environmentReview.medicineInventory, medicineInventory)
+                .join(medicineInventory.zone, zone)
+                .join(zone.storage, storage)
                 .where(
                         reviewStorageIdEq(storageIds),
                         storage.status.eq(StorageStatus.ACTIVE)
@@ -150,17 +154,17 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
     private BooleanExpression inventoryStorageIdEq(List<Long> storageIds){
         if(storageIds == null || storageIds.isEmpty()){
             return Expressions.asBoolean(false).isTrue();
-        }{
-            return medicineInventory.zone.storage.id.in(storageIds);
         }
+
+        return medicineInventory.zone.storage.id.in(storageIds);
     }
 
     private BooleanExpression reviewStorageIdEq(List<Long> storageIds){
         if(storageIds == null || storageIds.isEmpty()){
             return Expressions.asBoolean(false).isTrue();
-        }{
-            return environmentReview.medicineInventory.zone.storage.id.in(storageIds);
         }
+
+            return environmentReview.medicineInventory.zone.storage.id.in(storageIds);
     }
 
     private OrderSpecifier<?> getUnderReviewPageOrderSpecifier(Pageable pageable){
