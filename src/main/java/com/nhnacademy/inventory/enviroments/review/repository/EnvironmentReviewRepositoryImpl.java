@@ -79,7 +79,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .from(medicineInventory)
                 .where(
                         inventoryStorageIdEq(storageIds),
-                        storage.status.eq(StorageStatus.ACTIVE),
+                        medicineInventory.zone.storage.status.eq(StorageStatus.ACTIVE),
                         medicineInventory.managementStatus.eq(ManagementStatus.UNDER_REVIEW)
                 )
                 .fetchOne();
@@ -150,17 +150,17 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
     private BooleanExpression inventoryStorageIdEq(List<Long> storageIds){
         if(storageIds == null || storageIds.isEmpty()){
             return Expressions.asBoolean(false).isTrue();
-        }{
-            return medicineInventory.zone.storage.id.in(storageIds);
         }
+
+        return medicineInventory.zone.storage.id.in(storageIds);
     }
 
     private BooleanExpression reviewStorageIdEq(List<Long> storageIds){
         if(storageIds == null || storageIds.isEmpty()){
             return Expressions.asBoolean(false).isTrue();
-        }{
-            return environmentReview.medicineInventory.zone.storage.id.in(storageIds);
         }
+
+            return environmentReview.medicineInventory.zone.storage.id.in(storageIds);
     }
 
     private OrderSpecifier<?> getUnderReviewPageOrderSpecifier(Pageable pageable){
