@@ -21,7 +21,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-import static com.nhnacademy.inventory.enviroments.event.domain.QEnvironmentEvent.environmentEvent;
 import static com.nhnacademy.inventory.enviroments.review.domain.QEnvironmentReview.environmentReview;
 import static com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory.medicineInventory;
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicine.medicine;
@@ -65,7 +64,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
                 .join(medicinePackageUnit.medicine, medicine)
                 .where(
-                        inventoryStorageIdEq(storageIds),
+                        storageIdEq(storageIds),
                         storage.status.eq(StorageStatus.ACTIVE),
                         medicineInventory.managementStatus.eq(ManagementStatus.UNDER_REVIEW)
                 )
@@ -77,9 +76,11 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
         Long total = queryFactory
                 .select(medicineInventory.count())
                 .from(medicineInventory)
+                .join(medicineInventory.zone, zone)
+                .join(zone.storage, storage)
                 .where(
-                        inventoryStorageIdEq(storageIds),
-                        medicineInventory.zone.storage.status.eq(StorageStatus.ACTIVE),
+                        storageIdEq(storageIds),
+                        storage.status.eq(StorageStatus.ACTIVE),
                         medicineInventory.managementStatus.eq(ManagementStatus.UNDER_REVIEW)
                 )
                 .fetchOne();
@@ -110,7 +111,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
                 .join(medicinePackageUnit.medicine, medicine)
                 .where(
-                        reviewStorageIdEq(storageIds),
+                        storageIdEq(storageIds),
                         storage.status.eq(StorageStatus.ACTIVE)
                 )
                 .orderBy(getReviewHistoryPageOrderSpecifier(pageable))
@@ -125,7 +126,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .join(medicineInventory.zone, zone)
                 .join(zone.storage, storage)
                 .where(
-                        reviewStorageIdEq(storageIds),
+                        storageIdEq(storageIds),
                         storage.status.eq(StorageStatus.ACTIVE)
                 )
                 .fetchOne();
@@ -151,20 +152,12 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
         return Optional.ofNullable(review);
     }
 
-    private BooleanExpression inventoryStorageIdEq(List<Long> storageIds){
+    private BooleanExpression storageIdEq(List<Long> storageIds){
         if(storageIds == null || storageIds.isEmpty()){
             return Expressions.asBoolean(false).isTrue();
         }
 
-        return medicineInventory.zone.storage.id.in(storageIds);
-    }
-
-    private BooleanExpression reviewStorageIdEq(List<Long> storageIds){
-        if(storageIds == null || storageIds.isEmpty()){
-            return Expressions.asBoolean(false).isTrue();
-        }
-
-            return environmentReview.medicineInventory.zone.storage.id.in(storageIds);
+            return storage.id.in(storageIds);
     }
 
     private OrderSpecifier<?> getUnderReviewPageOrderSpecifier(Pageable pageable){
