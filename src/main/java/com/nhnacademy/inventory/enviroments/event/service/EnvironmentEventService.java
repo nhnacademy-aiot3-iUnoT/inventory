@@ -66,7 +66,7 @@ public class EnvironmentEventService {
     }
 
     public Page<EnvironmentEventInfoResponse> searchEnvironmentEvents(Long zoneId, EnvironmentEventSearchCondition condition, Pageable pageable){
-        Zone targetZone = zoneService.findZone(zoneId);
+        Zone targetZone = zoneService.validateMemberAndGetZone(zoneId);
 
         return environmentEventRepository.findEnvironmentEvents(targetZone, condition, pageable);
     }
