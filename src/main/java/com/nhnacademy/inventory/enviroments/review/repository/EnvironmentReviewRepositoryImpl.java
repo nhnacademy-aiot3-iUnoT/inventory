@@ -93,7 +93,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
     public Page<ReviewHistorySummaryResponse> getReviewHistories(List<Long> storageIds, Pageable pageable) {
         List<ReviewHistorySummaryResponse> content = queryFactory
                 .select(new QReviewHistorySummaryResponse(
-                        environmentEvent.id,
+                        environmentReview.id,
                         medicineInventory.id,
                         medicine.id,
                         medicinePackageUnit.id,
