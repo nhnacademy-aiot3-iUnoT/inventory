@@ -106,6 +106,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                 .from(environmentReview)
                 .join(environmentReview.medicineInventory, medicineInventory)
                 .join(medicineInventory.zone, zone)
+                .join(zone.storage, storage)
                 .join(medicineInventory.medicinePackageUnit, medicinePackageUnit)
                 .join(medicinePackageUnit.medicine, medicine)
                 .where(
@@ -120,6 +121,9 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
         Long total = queryFactory
                 .select(environmentReview.count())
                 .from(environmentReview)
+                .join(environmentReview.medicineInventory, medicineInventory)
+                .join(medicineInventory.zone, zone)
+                .join(zone.storage, storage)
                 .where(
                         reviewStorageIdEq(storageIds),
                         storage.status.eq(StorageStatus.ACTIVE)
