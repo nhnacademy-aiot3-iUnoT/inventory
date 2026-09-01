@@ -11,7 +11,7 @@ public interface AssistantNoteRepository extends JpaRepository<AssistantNote, Lo
 
     List<AssistantNote> findTop20ByOrganizationMemberAccountUuidOrderByCreatedAtDesc(UUID accountUuid);
 
-    List<AssistantNote> findAllByOrganizationMemberAccountUuidAndReadFalseOrderByCreatedAtDesc(UUID accountUuid);
+    List<AssistantNote> findTop20ByOrganizationMemberAccountUuidAndReadFalseOrderByCreatedAtDesc(UUID accountUuid);
 
     long countByOrganizationMemberAccountUuidAndReadFalse(UUID accountUuid);
 

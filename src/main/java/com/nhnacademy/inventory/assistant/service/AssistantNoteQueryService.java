@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.assistant.dto.AssistantNoteResponse;
 import com.nhnacademy.inventory.assistant.exception.AssistantNoteNotFoundException;
 import com.nhnacademy.inventory.assistant.repository.AssistantNoteRepository;
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,11 +22,11 @@ public class AssistantNoteQueryService {
 
     @Transactional(readOnly = true)
     public AssistantNoteListResponse getNotes(boolean unreadOnly) {
-        UUID accountUuid = UserContext.getUserUuid();
+        UUID accountUuid = requireAccountUuid();
 
         List<AssistantNote> notes = unreadOnly
                 ? assistantNoteRepository
-                        .findAllByOrganizationMemberAccountUuidAndReadFalseOrderByCreatedAtDesc(accountUuid)
+                        .findTop20ByOrganizationMemberAccountUuidAndReadFalseOrderByCreatedAtDesc(accountUuid)
                 : assistantNoteRepository
                         .findTop20ByOrganizationMemberAccountUuidOrderByCreatedAtDesc(accountUuid);
 
@@ -37,9 +38,19 @@ public class AssistantNoteQueryService {
     @Transactional
     public void markRead(Long noteId) {
         AssistantNote note = assistantNoteRepository
-                .findByIdAndOrganizationMemberAccountUuid(noteId, UserContext.getUserUuid())
+                .findByIdAndOrganizationMemberAccountUuid(noteId, requireAccountUuid())
                 .orElseThrow(AssistantNoteNotFoundException::new);
 
         note.markRead();
+    }
+
+    private UUID requireAccountUuid() {
+        UUID accountUuid = UserContext.getUserUuid();
+
+        if (accountUuid == null) {
+            throw new UserOrgNotFoundException();
+        }
+
+        return accountUuid;
     }
 }
