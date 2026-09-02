@@ -84,6 +84,16 @@ public class StorageService {
                 .toList();
     }
 
+/**
+     * 조직의 저장소 ID 목록. 삭제된 저장소는 제외한다.
+     */
+    public List<Long> getStorageIds() {
+        Organization organization = validateOrganizationMember();
+
+        return storageRepository.findIdsByOrganizationIdAndStatusNot(
+                organization.getId(), StorageStatus.CLOSED);
+    }
+
     public List<StorageInfoResponse> searchStorages(String name) {
         Organization organization = validateOrganizationMember();
 

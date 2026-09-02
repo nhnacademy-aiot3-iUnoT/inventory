@@ -411,6 +411,92 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
 
     }
 
+
+    /**
+     * 대시보드용 임박 목록. 부서의 담당 저장소 여러 개를 한 번에 조회한다.
+     */
+    @Override
+    public Page<ExpiringInventoryResponse> findExpiringInventoriesByStorageIds(
+            Long organizationId, List<Long> storageIds, int withinDays, Pageable pageable
+    ) {
+        if (storageIds == null || storageIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, 0L);
+        }
+
+        LocalDate today = LocalDate.now();
+
+        List<ExpiringInventoryResponse> content = queryFactory
+                .select(new QExpiringInventoryResponse(
+                        inventory.id,
+                        medicine.id,
+                        packageUnit.id,
+                        organization.id,
+                        storage.id,
+                        zone.id,
+                        medicine.productName,
+                        packageUnit.packUnit,
+                        organization.name,
+                        storage.name,
+                        zone.name,
+                        inventory.lotNumber,
+                        inventory.expirationDate,
+                        inventory.currentQuantity
+                ))
+                .from(inventory)
+                .join(inventory.zone, zone)
+                .join(zone.storage, storage)
+                .join(storage.organization, organization)
+                .join(inventory.medicinePackageUnit, packageUnit)
+                .join(packageUnit.medicine, medicine)
+                .where(
+                        organization.id.eq(organizationId),
+                        storage.id.in(storageIds),
+                        expiringWithin(today, withinDays),
+                        activeStatusEq()
+                )
+                .orderBy(inventory.expirationDate.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        long total = countExpiringWithinDays(organizationId, storageIds, withinDays);
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    /**
+     * 대시보드 KPI용 임박 품목 수. withinDays 이내로 유통기한이 남은 재고를 센다.
+     */
+    @Override
+    public long countExpiringWithinDays(Long organizationId, List<Long> storageIds, int withinDays) {
+        if (storageIds == null || storageIds.isEmpty()) {
+            return 0L;
+        }
+
+        LocalDate today = LocalDate.now();
+
+        Long count = queryFactory
+                .select(inventory.count())
+                .from(inventory)
+                .join(inventory.zone, zone)
+                .join(zone.storage, storage)
+                .join(storage.organization, organization)
+                .where(
+                        organization.id.eq(organizationId),
+                        storage.id.in(storageIds),
+                        expiringWithin(today, withinDays),
+                        activeStatusEq()
+                )
+                .fetchOne();
+
+        return count == null ? 0L : count;
+    }
+
+    /** 이미 지난 것과 withinDays 이내로 남은 것을 함께 임박으로 본다. */
+    private BooleanExpression expiringWithin(LocalDate today, int withinDays) {
+        return inventory.expirationDate.loe(today.plusDays(withinDays));
+    }
+
     private BooleanExpression storageIdEq(Long storageId) {
         return storageId != null ? storage.id.eq(storageId) : null;
     }

@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.inventories.transaction.repository;
 
+import com.nhnacademy.inventory.inventories.transaction.dto.StockSummaryRow;
 import com.nhnacademy.inventory.inventories.transaction.domain.StockTransaction;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchCondition;
@@ -18,6 +19,13 @@ public interface StockTransactionRepositoryCustom {
 
     List<StockTransaction> findTransactionsForStorageReport(
             Long storageId,
+            Collection<TransactionType> types,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    List<StockSummaryRow> sumByType(
+            List<Long> storageIds,
             Collection<TransactionType> types,
             LocalDateTime start,
             LocalDateTime end
