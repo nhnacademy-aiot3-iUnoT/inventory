@@ -299,7 +299,8 @@ public class StorageService {
     }
 
     public List<Long> getAccessibleStorageIds(OrganizationMember member){
-        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
+        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS ||
+                member.getOrganizationRole() == OrganizationRole.ORG_OWNER){
             return storageRepository.findActiveIdsByOrganizationId(member.getOrganization().getId());
         }
         return storageRepository.findActiveIdsByOrganizationMemberId(member.getId());
