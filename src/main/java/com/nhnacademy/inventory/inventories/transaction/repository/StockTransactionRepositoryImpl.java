@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.inventories.transaction.repository;
 
+import com.nhnacademy.inventory.inventories.transaction.dto.QStockSummaryRow;
+import com.nhnacademy.inventory.inventories.transaction.dto.StockSummaryRow;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.QStockTransactionSearchResponse;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionSearchCondition;
@@ -22,6 +24,7 @@ import java.util.List;
 import static com.nhnacademy.inventory.inventories.transaction.domain.QStockTransaction.stockTransaction;
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicine.medicine;
 import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit.medicinePackageUnit;
+import static com.nhnacademy.inventory.organizations.zone.domain.QZone.zone;
 
 @Repository
 @RequiredArgsConstructor
@@ -46,6 +49,29 @@ public class StockTransactionRepositoryImpl implements StockTransactionRepositor
                         stockTransaction.processedAt.goe(start),
                         stockTransaction.processedAt.lt(end)
                 )
+                .fetch();
+    }
+
+    @Override
+    public List<StockSummaryRow> sumByType(
+            List<Long> storageIds, Collection<TransactionType> types,
+            LocalDateTime start, LocalDateTime end
+    ) {
+        return queryFactory
+                .select(new QStockSummaryRow(
+                        stockTransaction.transactionType,
+                        stockTransaction.quantity.sum().longValue(),
+                        stockTransaction.count()
+                ))
+                .from(stockTransaction)
+                .join(stockTransaction.zone, zone)
+                .where(
+                        zone.storage.id.in(storageIds),
+                        stockTransaction.transactionType.in(types),
+                        stockTransaction.processedAt.goe(start),
+                        stockTransaction.processedAt.lt(end)
+                )
+                .groupBy(stockTransaction.transactionType)
                 .fetch();
     }
 

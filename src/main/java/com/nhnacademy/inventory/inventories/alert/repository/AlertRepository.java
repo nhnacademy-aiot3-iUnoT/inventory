@@ -3,6 +3,8 @@ package com.nhnacademy.inventory.inventories.alert.repository;
 import com.nhnacademy.inventory.inventories.alert.domain.Alert;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
+import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
@@ -14,5 +16,12 @@ public interface AlertRepository extends JpaRepository<Alert, Long>, AlertReposi
     List<Alert> findAllByIdInAndOrganizationMember(Collection<Long> ids, OrganizationMember organizationMember);
 
     List<Alert> findAllByOrganizationMember(OrganizationMember organizationMember);
+  
+    long countByOrganizationAndAlertTypeAndCreatedAtBetween(
+            Organization organization, AlertType alertType, LocalDateTime start, LocalDateTime end);
+
+    long countByOrganizationAndAlertTypeAndIsCheckedAndCreatedAtBetween(
+            Organization organization, AlertType alertType, Boolean isChecked,
+            LocalDateTime start, LocalDateTime end);
 
 }

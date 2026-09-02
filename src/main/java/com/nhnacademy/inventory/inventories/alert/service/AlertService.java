@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -89,6 +90,22 @@ public class AlertService {
         OrganizationMember member = validateOrganizationMember();
 
         return alertRepository.countByOrganizationMemberAndIsChecked(member, false);
+    }
+
+/**
+     * 기간 안에 쌓인 특정 유형의 알림 수. 대시보드 KPI 에서 쓴다.
+     */
+    public long countAlerts(AlertType alertType, LocalDateTime start, LocalDateTime end) {
+        return alertRepository.countByOrganizationAndAlertTypeAndCreatedAtBetween(
+                validateOrganizationMember(), alertType, start, end);
+    }
+
+    /**
+     * 기간 안에 쌓인 특정 유형의 미확인 알림 수.
+     */
+    public long countUncheckedAlerts(AlertType alertType, LocalDateTime start, LocalDateTime end) {
+        return alertRepository.countByOrganizationAndAlertTypeAndIsCheckedAndCreatedAtBetween(
+                validateOrganizationMember(), alertType, false, start, end);
     }
 
     @Transactional
