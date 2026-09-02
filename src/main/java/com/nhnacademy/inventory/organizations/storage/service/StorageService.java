@@ -285,7 +285,8 @@ public class StorageService {
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
+        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS ||
+                member.getOrganizationRole() == OrganizationRole.ORG_OWNER){
             return;
         }
 
