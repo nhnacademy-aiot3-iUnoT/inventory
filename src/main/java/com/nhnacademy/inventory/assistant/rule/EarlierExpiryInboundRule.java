@@ -2,9 +2,9 @@ package com.nhnacademy.inventory.assistant.rule;
 
 import com.nhnacademy.inventory.assistant.domain.Severity;
 import com.nhnacademy.inventory.assistant.domain.TargetType;
-import com.nhnacademy.inventory.assistant.dto.EarlierExpiryLot;
+import com.nhnacademy.inventory.assistant.dto.StockLot;
 import com.nhnacademy.inventory.assistant.event.StockInboundCompletedEvent;
-import com.nhnacademy.inventory.assistant.repository.EarlierExpiryStockRepository;
+import com.nhnacademy.inventory.assistant.repository.AssistantStockRepository;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
@@ -25,14 +25,14 @@ public class EarlierExpiryInboundRule implements InboundRule {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final int LOT_LIST_LIMIT = 2;
 
-    private final EarlierExpiryStockRepository earlierExpiryStockRepository;
+    private final AssistantStockRepository assistantStockRepository;
     private final MedicinePackageUnitRepository medicinePackageUnitRepository;
     private final ZoneRepository zoneRepository;
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Finding> evaluate(StockInboundCompletedEvent event, Long organizationId) {
-        List<EarlierExpiryLot> lots = earlierExpiryStockRepository.findEarlierExpiryLots(
+        List<StockLot> lots = assistantStockRepository.findEarlierExpiryLots(
                 event.zoneId(), event.medicinePackageUnitId(), event.expirationDate());
 
         if (lots.isEmpty()) {
@@ -46,7 +46,7 @@ public class EarlierExpiryInboundRule implements InboundRule {
                 new TargetReference(TargetType.ZONE, event.zoneId())));
     }
 
-    private String describe(StockInboundCompletedEvent event, List<EarlierExpiryLot> lots) {
+    private String describe(StockInboundCompletedEvent event, List<StockLot> lots) {
         String zoneName = zoneRepository.findById(event.zoneId())
                 .map(Zone::getName)
                 .orElseGet(() -> event.zoneId() + "구역");
@@ -55,8 +55,8 @@ public class EarlierExpiryInboundRule implements InboundRule {
                 .map(this::toMedicineName)
                 .orElse("해당 의약품");
 
-        int total = lots.stream().mapToInt(EarlierExpiryLot::quantity).sum();
-        EarlierExpiryLot earliest = lots.getFirst();
+        int total = lots.stream().mapToInt(StockLot::quantity).sum();
+        StockLot earliest = lots.getFirst();
 
         return "%s에 %s 재고 %d개가 남아 있습니다. 가장 빠른 유통기한은 %s(%s)로 이번 입고분 %s보다 앞섭니다. 이 재고를 먼저 출고하십시오."
                 .formatted(
@@ -72,7 +72,7 @@ public class EarlierExpiryInboundRule implements InboundRule {
         return "%s / %s".formatted(packageUnit.getMedicine().getProductName(), packageUnit.getPackUnit());
     }
 
-    private String lotLabel(List<EarlierExpiryLot> lots) {
+    private String lotLabel(List<StockLot> lots) {
         if (lots.size() > LOT_LIST_LIMIT) {
             return "로트 %d건".formatted(lots.size());
         }

@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.outbound.service;
 
+import com.nhnacademy.inventory.assistant.event.StockOutboundCompletedEvent;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.exception.InventoryNotFoundException;
@@ -11,6 +13,7 @@ import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +27,7 @@ public class MedicineOutboundService {
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final ZoneRepository zoneRepository;
     private final OutboundOperation outboundOperation;
+    private final ApplicationEventPublisher eventPublisher;
 
     public MedicineOutboundTargetResponse getOutboundTarget(
             Long inventoryId
@@ -67,5 +71,11 @@ public class MedicineOutboundService {
                 inventories,
                 request
         );
+
+        eventPublisher.publishEvent(new StockOutboundCompletedEvent(
+                UserContext.getUserUuid(),
+                zone.getId(),
+                request.medicinePackageUnitId(),
+                request.quantity()));
     }
 }
