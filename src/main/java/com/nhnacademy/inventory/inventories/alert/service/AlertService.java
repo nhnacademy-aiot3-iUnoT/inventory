@@ -96,16 +96,16 @@ public class AlertService {
      * 기간 안에 쌓인 특정 유형의 알림 수. 대시보드 KPI 에서 쓴다.
      */
     public long countAlerts(AlertType alertType, LocalDateTime start, LocalDateTime end) {
-        return alertRepository.countByOrganizationAndAlertTypeAndCreatedAtBetween(
-                validateOrganizationMember(), alertType, start, end);
+        return alertRepository.countByOrganizationMember_OrganizationAndAlertTypeAndCreatedAtBetween(
+                validateOrganizationMember().getOrganization(), alertType, start, end);
     }
 
     /**
      * 기간 안에 쌓인 특정 유형의 미확인 알림 수.
      */
     public long countUncheckedAlerts(AlertType alertType, LocalDateTime start, LocalDateTime end) {
-        return alertRepository.countByOrganizationAndAlertTypeAndIsCheckedAndCreatedAtBetween(
-                validateOrganizationMember(), alertType, false, start, end);
+        return alertRepository.countByOrganizationMember_OrganizationAndAlertTypeAndIsCheckedAndCreatedAtBetween(
+                validateOrganizationMember().getOrganization(), alertType, false, start, end);
     }
 
     @Transactional
