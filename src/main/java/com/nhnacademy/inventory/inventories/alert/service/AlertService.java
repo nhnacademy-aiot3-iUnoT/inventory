@@ -17,8 +17,6 @@ import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
-import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
@@ -30,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @Slf4j
@@ -42,7 +39,7 @@ public class AlertService {
     private final ZoneRepository zoneRepository;
     private final MedicinePackageUnitRepository medicinePackageUnitRepository;
     private final StockThresholdRepository stockThresholdRepository;
-    private final OrganizationRepository organizationRepository;
+    private final InventoryService inventoryService;
 
     @Transactional
     public void createLowStockAlert(Long zoneId, Long medicinePackageUnitId){
@@ -61,42 +58,46 @@ public class AlertService {
             return;
         }
 
-        int totalQuantity = 30;// 인벤토리 레포 또는 서비스에서 개수조회 메서드 완성되면 교체하기
+        long totalQuantity = inventoryService.getTotalQuantity(storage.getId(), medicinePackageUnit.getId());
 
         if(totalQuantity >= stockThreshold.getThreshold()){
             return;
         }
 
-        createAlert(
-                storage.getOrganization(),
-                AlertType.LOW_STOCK,
-                String.format("저장소: %s 의약품: %s 단위: %s 의 재고가 부족합니다. (현재 %d개)",
-                        storage.getName(),
-                        medicinePackageUnit.getMedicine().getProductName(),
-                        medicinePackageUnit.getPackUnit(),
-                        totalQuantity)
-        );
+        List<OrganizationMember> memberList = memberRepository.findMemberByStorageId(storage.getId());
+
+        for(OrganizationMember member : memberList){
+            createAlert(
+                    member,
+                    AlertType.LOW_STOCK,
+                    String.format("저장소: %s 의약품: %s 단위: %s 의 재고가 부족합니다. (현재 %d개)",
+                            storage.getName(),
+                            medicinePackageUnit.getMedicine().getProductName(),
+                            medicinePackageUnit.getPackUnit(),
+                            totalQuantity)
+            );
+        }
     }
 
     public Page<AlertInfoResponse> getAlerts(AlertSearchCondition condition, Pageable pageable){
-        Organization organization = validateOrganizationMember();
+        OrganizationMember member = validateOrganizationMember();
 
-        return alertRepository.searchByCondition(organization, condition, pageable);
+        return alertRepository.searchByCondition(member, condition, pageable);
     }
 
     public long getUncheckedAlertCount(){
-        Organization organization = validateOrganizationMember();
+        OrganizationMember member = validateOrganizationMember();
 
-        return alertRepository.countByOrganizationAndIsChecked(organization, false);
+        return alertRepository.countByOrganizationMemberAndIsChecked(member, false);
     }
 
     @Transactional
     public void markAsChecked(AlertCheckRequest request){
-        Organization organization = validateOrganizationMember();
+        OrganizationMember member = validateOrganizationMember();
 
         List<Long> alertIds = request.alertIds();
 
-        List<Alert> alerts = alertRepository.findAllByIdInAndOrganization(alertIds, organization);
+        List<Alert> alerts = alertRepository.findAllByIdInAndOrganizationMember(alertIds, member);
 
         if(alertIds.size() != alerts.size()){
             throw new AlertNotFoundException();
@@ -107,11 +108,11 @@ public class AlertService {
 
     @Transactional
     public void deleteAlerts(AlertDeleteRequest request){
-        Organization organization = validateOrganizationMember();
+        OrganizationMember member = validateOrganizationMember();
 
         List<Long> alertIds = request.alertIds();
 
-        List<Alert> alerts = alertRepository.findAllByIdInAndOrganization(alertIds, organization);
+        List<Alert> alerts = alertRepository.findAllByIdInAndOrganizationMember(alertIds, member);
 
         if(alertIds.size() != alerts.size()){
             throw new AlertNotFoundException();
@@ -122,22 +123,16 @@ public class AlertService {
 
     @Transactional
     public void deleteAllAlerts(){
-        Organization organization = validateOrganizationMember();
+        OrganizationMember member = validateOrganizationMember();
 
-        List<Alert> alerts = alertRepository.findAllByOrganization(organization);
+        List<Alert> alerts = alertRepository.findAllByOrganizationMember(member);
 
         alertRepository.deleteAll(alerts);
     }
 
-    @Transactional
-    public void createAlert(Long organizationId, AlertType alertType, String message){
-        Organization organization = organizationRepository.getReferenceById(organizationId);
-        createAlert(organization, alertType, message);
-    }
-
-    private void createAlert(Organization organization, AlertType alertType, String message){
+    public void createAlert(OrganizationMember organizationMember, AlertType alertType, String message){
         Alert alert = Alert.builder()
-                .organization(organization)
+                .organizationMember(organizationMember)
                 .alertType(alertType)
                 .message(message)
                 .isChecked(false)
@@ -146,10 +141,8 @@ public class AlertService {
         alertRepository.save(alert);
     }
 
-    private Organization validateOrganizationMember(){
-        OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
+    private OrganizationMember validateOrganizationMember(){
+        return memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
-
-        return member.getOrganization();
     }
 }

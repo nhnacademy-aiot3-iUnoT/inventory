@@ -10,6 +10,7 @@ import com.nhnacademy.inventory.inventories.alert.dto.AlertCheckRequest;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertSearchCondition;
 import com.nhnacademy.inventory.inventories.alert.exception.AlertNotFoundException;
 import com.nhnacademy.inventory.inventories.alert.repository.AlertRepository;
+import com.nhnacademy.inventory.inventories.inventory.service.InventoryService;
 import com.nhnacademy.inventory.inventories.threshold.domain.StockThreshold;
 import com.nhnacademy.inventory.inventories.threshold.repository.StockThresholdRepository;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
@@ -18,7 +19,6 @@ import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUni
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
-import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
@@ -62,7 +62,7 @@ class AlertServiceTest {
     @Mock
     private StockThresholdRepository stockThresholdRepository;
     @Mock
-    private OrganizationRepository organizationRepository;
+    private InventoryService inventoryService;
 
     @InjectMocks
     private AlertService alertService;
@@ -110,7 +110,8 @@ class AlertServiceTest {
             given(stockThresholdRepository.findByStorageAndMedicinePackageUnit(storage, packageUnit))
                     .willReturn(Optional.of(stockThreshold));
 
-            // totalQuantity 재고 저장소당 의약품 개수 조회 메서드 30반환 나중에 추가되면 리팩토링
+            given(inventoryService.getTotalQuantity(storage.getId(), packageUnit.getId())).willReturn(30L);
+            given(memberRepository.findMemberByStorageId(storage.getId())).willReturn(List.of(approvedMember));
 
             ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
 
@@ -120,7 +121,7 @@ class AlertServiceTest {
             Alert savedAlert = alertCaptor.getValue();
 
             assertAll(
-                    () -> assertEquals(organization, savedAlert.getOrganization()),
+                    () -> assertEquals(approvedMember, savedAlert.getOrganizationMember()),
                     () -> assertEquals(AlertType.LOW_STOCK, savedAlert.getAlertType()),
                     () -> assertEquals(false, savedAlert.getIsChecked())
             );
@@ -135,6 +136,7 @@ class AlertServiceTest {
             given(medicinePackageUnitRepository.findById(packageUnit.getId())).willReturn(Optional.of(packageUnit));
             given(stockThresholdRepository.findByStorageAndMedicinePackageUnit(storage, packageUnit))
                     .willReturn(Optional.of(stockThreshold));
+            given(inventoryService.getTotalQuantity(storage.getId(), packageUnit.getId())).willReturn(30L);
 
             assertDoesNotThrow(
                     () -> alertService.createLowStockAlert(zone.getId(), packageUnit.getId())
@@ -177,7 +179,7 @@ class AlertServiceTest {
 
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
-            given(alertRepository.searchByCondition(organization, condition, pageable))
+            given(alertRepository.searchByCondition(approvedMember, condition, pageable))
                     .willReturn(new PageImpl<>(responses, pageable, 1));
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
@@ -190,7 +192,7 @@ class AlertServiceTest {
                     () -> assertEquals(1, actual.getTotalElements())
             );
 
-            verify(alertRepository).searchByCondition(organization, condition, pageable);
+            verify(alertRepository).searchByCondition(approvedMember, condition, pageable);
         }
 
         @Test
@@ -202,7 +204,7 @@ class AlertServiceTest {
 
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
-            given(alertRepository.searchByCondition(organization, condition, pageable))
+            given(alertRepository.searchByCondition(approvedMember, condition, pageable))
                     .willReturn(new PageImpl<>(responses, pageable, 0));
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
@@ -215,7 +217,7 @@ class AlertServiceTest {
                     () -> assertEquals(0, actual.getTotalElements())
             );
 
-            verify(alertRepository).searchByCondition(organization, condition, pageable);
+            verify(alertRepository).searchByCondition(approvedMember, condition, pageable);
         }
 
         @Test
@@ -245,7 +247,7 @@ class AlertServiceTest {
         void success() {
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
-            given(alertRepository.countByOrganizationAndIsChecked(organization, false))
+            given(alertRepository.countByOrganizationMemberAndIsChecked(approvedMember, false))
                     .willReturn(5L);
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
@@ -267,7 +269,7 @@ class AlertServiceTest {
             assertThrowsExactly(ForbiddenException.class,
                     () -> alertService.getUncheckedAlertCount());
 
-            verify(alertRepository, never()).countByOrganizationAndIsChecked(any(), anyBoolean());
+            verify(alertRepository, never()).countByOrganizationMemberAndIsChecked(any(), anyBoolean());
         }
     }
 
@@ -280,13 +282,13 @@ class AlertServiceTest {
         void success() {
             List<Long> ids = List.of(1L, 2L);
             AlertCheckRequest request = new AlertCheckRequest(ids);
-            Alert alert1 = TestFixtures.createAlert(organization, AlertType.LOW_STOCK, "테스트 메시지1", false);
-            Alert alert2 = TestFixtures.createAlert(organization, AlertType.ENV_WARNING, "테스트 메시지2", false);
+            Alert alert1 = TestFixtures.createAlert(approvedMember, AlertType.LOW_STOCK, "테스트 메시지1", false);
+            Alert alert2 = TestFixtures.createAlert(approvedMember, AlertType.ENV_WARNING, "테스트 메시지2", false);
             List<Alert> alerts = List.of(alert1, alert2);
 
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
-            given(alertRepository.findAllByIdInAndOrganization(ids, organization))
+            given(alertRepository.findAllByIdInAndOrganizationMember(ids, approvedMember))
                     .willReturn(alerts);
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
@@ -306,12 +308,12 @@ class AlertServiceTest {
         void fail_NotFoundAlert() {
             List<Long> ids = List.of(1L, 2L);
             AlertCheckRequest request = new AlertCheckRequest(ids);
-            Alert alert1 = TestFixtures.createAlert(organization, AlertType.LOW_STOCK, "테스트 메시지1", false);
+            Alert alert1 = TestFixtures.createAlert(approvedMember, AlertType.LOW_STOCK, "테스트 메시지1", false);
             List<Alert> alerts = List.of(alert1);
 
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
-            given(alertRepository.findAllByIdInAndOrganization(ids, organization))
+            given(alertRepository.findAllByIdInAndOrganizationMember(ids, approvedMember))
                     .willReturn(alerts);
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
@@ -345,13 +347,13 @@ class AlertServiceTest {
         void success() {
             List<Long> ids = List.of(1L, 2L);
             AlertDeleteRequest request = new AlertDeleteRequest(ids);
-            Alert alert1 = TestFixtures.createAlert(organization, AlertType.LOW_STOCK, "테스트 메시지1", false);
-            Alert alert2 = TestFixtures.createAlert(organization, AlertType.ENV_WARNING, "테스트 메시지2", false);
+            Alert alert1 = TestFixtures.createAlert(approvedMember, AlertType.LOW_STOCK, "테스트 메시지1", false);
+            Alert alert2 = TestFixtures.createAlert(approvedMember, AlertType.ENV_WARNING, "테스트 메시지2", false);
             List<Alert> alerts = List.of(alert1, alert2);
 
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
-            given(alertRepository.findAllByIdInAndOrganization(ids, organization))
+            given(alertRepository.findAllByIdInAndOrganizationMember(ids, approvedMember))
                     .willReturn(alerts);
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
@@ -366,12 +368,12 @@ class AlertServiceTest {
         void fail_NotFoundAlert() {
             List<Long> ids = List.of(1L, 2L);
             AlertDeleteRequest request = new AlertDeleteRequest(ids);
-            Alert alert1 = TestFixtures.createAlert(organization, AlertType.LOW_STOCK, "테스트 메시지1", false);
+            Alert alert1 = TestFixtures.createAlert(approvedMember, AlertType.LOW_STOCK, "테스트 메시지1", false);
             List<Alert> alerts = List.of(alert1);
 
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
-            given(alertRepository.findAllByIdInAndOrganization(ids, organization))
+            given(alertRepository.findAllByIdInAndOrganizationMember(ids, approvedMember))
                     .willReturn(alerts);
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());
@@ -407,13 +409,13 @@ class AlertServiceTest {
         @Test
         @DisplayName("성공 테스트")
         void success() {
-            Alert alert1 = TestFixtures.createAlert(organization, AlertType.LOW_STOCK, "테스트 메시지1", false);
-            Alert alert2 = TestFixtures.createAlert(organization, AlertType.ENV_WARNING, "테스트 메시지2", false);
+            Alert alert1 = TestFixtures.createAlert(approvedMember, AlertType.LOW_STOCK, "테스트 메시지1", false);
+            Alert alert2 = TestFixtures.createAlert(approvedMember, AlertType.ENV_WARNING, "테스트 메시지2", false);
             List<Alert> alerts = List.of(alert1, alert2);
 
             given(memberRepository.findByAccountUuid(approvedMember.getAccountUuid()))
                     .willReturn(Optional.of(approvedMember));
-            given(alertRepository.findAllByOrganization(organization))
+            given(alertRepository.findAllByOrganizationMember(approvedMember))
                     .willReturn(alerts);
 
             UserContext.setUserUuid(approvedMember.getAccountUuid());

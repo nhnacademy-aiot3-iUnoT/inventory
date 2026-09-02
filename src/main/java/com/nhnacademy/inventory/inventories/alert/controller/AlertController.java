@@ -61,13 +61,4 @@ public class AlertController {
 
         return ResponseEntity.noContent().build();
     }
-
-    @PostMapping("/internal/alerts")                             //내부 서버 전용 api
-    public ResponseEntity<Void> createAlert(
-            @RequestBody @Valid AlertCreateRequest request
-    ){
-        alertService.createAlert(request.organizationId(), request.alertType(), request.message());
-
-        return ResponseEntity.noContent().build();
-    }
 }
