@@ -58,10 +58,6 @@ public class DashboardScopeResolver {
         return storage;
     }
 
-    public OrganizationMember getCurrentMember() {
-        return orgAccessService.getCurrentMember();
-    }
-
     // 조직 관리자 인지 검증
     private boolean isOrgAdmin() {
         OrganizationMember member = orgAccessService.getCurrentMember();

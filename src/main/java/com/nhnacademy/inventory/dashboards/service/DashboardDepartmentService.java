@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.organizations.department.dto.response.Department
 import com.nhnacademy.inventory.organizations.department.service.DepartmentService;
 import com.nhnacademy.inventory.organizations.department.service.MemberDepartmentService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,13 +19,13 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class DashboardDepartmentService {
 
-    private final DashboardScopeResolver scopeResolver;
+    private final OrganizationAccessService orgAccessService;
     private final MemberDepartmentService memberDepartmentService;
     private final DepartmentService departmentService;
 
     // 선택가능한 부서 목록 조회
     public DashboardDepartmentsResponse getDepartmentOptions() {
-        OrganizationMember member = scopeResolver.getCurrentMember();
+        OrganizationMember member = orgAccessService.getCurrentMember();
         boolean orgAdmin = member.isOwner() || member.isBoss();
 
         // 관리자면 전체 부서 조회, 일반 사용자면 소속된 부서만 조회
