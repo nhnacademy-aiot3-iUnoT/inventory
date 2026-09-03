@@ -43,7 +43,7 @@ public class EarlierExpiryInboundRule implements InboundRule {
                 FindingType.EXPIRY_ORDER,
                 Severity.WARN,
                 describe(event, lots),
-                new TargetReference(TargetType.ZONE, event.zoneId())));
+                targetOf(event.zoneId(), event.medicinePackageUnitId())));
     }
 
     private String describe(StockInboundCompletedEvent event, List<StockLot> lots) {
@@ -80,5 +80,13 @@ public class EarlierExpiryInboundRule implements InboundRule {
         return lots.stream()
                 .map(lot -> "로트 " + lot.lotNumber())
                 .collect(Collectors.joining(", "));
+    }
+
+    private TargetReference targetOf(Long zoneId, Long medicinePackageUnitId) {
+        Long storageId = zoneRepository.findById(zoneId)
+                .map(zone -> zone.getStorage().getId())
+                .orElse(null);
+
+        return new TargetReference(TargetType.PACK_UNIT, storageId, medicinePackageUnitId);
     }
 }

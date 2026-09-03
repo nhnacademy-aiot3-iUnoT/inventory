@@ -3,6 +3,6 @@ package com.nhnacademy.inventory.assistant.domain;
 public enum TargetType {
     ZONE,
     STORAGE,
-    INVENTORY,
+    PACK_UNIT,
     REPORT
 }

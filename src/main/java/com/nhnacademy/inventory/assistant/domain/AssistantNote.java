@@ -38,6 +38,9 @@ public class AssistantNote {
     @Column(name = "target_type", length = 20)
     private TargetType targetType;
 
+    @Column(name = "target_storage_id")
+    private Long targetStorageId;
+
     @Column(name = "target_id")
     private Long targetId;
 
@@ -48,19 +51,20 @@ public class AssistantNote {
     private LocalDateTime createdAt;
 
     private AssistantNote(OrganizationMember organizationMember, Severity severity, String message,
-                          TargetType targetType, Long targetId) {
+                          TargetType targetType, Long targetStorageId, Long targetId) {
         this.organizationMember = organizationMember;
         this.severity = severity;
         this.message = message;
         this.targetType = targetType;
+        this.targetStorageId = targetStorageId;
         this.targetId = targetId;
         this.read = false;
         this.createdAt = LocalDateTime.now();
     }
 
     public static AssistantNote of(OrganizationMember organizationMember, Severity severity, String message,
-                                   TargetType targetType, Long targetId) {
-        return new AssistantNote(organizationMember, severity, message, targetType, targetId);
+                                   TargetType targetType, Long targetStorageId, Long targetId) {
+        return new AssistantNote(organizationMember, severity, message, targetType, targetStorageId, targetId);
     }
 
     public void markRead() {

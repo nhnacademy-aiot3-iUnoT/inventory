@@ -51,7 +51,7 @@ public class ExpiringRemainderOutboundRule implements OutboundRule {
                 FindingType.EXPIRING_STOCK,
                 severityOf(daysLeft),
                 describe(event, earliest, daysLeft),
-                new TargetReference(TargetType.ZONE, event.zoneId())));
+                targetOf(event.zoneId(), event.medicinePackageUnitId())));
     }
 
     private Severity severityOf(long daysLeft) {
@@ -74,11 +74,19 @@ public class ExpiringRemainderOutboundRule implements OutboundRule {
         String expiration = earliest.expirationDate().format(DATE_FORMAT);
 
         if (daysLeft < 0) {
-            return "%s에 남은 %s 로트 %s(%d개)는 %s에 이미 만료되었습니다. 다음 출고 시 이 로트가 먼저 나가므로 폐기 처리하십시오."
+            return "%s에 남은 %s 로트 %s(%d개)는 %s에 이미 만료되었습니다. 폐기 처리하십시오."
                     .formatted(zoneName, medicineName, earliest.lotNumber(), earliest.quantity(), expiration);
         }
 
         return "%s에 남은 %s 로트 %s(%d개)의 유통기한이 %s로 %d일 남았습니다. 다음 출고 때 우선 소진하십시오."
                 .formatted(zoneName, medicineName, earliest.lotNumber(), earliest.quantity(), expiration, daysLeft);
+    }
+
+    private TargetReference targetOf(Long zoneId, Long medicinePackageUnitId) {
+        Long storageId = zoneRepository.findById(zoneId)
+                .map(zone -> zone.getStorage().getId())
+                .orElse(null);
+
+        return new TargetReference(TargetType.PACK_UNIT, storageId, medicinePackageUnitId);
     }
 }

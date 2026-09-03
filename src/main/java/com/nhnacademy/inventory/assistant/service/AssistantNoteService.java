@@ -39,7 +39,8 @@ public class AssistantNoteService {
                 highest.severity(),
                 message,
                 target == null ? null : target.type(),
-                target == null ? null : target.id()));
+                target == null ? null : target.storageId(),
+                target == null ? null : target.targetId()));
 
     }
 

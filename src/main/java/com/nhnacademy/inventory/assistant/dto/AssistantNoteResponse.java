@@ -11,6 +11,7 @@ public record AssistantNoteResponse(
         Severity severity,
         String message,
         TargetType targetType,
+        Long targetStorageId,
         Long targetId,
         boolean read,
         LocalDateTime createdAt
@@ -21,6 +22,7 @@ public record AssistantNoteResponse(
                 note.getSeverity(),
                 note.getMessage(),
                 note.getTargetType(),
+                note.getTargetStorageId(),
                 note.getTargetId(),
                 note.isRead(),
                 note.getCreatedAt());
