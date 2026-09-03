@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertInfoResponse;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertSearchCondition;
 import com.nhnacademy.inventory.inventories.alert.dto.QAlertInfoResponse;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -23,20 +24,20 @@ public class AlertRepositoryImpl implements AlertRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<AlertInfoResponse> searchByCondition(Organization organization, AlertSearchCondition condition, Pageable pageable) {
+    public Page<AlertInfoResponse> searchByCondition(OrganizationMember organizationMember, AlertSearchCondition condition, Pageable pageable) {
 
         List<AlertInfoResponse> responseList = queryFactory
                 .select(new QAlertInfoResponse(
                         alert.id,
-                        alert.organization.id,
-                        alert.organization.name,
+                        alert.organizationMember.organization.id,
+                        alert.organizationMember.organization.name,
                         alert.alertType,
                         alert.message,
                         alert.isChecked,
                         alert.createdAt))
                 .from(alert)
                 .where(
-                        alert.organization.eq(organization),
+                        alert.organizationMember.eq(organizationMember),
                         alertTypeEq(condition.alertType()),
                         isCheckedEq(condition.isChecked())
                 )
@@ -49,7 +50,7 @@ public class AlertRepositoryImpl implements AlertRepositoryCustom{
                 .select(alert.count())
                 .from(alert)
                 .where(
-                        alert.organization.eq(organization),
+                        alert.organizationMember.eq(organizationMember),
                         alertTypeEq(condition.alertType()),
                         isCheckedEq(condition.isChecked())
                 )

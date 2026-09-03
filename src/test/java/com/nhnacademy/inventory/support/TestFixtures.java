@@ -159,9 +159,9 @@ public class TestFixtures {
         return Invitation.create(organization, email, true);
     }
 
-    public static Alert createAlert(Organization organization, AlertType alertType, String message, Boolean isRead){
+    public static Alert createAlert(OrganizationMember organizationMember, AlertType alertType, String message, Boolean isRead){
         return Alert.builder()
-                .organization(organization)
+                .organizationMember(organizationMember)
                 .alertType(alertType)
                 .message(message)
                 .isChecked(isRead)

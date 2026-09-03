@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,5 +39,11 @@ public interface OrganizationMemberRepository extends JpaRepository<Organization
     """)
     Optional<UUID> findAccountUuidByOrganizationId(Long organizationId);
 
-
+    @Query("""
+        select distinct om from OrganizationMember om
+        join MemberDepartment md on md.organizationMember = om
+        join StorageDepartment sd on sd.department = md.department
+        where sd.storage.id = :storageId
+    """)
+    List<OrganizationMember> findMemberByStorageId(@Param("storageId") Long storageId);
 }

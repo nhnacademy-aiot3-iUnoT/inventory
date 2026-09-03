@@ -1,6 +1,6 @@
 package com.nhnacademy.inventory.inventories.alert.domain;
 
-import com.nhnacademy.inventory.organizations.organization.domain.Organization;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -23,8 +23,8 @@ public class Alert {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
+    @JoinColumn(name = "organization_member_id", nullable = false)
+    private OrganizationMember organizationMember;
 
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Enumerated(EnumType.STRING)
@@ -41,8 +41,8 @@ public class Alert {
     private LocalDateTime createdAt;
 
     @Builder
-    private Alert(Organization organization, AlertType alertType, String message, Boolean isChecked) {
-        this.organization = organization;
+    private Alert(OrganizationMember organizationMember, AlertType alertType, String message, Boolean isChecked) {
+        this.organizationMember = organizationMember;
         this.alertType = alertType;
         this.message = message;
         this.isChecked = isChecked;

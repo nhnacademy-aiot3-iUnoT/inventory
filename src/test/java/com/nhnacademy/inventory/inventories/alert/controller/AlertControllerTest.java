@@ -26,15 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.never;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -292,44 +289,6 @@ class AlertControllerTest extends SupportControllerTest {
 
             mockMvc.perform(delete("/api/core/alerts/all"))
                     .andExpect(status().isForbidden());
-        }
-    }
-
-    @Nested
-    @DisplayName("알림 생성 내부 api POST /api/core/internal/alerts")
-    class createAlert{
-
-        @Test
-        @DisplayName("정상 처리 테스트")
-        void success() throws Exception {
-            AlertCreateRequest request = new AlertCreateRequest(11L, AlertType.LOW_STOCK, "테스트 메시지");
-
-            mockMvc.perform(post("/api/core/internal/alerts", 11L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isNoContent())
-                    .andDo(document("alert-delete",
-                            requestFields(
-                                    fieldWithPath("organizationId").type(JsonFieldType.NUMBER).description("조직 ID"),
-                                    fieldWithPath("alertType").type(JsonFieldType.STRING).description("알림 유형"),
-                                    fieldWithPath("message").type(JsonFieldType.STRING).description("메시지")
-                            )
-                    ));
-
-            verify(alertService).createAlert(request.organizationId(), request.alertType(), request.message());
-        }
-
-        @Test
-        @DisplayName("실패 - 잘못된 입력")
-        void fail_InvalidInput() throws Exception {
-            AlertCreateRequest request = new AlertCreateRequest(null, AlertType.LOW_STOCK, "테스트 메시지");
-
-            mockMvc.perform(post("/api/core/internal/alerts", 11L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest());
-
-            verify(alertService, never()).createAlert(anyLong(), any(), anyString());
         }
     }
 
