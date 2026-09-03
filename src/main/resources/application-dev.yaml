@@ -37,3 +37,7 @@ security:
 logging:
   level:
     com.nhnacademy: DEBUG
+
+inventory:
+  rabbitmq:
+    exchange-suffix: -test

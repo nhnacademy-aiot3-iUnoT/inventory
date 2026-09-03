@@ -19,10 +19,13 @@ import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationDeletionService;
+import com.nhnacademy.inventory.global.cache.CacheInvalidationEvent;
+import com.nhnacademy.inventory.global.cache.CacheNames;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +43,7 @@ public class OrganizationMemberService {
     private final AccountClient accountClient;
     private final OrganizationDeletionService orgDeletionService;
     private final OrganizationAccessService orgAccessService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 조직원 생성
@@ -52,6 +56,9 @@ public class OrganizationMemberService {
                 role
         );
         orgMemberRepository.save(user);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.MEMBER_ORGANIZATION, accountUuid));
     }
 
 
@@ -61,6 +68,9 @@ public class OrganizationMemberService {
                 .orElseThrow(UserOrgNotFoundException::new);
 
         orgMemberRepository.delete(member);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.MEMBER_ORGANIZATION, accountUuid));
     }
 
     public OrganizationMemberRoleResponse getRole(){
@@ -152,6 +162,9 @@ public class OrganizationMemberService {
         // Owner <-> Member
         OrganizationMember changeMember = getMemberById(memberId, currentMember.getOrganization().getId());
         changeMember.updateRole(roleUpdateRequest.role());
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.MEMBER_ORGANIZATION, changeMember.getAccountUuid()));
     }
 
     @Transactional
@@ -161,6 +174,9 @@ public class OrganizationMemberService {
 
         OrganizationMember deleteMember = getMemberById(memberId, currentMember.getOrganization().getId());
         orgDeletionService.deleteMember(deleteMember);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.MEMBER_ORGANIZATION, deleteMember.getAccountUuid()));
     }
 
     @Transactional
@@ -172,6 +188,9 @@ public class OrganizationMemberService {
         }
 
         orgDeletionService.deleteMember(currentMember);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.MEMBER_ORGANIZATION, currentMember.getAccountUuid()));
     }
 
     @Transactional
@@ -182,6 +201,9 @@ public class OrganizationMemberService {
                         throw new OrgBossLeaveNotAllowedException();
                     }
                     orgDeletionService.deleteMemberForAccountLeave(member, request.previousEmail());
+
+                    eventPublisher.publishEvent(
+                            CacheInvalidationEvent.of(CacheNames.MEMBER_ORGANIZATION, member.getAccountUuid()));
                 });
     }
 

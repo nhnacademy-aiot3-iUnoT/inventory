@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.service;
 
+import com.nhnacademy.inventory.global.cache.CacheInvalidationEvent;
+import com.nhnacademy.inventory.global.cache.CacheNames;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
@@ -18,6 +20,7 @@ import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundExcepti
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ public class ZoneService {
     private final ZoneRepository zoneRepository;
     private final OrganizationMemberRepository memberRepository;
     private final StorageService storageService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ZoneDetailResponse createZone(Long storageId, ZoneCreateRequest request){
@@ -50,6 +54,9 @@ public class ZoneService {
                 .build();
 
         Zone saved = zoneRepository.save(zone);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_LOCATION, saved.getId()));
 
         return ZoneDetailResponse.from(saved);
     }
@@ -96,6 +103,9 @@ public class ZoneService {
             zone.changeEnvStatus(EnvStatus.NORMAL);
         }
 
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_ACTIVATION, zone.getId()));
+
         return ZoneDetailResponse.from(zone);
     }
 
@@ -141,6 +151,11 @@ public class ZoneService {
 
         zone.close();
         zone.changeEnvStatus(EnvStatus.NORMAL);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_ACTIVATION, zone.getId()));
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_LOCATION, zone.getId()));
     }
 
     public Zone validateMemberAndGetZone(Long zoneId){
