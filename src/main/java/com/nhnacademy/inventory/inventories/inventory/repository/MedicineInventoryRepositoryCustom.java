@@ -40,5 +40,19 @@ public interface MedicineInventoryRepositoryCustom {
             Pageable pageable
     );
 
+
+    Page<ExpiringInventoryResponse> findExpiringInventoriesByStorageIds(
+            Long organizationId,
+            List<Long> storageIds,
+            int withinDays,
+            Pageable pageable
+    );
+
+    long countExpiringWithinDays(
+            Long organizationId,
+            List<Long> storageIds,
+            int withinDays
+    );
+
     Optional<MedicineInventory> findByIdForUpdate(Long inventoryId);
 }

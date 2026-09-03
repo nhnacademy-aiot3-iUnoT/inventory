@@ -4,6 +4,8 @@ import com.nhnacademy.inventory.global.config.QuerydslConfig;
 import com.nhnacademy.inventory.inventories.alert.domain.AlertType;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertInfoResponse;
 import com.nhnacademy.inventory.inventories.alert.dto.AlertSearchCondition;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
 import com.nhnacademy.inventory.support.TestFixtures;
@@ -32,21 +34,30 @@ class AlertRepositoryTest {
     @Autowired
     private OrganizationRepository organizationRepository;
 
+    @Autowired
+    private OrganizationMemberRepository memberRepository;
+
     private Organization organization;
+
+    private OrganizationMember member;
     @BeforeEach
     void setUp() {
         organization = organizationRepository.save(
                 TestFixtures.createOrganization("테스트 조직1", "1234567890")
         );
 
+        member = memberRepository.save(
+                TestFixtures.createOrganizationMember(organization)
+        );
+
         alertRepository.saveAll(
                 List.of(
-                        TestFixtures.createAlert(organization, AlertType.LOW_STOCK, "메시지1", true),
-                        TestFixtures.createAlert(organization, AlertType.LOW_STOCK, "메시지2", false),
-                        TestFixtures.createAlert(organization, AlertType.ENV_WARNING, "메시지3", true),
-                        TestFixtures.createAlert(organization, AlertType.ENV_WARNING, "메시지4", false),
-                        TestFixtures.createAlert(organization, AlertType.EXPIRING, "메시지5", true),
-                        TestFixtures.createAlert(organization, AlertType.EXPIRING, "메시지6", false)
+                        TestFixtures.createAlert(member, AlertType.LOW_STOCK, "메시지1", true),
+                        TestFixtures.createAlert(member, AlertType.LOW_STOCK, "메시지2", false),
+                        TestFixtures.createAlert(member, AlertType.ENV_WARNING, "메시지3", true),
+                        TestFixtures.createAlert(member, AlertType.ENV_WARNING, "메시지4", false),
+                        TestFixtures.createAlert(member, AlertType.EXPIRING, "메시지5", true),
+                        TestFixtures.createAlert(member, AlertType.EXPIRING, "메시지6", false)
                 )
         );
     }
@@ -61,7 +72,7 @@ class AlertRepositoryTest {
             AlertSearchCondition condition = new AlertSearchCondition(null, null);
             Pageable pageable = PageRequest.of(0, 10);
 
-            Page<AlertInfoResponse> result = alertRepository.searchByCondition(organization, condition, pageable);
+            Page<AlertInfoResponse> result = alertRepository.searchByCondition(member, condition, pageable);
 
             List<AlertInfoResponse> actual = result.getContent();
 
@@ -74,7 +85,7 @@ class AlertRepositoryTest {
             AlertSearchCondition condition = new AlertSearchCondition(null, true);
             Pageable pageable = PageRequest.of(0, 10);
 
-            Page<AlertInfoResponse> result = alertRepository.searchByCondition(organization, condition, pageable);
+            Page<AlertInfoResponse> result = alertRepository.searchByCondition(member, condition, pageable);
 
             List<AlertInfoResponse> actual = result.getContent();
 
@@ -92,7 +103,7 @@ class AlertRepositoryTest {
             AlertSearchCondition condition = new AlertSearchCondition(AlertType.LOW_STOCK, null);
             Pageable pageable = PageRequest.of(0, 10);
 
-            Page<AlertInfoResponse> result = alertRepository.searchByCondition(organization, condition, pageable);
+            Page<AlertInfoResponse> result = alertRepository.searchByCondition(member, condition, pageable);
 
             List<AlertInfoResponse> actual = result.getContent();
 
@@ -109,7 +120,7 @@ class AlertRepositoryTest {
             AlertSearchCondition condition = new AlertSearchCondition(AlertType.EXPIRING, true);
             Pageable pageable = PageRequest.of(0, 10);
 
-            Page<AlertInfoResponse> result = alertRepository.searchByCondition(organization, condition, pageable);
+            Page<AlertInfoResponse> result = alertRepository.searchByCondition(member, condition, pageable);
 
             List<AlertInfoResponse> actual = result.getContent();
 

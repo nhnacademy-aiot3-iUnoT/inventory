@@ -84,6 +84,16 @@ public class StorageService {
                 .toList();
     }
 
+/**
+     * 조직의 저장소 ID 목록. 삭제된 저장소는 제외한다.
+     */
+    public List<Long> getStorageIds() {
+        Organization organization = validateOrganizationMember();
+
+        return storageRepository.findIdsByOrganizationIdAndStatusNot(
+                organization.getId(), StorageStatus.CLOSED);
+    }
+
     public List<StorageInfoResponse> searchStorages(String name) {
         Organization organization = validateOrganizationMember();
 
@@ -285,7 +295,8 @@ public class StorageService {
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
+        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS ||
+                member.getOrganizationRole() == OrganizationRole.ORG_OWNER){
             return;
         }
 
@@ -299,7 +310,8 @@ public class StorageService {
     }
 
     public List<Long> getAccessibleStorageIds(OrganizationMember member){
-        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
+        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS ||
+                member.getOrganizationRole() == OrganizationRole.ORG_OWNER){
             return storageRepository.findActiveIdsByOrganizationId(member.getOrganization().getId());
         }
         return storageRepository.findActiveIdsByOrganizationMemberId(member.getId());

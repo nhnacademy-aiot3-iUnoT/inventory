@@ -42,6 +42,7 @@ public enum OrganizationErrorCode implements ErrorCode {
 
     ORG_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "OM001", "존재하지 않는 조직원입니다."),
     ORG_MEMBER_ROLE_CHANGE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "OM002", "해당 Role로 변경할 수 없습니다."),
+    ORG_BOSS_LEAVE_NOT_ALLOWED(HttpStatus.CONFLICT, "OM003", "조직장은 조직을 탈퇴할 수 없습니다."),
 
     // 초대 에러코드
     INVITATION_NOT_FOUND(HttpStatus.NOT_FOUND, "J001", "초대 내역을 찾을 수 없습니다."),

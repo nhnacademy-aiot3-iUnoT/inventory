@@ -18,8 +18,8 @@ public record AlertInfoResponse(
     public static AlertInfoResponse from(Alert alert){
         return new AlertInfoResponse(
                 alert.getId(),
-                alert.getOrganization().getId(),
-                alert.getOrganization().getName(),
+                alert.getOrganizationMember().getOrganization().getId(),
+                alert.getOrganizationMember().getOrganization().getName(),
                 alert.getAlertType(),
                 alert.getMessage(),
                 alert.getIsChecked(),

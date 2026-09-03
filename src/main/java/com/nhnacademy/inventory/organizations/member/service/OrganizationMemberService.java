@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.member.service;
 import com.nhnacademy.inventory.global.client.AccountClient;
 import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.organizations.invitation.dto.request.LeaveOrgRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.MemberByEmailRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationMemberSearchRequest;
 import com.nhnacademy.inventory.organizations.member.dto.request.OrganizationRoleUpdateRequest;
@@ -12,6 +13,7 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.dto.response.MemberOrganizationResponse;
 import com.nhnacademy.inventory.organizations.member.dto.response.OrganizationMemberRoleResponse;
 import com.nhnacademy.inventory.organizations.member.exception.OrgMemberNotFoundException;
+import com.nhnacademy.inventory.organizations.member.exception.OrgBossLeaveNotAllowedException;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.exception.UserOrgNotFoundException;
@@ -165,7 +167,22 @@ public class OrganizationMemberService {
     public void leaveOrganization() {
         OrganizationMember currentMember = orgAccessService.getCurrentMember();
 
+        if (currentMember.isBoss()) {
+            throw new OrgBossLeaveNotAllowedException();
+        }
+
         orgDeletionService.deleteMember(currentMember);
+    }
+
+    @Transactional
+    public void leaveOrgForAccountLeave(LeaveOrgRequest request) {
+        orgMemberRepository.findByAccountUuid(request.accountUuid())
+                .ifPresent(member -> {
+                    if (member.isBoss()) {
+                        throw new OrgBossLeaveNotAllowedException();
+                    }
+                    orgDeletionService.deleteMemberForAccountLeave(member, request.previousEmail());
+                });
     }
 
     public OrganizationMember getMemberById(Long memberId, Long organizationId) {

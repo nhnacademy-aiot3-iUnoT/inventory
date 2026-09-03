@@ -8,6 +8,8 @@ import com.nhnacademy.inventory.inventories.alert.service.AlertService;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.service.ZoneService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import java.util.List;
 public class EnvironmentEventService {
     private final EnvironmentEventRepository environmentEventRepository;
     private final MedicineInventoryRepository medicineInventoryRepository;
+    private final OrganizationMemberRepository memberRepository;
     private final ZoneService zoneService;
     private final AlertService alertService;
 
@@ -57,11 +60,15 @@ public class EnvironmentEventService {
             String message = String.format("[%s] %s - %s 환경 이상 발생! (폐기 검토 대상 재고: %d건)",
                     storageName, zoneName, request.environmentType(), reviewCount);
 
-            alertService.createAlert(
-                    zone.getStorage().getOrganization().getId(),
-                    AlertType.ENV_WARNING,
-                    message
-            );
+            List<OrganizationMember> memberList = memberRepository.findMemberByStorageId(zone.getStorage().getId());
+
+            for(OrganizationMember member : memberList){
+                alertService.createAlert(
+                        member,
+                        AlertType.ENV_WARNING,
+                        message
+                );
+            }
         }
     }
 

@@ -5,6 +5,8 @@ import com.nhnacademy.inventory.inventories.alert.service.AlertService;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
 import com.nhnacademy.inventory.organizations.organization.repository.OrganizationRepository;
@@ -29,6 +31,7 @@ public class ExpirationAlertScheduler {
     private final MedicineInventoryRepository inventoryRepository;
     private final OrganizationRepository organizationRepository;
     private final StorageRepository storageRepository;
+    private final OrganizationMemberRepository memberRepository;
     private final AlertService alertService;
 
     @Scheduled(cron = "0 0 3 * * *")
@@ -66,7 +69,15 @@ public class ExpirationAlertScheduler {
                         sb.append("유통기한 임박 재고(7일 이내): ").append(warningCount).append("건");
                     }
 
-                    alertService.createAlert(organization.getId(), AlertType.EXPIRING, sb.toString());
+                    List<OrganizationMember> memberList = memberRepository.findMemberByStorageId(storage.getId());
+
+                    for(OrganizationMember member : memberList){
+                        alertService.createAlert(
+                                member,
+                                AlertType.EXPIRING,
+                                sb.toString()
+                        );
+                    }
                 }
             }
         }

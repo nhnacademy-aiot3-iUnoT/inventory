@@ -90,6 +90,25 @@ public class MemberDepartmentService {
                 .toList();
     }
 
+/**
+     * 지금 로그인한 조직원이 그 부서에 소속되어 있는지 확인한다.
+     */
+    public boolean isMyDepartment(Long departmentId) {
+        OrganizationMember member = orgAccessService.getCurrentMember();
+
+        return memberDepartmentRepository
+                .existsByDepartmentIdAndOrganizationMemberId(departmentId, member.getId());
+    }
+
+    /**
+     * 소속 부서를 통해 접근할 수 있는 저장소 ID 목록.
+     */
+    public List<Long> getAccessibleStorageIds() {
+        OrganizationMember member = orgAccessService.getCurrentMember();
+
+        return memberDepartmentRepository.findAccessibleStorageIds(member.getId());
+    }
+
     @Transactional
     public void assignMemberDepartments(Long memberId, MemberDepartmentAssignRequest request) {
         Organization organization = orgAccessService.requireOwnerOrBossOrganization();
