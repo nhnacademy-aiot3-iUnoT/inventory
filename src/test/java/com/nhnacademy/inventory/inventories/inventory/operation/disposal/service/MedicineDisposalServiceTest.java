@@ -6,12 +6,15 @@ import com.nhnacademy.inventory.inventories.inventory.operation.disposal.domain.
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.domain.DisposalReason;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -26,6 +29,9 @@ class MedicineDisposalServiceTest {
 
     @Mock
     private DisposalOperation disposalOperation;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private MedicineDisposalService medicineDisposalService;
@@ -43,6 +49,11 @@ class MedicineDisposalServiceTest {
                 );
 
         MedicineInventory inventory = mock(MedicineInventory.class);
+        Zone zone = mock(Zone.class);
+        MedicinePackageUnit packageUnit = mock(MedicinePackageUnit.class);
+
+        when(inventory.getZone()).thenReturn(zone);
+        when(inventory.getMedicinePackageUnit()).thenReturn(packageUnit);
 
         when(medicineInventoryRepository.findByIdForUpdate(inventoryId))
                 .thenReturn(Optional.of(inventory));
