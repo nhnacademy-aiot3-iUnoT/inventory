@@ -47,5 +47,5 @@ public interface MedicineInventoryRepository extends JpaRepository<MedicineInven
 
     long countByZone_StorageAndExpirationDateBetweenAndManagementStatusIn(Storage zoneStorage, LocalDate expirationDateAfter, LocalDate expirationDateBefore, Collection<ManagementStatus> managementStatuses);
 
-    List<MedicineInventory> findAllByZoneAndManagementStatus(Zone zone, ManagementStatus managementStatus);
+    List<MedicineInventory> findAllByZoneAndManagementStatusIn(Zone zone, Collection<ManagementStatus> managementStatuses);
 }

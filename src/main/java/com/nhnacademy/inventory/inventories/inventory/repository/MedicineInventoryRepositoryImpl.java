@@ -502,13 +502,14 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     }
 
     private BooleanExpression filterTypeEq(ExpiringSearchFilterType filterType, LocalDate today) {
+        LocalDate warningLimit = today.plusDays(7);
+
         if (filterType == ExpiringSearchFilterType.EXPIRED) {
             return inventory.expirationDate.lt(today);
         } else if (filterType == ExpiringSearchFilterType.WARNING) {
-            LocalDate warningLimit = today.plusDays(7);
             return inventory.expirationDate.goe(today).and(inventory.expirationDate.loe(warningLimit));
         }
-        return null;
+        return inventory.expirationDate.loe(warningLimit);
     }
 
     private OrderSpecifier<?> getOrderSpecifier(Pageable pageable){

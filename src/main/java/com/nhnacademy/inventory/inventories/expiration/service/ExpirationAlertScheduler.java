@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.organization.domain.OrganizationStatus;
@@ -22,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -69,9 +72,20 @@ public class ExpirationAlertScheduler {
                         sb.append("유통기한 임박 재고(7일 이내): ").append(warningCount).append("건");
                     }
 
-                    List<OrganizationMember> memberList = memberRepository.findMemberByStorageId(storage.getId());
+                    Set<OrganizationMember> memberSet = new HashSet<>();
 
-                    for(OrganizationMember member : memberList){
+                    memberSet.addAll(
+                            memberRepository.findMemberByStorageId(storage.getId())
+                    );
+
+                    memberSet.addAll(
+                            memberRepository.findAllByOrganizationAndOrganizationRoleIn(
+                                    storage.getOrganization(),
+                                    List.of(OrganizationRole.ORG_BOSS, OrganizationRole.ORG_OWNER)
+                            )
+                    );
+
+                    for(OrganizationMember member : memberSet){
                         alertService.createAlert(
                                 member,
                                 AlertType.EXPIRING,
