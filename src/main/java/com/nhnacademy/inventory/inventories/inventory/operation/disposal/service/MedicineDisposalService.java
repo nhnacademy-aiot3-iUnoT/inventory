@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.disposal.service;
 
+import com.nhnacademy.inventory.inventories.alert.event.StockOutboundCompletedEvent;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.exception.DisposalNotFoundException;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.domain.DisposalOperation;
@@ -7,6 +8,7 @@ import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.Med
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalTargetResponse;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class MedicineDisposalService {
 
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final DisposalOperation disposalOperation;
+    private final ApplicationEventPublisher eventPublisher;
 
     public MedicineDisposalTargetResponse getDisposalTarget(Long inventoryId) {
         MedicineInventory inventory = medicineInventoryRepository
@@ -37,6 +40,11 @@ public class MedicineDisposalService {
                 .orElseThrow(DisposalNotFoundException::new);
 
         disposalOperation.process(inventory, request);
+
+        eventPublisher.publishEvent(new StockOutboundCompletedEvent(
+                inventory.getZone().getId(),
+                inventory.getMedicinePackageUnit().getId()
+        ));
     }
 
 }

@@ -44,7 +44,7 @@ public class EnvironmentEventController {
 
     @GetMapping("/environment-events")
     public ResponseEntity<ApiResponse<List<EnvironmentEventItemResponse>>> getEnvironmentEvents(
-            @RequestBody @Valid EnvironmentEventCheckRequest request
+            @ModelAttribute @Valid EnvironmentEventCheckRequest request
     ){
         List<EnvironmentEventItemResponse> responses = environmentEventService.getEnvironmentEvents(request);
 
