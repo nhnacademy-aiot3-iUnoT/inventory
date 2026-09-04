@@ -4,11 +4,14 @@ import com.nhnacademy.inventory.organizations.sensor.domain.ZoneSensor;
 import com.nhnacademy.inventory.organizations.sensor.dto.*;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorAlreadyExistsException;
 import com.nhnacademy.inventory.organizations.sensor.exception.ZoneSensorNotFoundException;
+import com.nhnacademy.inventory.global.cache.CacheInvalidationEvent;
+import com.nhnacademy.inventory.global.cache.CacheNames;
 import com.nhnacademy.inventory.organizations.sensor.repository.ZoneSensorRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.service.ZoneService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,7 @@ public class ZoneSensorService {
 
     private final ZoneSensorRepository zoneSensorRepository;
     private final ZoneService zoneService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ZoneSensorDetailResponse createZoneSensor(Long zoneId, ZoneSensorCreateRequest request){
@@ -41,6 +45,9 @@ public class ZoneSensorService {
                         .description(request.description())
                         .build()
         );
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.DEVICE_ZONE, saved.getDeviceEui()));
 
         return ZoneSensorDetailResponse.from(saved);
     }
@@ -95,5 +102,8 @@ public class ZoneSensorService {
                 .orElseThrow(ZoneSensorNotFoundException::new);
 
         zoneSensorRepository.delete(zoneSensor);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.DEVICE_ZONE, zoneSensor.getDeviceEui()));
     }
 }

@@ -9,6 +9,7 @@ import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.service.ZoneService;
@@ -19,7 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -46,7 +49,10 @@ public class EnvironmentEventService {
 
         environmentEventRepository.save(event);
 
-        List<MedicineInventory> inventoryList = medicineInventoryRepository.findAllByZoneAndManagementStatus(zone, ManagementStatus.NORMAL);
+        List<MedicineInventory> inventoryList = medicineInventoryRepository.findAllByZoneAndManagementStatusIn(
+                zone,
+                List.of(ManagementStatus.NORMAL, ManagementStatus.UNDER_REVIEW)
+        );
 
         if (inventoryList != null) {
             for (MedicineInventory inventory : inventoryList) {
@@ -60,9 +66,20 @@ public class EnvironmentEventService {
             String message = String.format("[%s] %s - %s 환경 이상 발생! (폐기 검토 대상 재고: %d건)",
                     storageName, zoneName, request.environmentType(), reviewCount);
 
-            List<OrganizationMember> memberList = memberRepository.findMemberByStorageId(zone.getStorage().getId());
+            Set<OrganizationMember> memberSet = new HashSet<>();
 
-            for(OrganizationMember member : memberList){
+            memberSet.addAll(
+                    memberRepository.findMemberByStorageId(zone.getStorage().getId())
+            );
+
+            memberSet.addAll(
+                    memberRepository.findAllByOrganizationAndOrganizationRoleIn(
+                            zone.getStorage().getOrganization(),
+                            List.of(OrganizationRole.ORG_BOSS, OrganizationRole.ORG_OWNER)
+                    )
+            );
+
+            for(OrganizationMember member : memberSet){
                 alertService.createAlert(
                         member,
                         AlertType.ENV_WARNING,
