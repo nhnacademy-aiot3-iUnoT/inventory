@@ -34,6 +34,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import org.springframework.context.ApplicationEventPublisher;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +44,9 @@ class ZoneServiceTest {
     private ZoneRepository zoneRepository;
     @Mock
     private StorageService storageService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ZoneService zoneService;
