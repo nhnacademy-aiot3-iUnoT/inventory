@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.service;
 
+import com.nhnacademy.inventory.global.cache.CacheInvalidationEvent;
+import com.nhnacademy.inventory.global.cache.CacheNames;
 import com.nhnacademy.inventory.organizations.zone.domain.SensorType;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneThreshold;
@@ -14,6 +16,7 @@ import com.nhnacademy.inventory.organizations.zone.repository.SensorTypeReposito
 import com.nhnacademy.inventory.organizations.zone.repository.ThresholdRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ public class ThresholdService {
     private final ThresholdRepository thresholdRepository;
     private final SensorTypeRepository sensorTypeRepository;
     private final ZoneService zoneService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final BigDecimal MIN_RANGE_GAP = BigDecimal.valueOf(5);
 
@@ -56,6 +60,9 @@ public class ThresholdService {
                                 .alertDuration(request.alertDuration())
                                 .build()
                 ));
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_THRESHOLD, zoneId));
 
         return ThresholdDetailResponse.from(threshold);
     }
@@ -91,6 +98,9 @@ public class ThresholdService {
         zoneService.validateZoneStatus(threshold.getZone());
 
         thresholdRepository.delete(threshold);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_THRESHOLD, zoneId));
     }
 
     private ZoneThreshold findByIdAndValidateOwner(Long zoneId, Long thresholdId){
