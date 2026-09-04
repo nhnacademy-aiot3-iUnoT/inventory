@@ -102,7 +102,7 @@ public class EnvironmentReviewRepositoryImpl implements EnvironmentReviewReposit
                         medicinePackageUnit.packUnit,
                         environmentReview.createdAt,
                         environmentReview.reviewerId,
-                        null,
+                        Expressions.nullExpression(),
                         environmentReview.isOut
                 ))
                 .from(environmentReview)
