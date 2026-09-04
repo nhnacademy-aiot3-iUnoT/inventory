@@ -19,7 +19,6 @@ import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -94,14 +94,24 @@ public class EnvironmentReviewService {
         EnvironmentReview review = environmentReviewRepository.findByIdWithFetch(environmentReviewId)
                 .orElseThrow(ReviewNotFoundException::new);
 
-        List<ReviewHistorySummaryResponse> inventoryReviewHistories = environmentReviewRepository
-                .findAllByMedicineInventoryWithFetch(review.getMedicineInventory())
+        List<EnvironmentReview> reviewList = environmentReviewRepository
+                .findAllByMedicineInventoryWithFetch(review.getMedicineInventory());
+
+        LocalDateTime startDateTime = reviewList.stream()
+                .map(EnvironmentReview::getCreatedAt)
+                .filter(createAt -> createAt.isBefore(review.getCreatedAt()))
+                .max(LocalDateTime::compareTo)
+                .orElseGet(() -> review.getMedicineInventory().getCreatedAt());
+
+        LocalDateTime endDateTime = review.getCreatedAt();
+
+        List<ReviewHistorySummaryResponse> inventoryReviewHistories = reviewList
                 .stream()
                 .map(ReviewHistorySummaryResponse::from)
                 .toList();
 
         List<EnvironmentEventItemResponse> environmentEvents = environmentEventRepository
-                .findAllByZoneAndCreatedAtAfter(review.getMedicineInventory().getZone(), review.getMedicineInventory().getCreatedAt())
+                .findAllByZoneAndCreatedAtBetween(review.getMedicineInventory().getZone(), startDateTime, endDateTime)
                 .stream()
                 .map(EnvironmentEventItemResponse::from)
                 .toList();

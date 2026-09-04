@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class ThresholdServiceTest {
@@ -46,6 +47,9 @@ class ThresholdServiceTest {
     private SensorTypeRepository sensorTypeRepository;
     @Mock
     private ZoneService zoneService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ThresholdService thresholdService;
