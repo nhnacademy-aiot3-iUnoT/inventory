@@ -15,6 +15,7 @@ public record ReviewHistorySummaryResponse(
         String packUnit,
         LocalDateTime createdAt,
         UUID reviewerId,
+        String reviewerName,
         Boolean isOut
 
 
@@ -34,7 +35,23 @@ public record ReviewHistorySummaryResponse(
                 review.getMedicineInventory().getMedicinePackageUnit().getPackUnit(),
                 review.getCreatedAt(),
                 review.getReviewerId(),
+                null,
                 review.getIsOut()
+        );
+    }
+
+    public static ReviewHistorySummaryResponse of(ReviewHistorySummaryResponse response, String reviewerName){
+        return new ReviewHistorySummaryResponse(
+                response.environmentReviewId,
+                response.inventoryId,
+                response.medicineId,
+                response.medicinePackageUnitId,
+                response.productName,
+                response.packUnit,
+                response.createdAt,
+                response.reviewerId,
+                reviewerName,
+                response.isOut
         );
     }
 }
