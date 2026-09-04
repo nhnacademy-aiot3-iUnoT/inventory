@@ -51,27 +51,6 @@ public class NotificationScopePreferenceRepositoryImpl implements NotificationSc
     }
 
     @Override
-    public boolean existsDuplicateScope(
-            Long organizationMemberId,
-            Long storageId,
-            Long zoneId,
-            Long excludeScopePreferenceId
-    ) {
-        Integer result = queryFactory
-                .selectOne()
-                .from(notificationScopePreference)
-                .where(
-                        notificationScopePreference.organizationMember.id.eq(organizationMemberId),
-                        storageNullSafeEq(storageId),
-                        zoneNullSafeEq(zoneId),
-                        excludeScopePreferenceId(excludeScopePreferenceId)
-                )
-                .fetchFirst();
-
-        return result != null;
-    }
-
-    @Override
     public Optional<NotificationScopePreference> findScope(Long organizationMemberId, Long storageId, Long zoneId) {
         return Optional.ofNullable(queryFactory
                 .selectFrom(notificationScopePreference)
@@ -102,12 +81,27 @@ public class NotificationScopePreferenceRepositoryImpl implements NotificationSc
     }
 
     private BooleanExpression matchingScope(Long storageId, Long zoneId) {
-        return notificationScopePreference.storage.isNull()
-                .and(notificationScopePreference.zone.isNull())
-                .or(notificationScopePreference.storage.id.eq(storageId)
-                        .and(notificationScopePreference.zone.isNull()))
-                .or(notificationScopePreference.storage.id.eq(storageId)
-                        .and(notificationScopePreference.zone.id.eq(zoneId)));
+        BooleanExpression organizationScope =
+                notificationScopePreference.storage.isNull()
+                        .and(notificationScopePreference.zone.isNull());
+
+        if (storageId == null) {
+            return organizationScope;
+        }
+
+        BooleanExpression storageScope =
+                notificationScopePreference.storage.id.eq(storageId)
+                        .and(notificationScopePreference.zone.isNull());
+
+        if (zoneId == null) {
+            return organizationScope.or(storageScope);
+        }
+
+        BooleanExpression zoneScope =
+                notificationScopePreference.storage.id.eq(storageId)
+                        .and(notificationScopePreference.zone.id.eq(zoneId));
+
+        return organizationScope.or(storageScope).or(zoneScope);
     }
 
     private int scopePriority(NotificationScopePreference preference) {

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -49,6 +51,7 @@ public class NotificationChannelPreference {
     @Column(name = "recipient", nullable = true, length = 255)
     private String recipient;
 
+    @JdbcTypeCode(SqlTypes.TINYINT)
     @Column(name = "is_enabled", nullable = false)
     private boolean isEnabled;
 

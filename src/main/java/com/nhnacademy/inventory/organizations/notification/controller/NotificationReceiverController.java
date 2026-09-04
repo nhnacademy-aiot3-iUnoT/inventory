@@ -2,7 +2,7 @@ package com.nhnacademy.inventory.organizations.notification.controller;
 
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
-import com.nhnacademy.inventory.organizations.notification.dto.reponse.NotificationPreferenceResponse;
+import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationPreferenceResponse;
 import com.nhnacademy.inventory.organizations.notification.service.NotificationReceiverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

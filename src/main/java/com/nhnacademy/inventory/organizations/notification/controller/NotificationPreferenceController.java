@@ -3,7 +3,7 @@ package com.nhnacademy.inventory.organizations.notification.controller;
 import com.nhnacademy.inventory.global.dto.ApiResponse;
 import com.nhnacademy.inventory.organizations.notification.domain.NotificationChannelPreference;
 import com.nhnacademy.inventory.organizations.notification.domain.NotificationScopePreference;
-import com.nhnacademy.inventory.organizations.notification.dto.reponse.NotificationScopePreferenceEffectiveResponse;
+import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationScopePreferenceEffectiveResponse;
 import com.nhnacademy.inventory.organizations.notification.dto.request.NotificationChannelPreferencesUpdateRequest;
 import com.nhnacademy.inventory.organizations.notification.dto.request.NotificationScopePreferenceRequest;
 import com.nhnacademy.inventory.organizations.notification.service.NotificationPreferenceService;

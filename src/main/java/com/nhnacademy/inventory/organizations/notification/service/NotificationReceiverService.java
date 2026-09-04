@@ -3,7 +3,7 @@ package com.nhnacademy.inventory.organizations.notification.service;
 import com.nhnacademy.inventory.organizations.notification.domain.NotificationChannel;
 import com.nhnacademy.inventory.organizations.notification.domain.NotificationChannelPreference;
 import com.nhnacademy.inventory.organizations.notification.domain.NotificationScopePreference;
-import com.nhnacademy.inventory.organizations.notification.dto.reponse.NotificationPreferenceResponse;
+import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationPreferenceResponse;
 import com.nhnacademy.inventory.organizations.notification.repository.NotificationChannelPreferenceRepository;
 import com.nhnacademy.inventory.organizations.notification.repository.NotificationScopePreferenceRepository;
 import lombok.RequiredArgsConstructor;

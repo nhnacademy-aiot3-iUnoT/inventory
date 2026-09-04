@@ -1,4 +1,4 @@
-package com.nhnacademy.inventory.organizations.notification.dto.reponse;
+package com.nhnacademy.inventory.organizations.notification.dto.response;
 
 import com.nhnacademy.inventory.organizations.notification.domain.NotificationChannel;
 

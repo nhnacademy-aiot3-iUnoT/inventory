@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -53,6 +55,7 @@ public class NotificationScopePreference {
     @JoinColumn(name = "zone_id", nullable = true)
     private Zone zone;
 
+    @JdbcTypeCode(SqlTypes.TINYINT)
     @Column(name = "is_enabled", nullable = false)
     private boolean isEnabled;
 
