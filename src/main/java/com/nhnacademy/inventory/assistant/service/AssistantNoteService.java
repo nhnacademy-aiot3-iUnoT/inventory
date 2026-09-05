@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -24,6 +26,9 @@ import java.util.Map;
 public class AssistantNoteService {
 
     private static final int MESSAGE_MAX_LENGTH = 1000;
+
+    // 같은 작업으로 같은 대상에 대해 이 시간 안에 남긴 알림이 있으면 다시 만들지 않는다.
+    private static final Duration DUPLICATE_WINDOW = Duration.ofMinutes(10);
 
     private final AssistantNoteRepository assistantNoteRepository;
     private final AssistantNarrator assistantNarrator;
@@ -43,8 +48,26 @@ public class AssistantNoteService {
         return grouped;
     }
 
+    /**
+     * 대상을 알 수 없는 알림은 중복을 판단할 기준이 없어 그대로 저장한다.
+     */
+    private boolean isDuplicate(OrganizationMember member, StockOperation operation, TargetReference target) {
+        if (target == null || target.type() == null || target.storageId() == null || target.targetId() == null) {
+            return false;
+        }
+
+        return assistantNoteRepository
+                .existsByOrganizationMemberIdAndOperationAndTargetTypeAndTargetStorageIdAndTargetIdAndCreatedAtAfter(
+                        member.getId(), operation, target.type(), target.storageId(), target.targetId(),
+                        LocalDateTime.now().minus(DUPLICATE_WINDOW));
+    }
+
     private void save(OrganizationMember member, StockOperation operation,
                       TargetReference target, List<Finding> findings) {
+        if (isDuplicate(member, operation, target)) {
+            return;
+        }
+
         Finding highest = highestSeverity(findings);
 
         assistantNoteRepository.save(AssistantNote.of(
