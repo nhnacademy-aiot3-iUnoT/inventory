@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.organizations.notification.service;
 import com.nhnacademy.inventory.organizations.department.domain.Department;
 import com.nhnacademy.inventory.organizations.department.exception.DepartmentNotFoundException;
 import com.nhnacademy.inventory.organizations.department.repository.DepartmentRepository;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.notification.domain.DepartmentTelegramChat;
 import com.nhnacademy.inventory.organizations.notification.dto.request.DepartmentTelegramChatRegisterRequest;
 import com.nhnacademy.inventory.organizations.notification.dto.response.DepartmentTelegramChatResponse;
@@ -28,17 +29,15 @@ public class DepartmentTelegramChatService {
      */
     @Transactional
     public DepartmentTelegramChatResponse register(
-            Long organizationId,
             Long departmentId,
             DepartmentTelegramChatRegisterRequest request
     ) {
-        organizationAccessService.requireOwnerOrBossOf(organizationId);
-
-        Department department = resolveDepartment(organizationId, departmentId);
+        Department department = resolveDepartment(departmentId);
         boolean enabled = request.enabled() == null || request.enabled();
+        String chatId = request.chatId().trim();
 
-        // 같은 단톡방이 다른 부서에 물려있으면 거절한다.
-        departmentTelegramChatRepository.findByChatId(request.chatId())
+        // 같은 단톡방이 다른 부서에 물려있으면 거절한다. 비활성 연결도 UNIQUE 제약에 걸리므로 함께 확인한다.
+        departmentTelegramChatRepository.findByChatId(chatId)
                 .filter(linked -> !linked.getDepartment().getId().equals(departmentId))
                 .ifPresent(linked -> {
                     throw new DepartmentTelegramChatAlreadyLinkedException();
@@ -47,29 +46,30 @@ public class DepartmentTelegramChatService {
         DepartmentTelegramChat chat = departmentTelegramChatRepository
                 .findByDepartmentId(departmentId)
                 .map(existing -> {
-                    existing.update(request.chatId(), enabled);
+                    existing.update(chatId, enabled);
                     return existing;
                 })
                 .orElseGet(() -> departmentTelegramChatRepository.save(
-                        DepartmentTelegramChat.create(department, request.chatId(), enabled)
+                        DepartmentTelegramChat.create(department, chatId, enabled)
                 ));
 
         return DepartmentTelegramChatResponse.from(chat);
     }
 
-    public DepartmentTelegramChatResponse getByDepartment(Long organizationId, Long departmentId) {
-        organizationAccessService.requireOwnerOrBossOf(organizationId);
-        resolveDepartment(organizationId, departmentId);
+    /**
+     * 부서 설정 화면에서 쓴다. 연결이 없으면 null을 돌려준다.
+     */
+    public DepartmentTelegramChatResponse getByDepartment(Long departmentId) {
+        resolveDepartment(departmentId);
 
         return departmentTelegramChatRepository.findByDepartmentId(departmentId)
                 .map(DepartmentTelegramChatResponse::from)
-                .orElseThrow(DepartmentTelegramChatNotFoundException::new);
+                .orElse(null);
     }
 
     @Transactional
-    public void unlink(Long organizationId, Long departmentId) {
-        organizationAccessService.requireOwnerOrBossOf(organizationId);
-        resolveDepartment(organizationId, departmentId);
+    public void unlink(Long departmentId) {
+        resolveDepartment(departmentId);
 
         DepartmentTelegramChat chat = departmentTelegramChatRepository.findByDepartmentId(departmentId)
                 .orElseThrow(DepartmentTelegramChatNotFoundException::new);
@@ -86,8 +86,14 @@ public class DepartmentTelegramChatService {
                 .orElseThrow(DepartmentTelegramChatNotFoundException::new);
     }
 
-    private Department resolveDepartment(Long organizationId, Long departmentId) {
-        return departmentRepository.findByIdAndOrganizationId(departmentId, organizationId)
+    /**
+     * 권한을 확인하고, 내 조직의 부서인지까지 검증한다.
+     */
+    private Department resolveDepartment(Long departmentId) {
+        OrganizationMember member = organizationAccessService.requireOwnerOrBoss();
+
+        return departmentRepository
+                .findByIdAndOrganizationId(departmentId, member.getOrganization().getId())
                 .orElseThrow(DepartmentNotFoundException::new);
     }
 }

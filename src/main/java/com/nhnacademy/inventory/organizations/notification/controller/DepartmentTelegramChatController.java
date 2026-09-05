@@ -10,20 +10,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/core/organizations/{organization-id}/departments/{department-id}/telegram-chat")
+@RequestMapping("/api/core/departments/{department-id}/telegram-chat")
 @RequiredArgsConstructor
 public class DepartmentTelegramChatController {
 
     private final DepartmentTelegramChatService departmentTelegramChatService;
 
-    // 부서 단톡방 연결 조회
+    // 부서 단톡방 연결 조회. 연결이 없으면 data가 null이다.
     @GetMapping
     public ResponseEntity<ApiResponse<DepartmentTelegramChatResponse>> getTelegramChat(
-            @PathVariable(name = "organization-id") Long organizationId,
             @PathVariable(name = "department-id") Long departmentId
     ) {
         DepartmentTelegramChatResponse response =
-                departmentTelegramChatService.getByDepartment(organizationId, departmentId);
+                departmentTelegramChatService.getByDepartment(departmentId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -31,12 +30,11 @@ public class DepartmentTelegramChatController {
     // 부서 단톡방 연결 및 교체
     @PutMapping
     public ResponseEntity<ApiResponse<DepartmentTelegramChatResponse>> registerTelegramChat(
-            @PathVariable(name = "organization-id") Long organizationId,
             @PathVariable(name = "department-id") Long departmentId,
             @RequestBody @Valid DepartmentTelegramChatRegisterRequest request
     ) {
         DepartmentTelegramChatResponse response =
-                departmentTelegramChatService.register(organizationId, departmentId, request);
+                departmentTelegramChatService.register(departmentId, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -44,10 +42,9 @@ public class DepartmentTelegramChatController {
     // 부서 단톡방 연결 해제
     @DeleteMapping
     public ResponseEntity<Void> unlinkTelegramChat(
-            @PathVariable(name = "organization-id") Long organizationId,
             @PathVariable(name = "department-id") Long departmentId
     ) {
-        departmentTelegramChatService.unlink(organizationId, departmentId);
+        departmentTelegramChatService.unlink(departmentId);
 
         return ResponseEntity.noContent().build();
     }
