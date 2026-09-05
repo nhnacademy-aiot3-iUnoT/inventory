@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,11 +64,18 @@ public class StockEventListener {
             log.error("[Assistant] {} 알림 생성 실패. actorUuid={}", operation, actorUuid, e);
         }
     }
-
+    
     private <R> List<Finding> evaluate(List<R> rules, Function<R, Optional<Finding>> evaluation) {
-        return rules.stream()
-                .map(evaluation)
-                .flatMap(Optional::stream)
-                .toList();
+        List<Finding> findings = new ArrayList<>();
+
+        for (R rule : rules) {
+            try {
+                evaluation.apply(rule).ifPresent(findings::add);
+            } catch (Exception e) {
+                log.warn("[Assistant] 규칙 평가에 실패해 건너뜁니다. rule={}", rule.getClass().getSimpleName(), e);
+            }
+        }
+
+        return findings;
     }
 }

@@ -10,7 +10,6 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -25,6 +24,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AssistantNoteService {
 
+    private static final int SUBJECT_MAX_LENGTH = 300;
+    private static final int DETAIL_MAX_LENGTH = 300;
     private static final int MESSAGE_MAX_LENGTH = 1000;
 
     // 같은 작업으로 같은 대상에 대해 이 시간 안에 남긴 알림이 있으면 다시 만들지 않는다.
@@ -33,7 +34,6 @@ public class AssistantNoteService {
     private final AssistantNoteRepository assistantNoteRepository;
     private final AssistantNarrator assistantNarrator;
 
-    @Transactional
     public void create(OrganizationMember member, StockOperation operation, List<Finding> findings) {
         groupByTarget(findings).forEach((target, group) -> save(member, operation, target, group));
     }
@@ -75,9 +75,9 @@ public class AssistantNoteService {
                 operation,
                 highest.severity(),
                 commonType(findings),
-                highest.subject(),
-                highest.detail(),
-                truncate(assistantNarrator.describe(findings)),
+                truncate(highest.subject(), SUBJECT_MAX_LENGTH),
+                truncate(highest.detail(), DETAIL_MAX_LENGTH),
+                truncate(assistantNarrator.describe(findings), MESSAGE_MAX_LENGTH),
                 target == null ? null : target.type(),
                 target == null ? null : target.storageId(),
                 target == null ? null : target.targetId()));
@@ -96,9 +96,12 @@ public class AssistantNoteService {
                 .orElseThrow();
     }
 
-    private String truncate(String message) {
-        return message.length() <= MESSAGE_MAX_LENGTH
-                ? message
-                : message.substring(0, MESSAGE_MAX_LENGTH);
+    // 컬럼 길이를 넘으면 저장에 실패해 알림이 통째로 사라지므로 잘라서라도 남긴다.
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+
+        return value.substring(0, maxLength);
     }
 }

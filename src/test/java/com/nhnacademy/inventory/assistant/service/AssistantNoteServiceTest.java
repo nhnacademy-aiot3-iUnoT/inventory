@@ -139,6 +139,30 @@ class AssistantNoteServiceTest {
         then(assistantNoteRepository).should().save(any(AssistantNote.class));
     }
 
+    @Test
+    @DisplayName("의약품명이 길어도 컬럼 길이에 맞춰 잘라 저장한다.")
+    void create_TruncatesOverlongSubject() {
+        // productName 은 500자, packUnit 은 200자까지 허용되는데 subject 컬럼은 300자다.
+        String longName = "가".repeat(400);
+
+        service.create(member, StockOperation.INBOUND, List.of(
+                new Finding(FindingType.EXPIRY_ORDER, Severity.WARN, longName,
+                        "구역1 입고", "설명입니다.", target(PACK_UNIT_ID))));
+
+        assertThat(savedNote().getSubject()).hasSize(300);
+    }
+
+    @Test
+    @DisplayName("안내문이 길어도 컬럼 길이에 맞춰 잘라 저장한다.")
+    void create_TruncatesOverlongMessage() {
+        given(assistantNarrator.describe(any())).willReturn("나".repeat(1500));
+
+        service.create(member, StockOperation.INBOUND, List.of(
+                finding(FindingType.EXPIRY_ORDER, Severity.WARN, target(PACK_UNIT_ID))));
+
+        assertThat(savedNote().getMessage()).hasSize(1000);
+    }
+
     private AssistantNote savedNote() {
         ArgumentCaptor<AssistantNote> captor = ArgumentCaptor.forClass(AssistantNote.class);
         then(assistantNoteRepository).should().save(captor.capture());
