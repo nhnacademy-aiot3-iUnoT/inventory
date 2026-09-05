@@ -5,7 +5,9 @@ import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.notification.domain.NotificationChannelPreference;
 import com.nhnacademy.inventory.organizations.notification.domain.NotificationScopePreference;
 import com.nhnacademy.inventory.organizations.notification.dto.NotificationScopeSource;
+import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationChannelPreferenceResponse;
 import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationScopePreferenceEffectiveResponse;
+import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationScopePreferenceResponse;
 import com.nhnacademy.inventory.organizations.notification.dto.request.NotificationChannelPreferencesUpdateRequest;
 import com.nhnacademy.inventory.organizations.notification.dto.request.NotificationScopePreferenceRequest;
 import com.nhnacademy.inventory.organizations.notification.exception.NotificationPreferenceInvalidScopeException;
@@ -66,10 +68,12 @@ public class NotificationPreferenceService {
         scopePreferenceRepository.save(scopePreference);
     }
 
-    public List<NotificationScopePreference> getScopePreferences(Long organizationId){
+    public List<NotificationScopePreferenceResponse> getScopePreferences(Long organizationId){
         OrganizationMember member = getCurrentMemberOf(organizationId);
 
-        return scopePreferenceRepository.findAllByOrganizationMemberId(member.getId());
+        return scopePreferenceRepository.findAllByOrganizationMemberId(member.getId()).stream()
+                .map(NotificationScopePreferenceResponse::from)
+                .toList();
     }
 
     public NotificationScopePreferenceEffectiveResponse getEffectiveScopePreference(
@@ -116,10 +120,12 @@ public class NotificationPreferenceService {
         scopePreferenceRepository.delete(scopePreference);
     }
 
-    public List<NotificationChannelPreference> getChannelPreferences(Long organizationId) {
+    public List<NotificationChannelPreferenceResponse> getChannelPreferences(Long organizationId) {
         OrganizationMember member = getCurrentMemberOf(organizationId);
 
-        return channelPreferenceRepository.findAllByOrganizationMemberId(member.getId());
+        return channelPreferenceRepository.findAllByOrganizationMemberId(member.getId()).stream()
+                .map(NotificationChannelPreferenceResponse::from)
+                .toList();
     }
 
     @Transactional

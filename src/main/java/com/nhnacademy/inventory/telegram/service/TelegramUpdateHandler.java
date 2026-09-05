@@ -31,8 +31,11 @@ public class TelegramUpdateHandler {
         }
 
         TelegramChat chat = message.chat();
-        // 개인 DM chatbot 동작하지 않는다
+
+        // 개인 DM에서는 챗봇이 동작하지 않는다.
+        // 대신 개인 알림 설정에 필요한 chat id를 알려준다. 사용자가 이 번호를 알 다른 방법이 없다.
         if (!chat.isGroup()) {
+            sendPersonalChatId(String.valueOf(chat.id()));
             return;
         }
 
@@ -67,6 +70,14 @@ public class TelegramUpdateHandler {
         telegramApiClient.sendMessage(chatId, answer);
     }
 
+
+    private void sendPersonalChatId(String chatId) {
+        telegramApiClient.sendMessage(chatId, """
+                환경 알림을 받으려면 아래 번호를 등록해주세요.
+                마이페이지 > 알림 > 설정하기 에서 입력하면 됩니다.
+
+                내 chat id: %s""".formatted(chatId));
+    }
 
     private String extractQuestion(String text) {
         String trimmed = text.trim();

@@ -1,9 +1,9 @@
 package com.nhnacademy.inventory.organizations.notification.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
-import com.nhnacademy.inventory.organizations.notification.domain.NotificationChannelPreference;
-import com.nhnacademy.inventory.organizations.notification.domain.NotificationScopePreference;
+import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationChannelPreferenceResponse;
 import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationScopePreferenceEffectiveResponse;
+import com.nhnacademy.inventory.organizations.notification.dto.response.NotificationScopePreferenceResponse;
 import com.nhnacademy.inventory.organizations.notification.dto.request.NotificationChannelPreferencesUpdateRequest;
 import com.nhnacademy.inventory.organizations.notification.dto.request.NotificationScopePreferenceRequest;
 import com.nhnacademy.inventory.organizations.notification.service.NotificationPreferenceService;
@@ -33,10 +33,10 @@ public class NotificationPreferenceController {
 
     // 일괄 관리 페이지에서 직접 설정 목록 조회
     @GetMapping("/scopes")
-    public ResponseEntity<ApiResponse<List<NotificationScopePreference>>> getScopePreferences(
+    public ResponseEntity<ApiResponse<List<NotificationScopePreferenceResponse>>> getScopePreferences(
             @PathVariable(name = "organization-id") Long organizationId
     ) {
-        List<NotificationScopePreference> response =
+        List<NotificationScopePreferenceResponse> response =
                 notificationPreferenceService.getScopePreferences(organizationId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -77,10 +77,10 @@ public class NotificationPreferenceController {
 
     // 개인정보 알림 채널 조회
     @GetMapping("/channels")
-    public ResponseEntity<ApiResponse<List<NotificationChannelPreference>>> getChannelPreferences(
+    public ResponseEntity<ApiResponse<List<NotificationChannelPreferenceResponse>>> getChannelPreferences(
             @PathVariable(name = "organization-id") Long organizationId
     ) {
-        List<NotificationChannelPreference> response =
+        List<NotificationChannelPreferenceResponse> response =
                 notificationPreferenceService.getChannelPreferences(organizationId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
