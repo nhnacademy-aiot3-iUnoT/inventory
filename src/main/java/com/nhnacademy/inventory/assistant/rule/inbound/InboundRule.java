@@ -1,6 +1,7 @@
-package com.nhnacademy.inventory.assistant.rule;
+package com.nhnacademy.inventory.assistant.rule.inbound;
 
 import com.nhnacademy.inventory.assistant.event.StockInboundCompletedEvent;
+import com.nhnacademy.inventory.assistant.rule.Finding;
 
 import java.util.Optional;
 

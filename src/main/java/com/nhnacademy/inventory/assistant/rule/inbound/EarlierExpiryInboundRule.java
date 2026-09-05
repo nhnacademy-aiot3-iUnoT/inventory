@@ -1,11 +1,13 @@
-package com.nhnacademy.inventory.assistant.rule;
+package com.nhnacademy.inventory.assistant.rule.inbound;
 
 import com.nhnacademy.inventory.assistant.domain.Severity;
+import com.nhnacademy.inventory.assistant.rule.Finding;
+import com.nhnacademy.inventory.assistant.rule.FindingType;
+import com.nhnacademy.inventory.assistant.rule.TargetReference;
 import com.nhnacademy.inventory.assistant.domain.TargetType;
 import com.nhnacademy.inventory.assistant.dto.StockLot;
 import com.nhnacademy.inventory.assistant.event.StockInboundCompletedEvent;
 import com.nhnacademy.inventory.assistant.repository.AssistantStockRepository;
-import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
@@ -13,11 +15,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/*
+    방금 입고한 것보다 먼저 만료되는 같은 의약품이 같은 구역에 남아 있는지 확인
+ */
 @Component
 @RequiredArgsConstructor
 public class EarlierExpiryInboundRule implements InboundRule {
@@ -39,37 +45,40 @@ public class EarlierExpiryInboundRule implements InboundRule {
             return Optional.empty();
         }
 
-        return Optional.of(new Finding(
-                FindingType.EXPIRY_ORDER,
-                Severity.WARN,
-                describe(event, lots),
-                targetOf(event.zoneId(), event.medicinePackageUnitId())));
-    }
+        Zone zone = zoneRepository.findById(event.zoneId()).orElse(null);
 
-    private String describe(StockInboundCompletedEvent event, List<StockLot> lots) {
-        String zoneName = zoneRepository.findById(event.zoneId())
-                .map(Zone::getName)
-                .orElseGet(() -> event.zoneId() + "구역");
-
-        String medicineName = medicinePackageUnitRepository.findById(event.medicinePackageUnitId())
-                .map(this::toMedicineName)
-                .orElse("해당 의약품");
+        if (zone == null) {
+            return Optional.empty();
+        }
 
         int total = lots.stream().mapToInt(StockLot::quantity).sum();
         StockLot earliest = lots.getFirst();
 
-        return "%s에 %s 재고 %d개가 남아 있습니다. 가장 빠른 유통기한은 %s(%s)로 이번 입고분 %s보다 앞섭니다. 이 재고를 먼저 출고하십시오."
-                .formatted(
-                        zoneName,
-                        medicineName,
-                        total,
-                        earliest.expirationDate().format(DATE_FORMAT),
-                        lotLabel(lots),
-                        event.expirationDate().format(DATE_FORMAT));
+        boolean alreadyExpired = earliest.expirationDate().isBefore(LocalDate.now());
+
+        return Optional.of(new Finding(
+                FindingType.EXPIRY_ORDER,
+                alreadyExpired ? Severity.CRITICAL : Severity.INFO,
+                medicineName(event.medicinePackageUnitId()),
+                "%s · %s · %d개".formatted(zone.getName(), lotLabel(lots), total),
+                explanation(earliest, alreadyExpired),
+                new TargetReference(TargetType.PACK_UNIT, zone.getStorage().getId(), event.medicinePackageUnitId())));
     }
 
-    private String toMedicineName(MedicinePackageUnit packageUnit) {
-        return "%s / %s".formatted(packageUnit.getMedicine().getProductName(), packageUnit.getPackUnit());
+    private String explanation(StockLot earliest, boolean alreadyExpired) {
+        String expiration = earliest.expirationDate().format(DATE_FORMAT);
+
+        if (alreadyExpired) {
+            return "%s에 만료된 재고가 남은 채로 입고되었습니다.".formatted(expiration);
+        }
+
+        return "%s 만료분이 남은 채로 입고되었습니다.".formatted(expiration);
+    }
+
+    private String medicineName(Long medicinePackageUnitId) {
+        return medicinePackageUnitRepository.findById(medicinePackageUnitId)
+                .map(unit -> "%s / %s".formatted(unit.getMedicine().getProductName(), unit.getPackUnit()))
+                .orElse("해당 의약품");
     }
 
     private String lotLabel(List<StockLot> lots) {
@@ -80,13 +89,5 @@ public class EarlierExpiryInboundRule implements InboundRule {
         return lots.stream()
                 .map(lot -> "로트 " + lot.lotNumber())
                 .collect(Collectors.joining(", "));
-    }
-
-    private TargetReference targetOf(Long zoneId, Long medicinePackageUnitId) {
-        Long storageId = zoneRepository.findById(zoneId)
-                .map(zone -> zone.getStorage().getId())
-                .orElse(null);
-
-        return new TargetReference(TargetType.PACK_UNIT, storageId, medicinePackageUnitId);
     }
 }

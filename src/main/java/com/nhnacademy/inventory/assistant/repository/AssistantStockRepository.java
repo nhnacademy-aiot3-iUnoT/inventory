@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.assistant.repository;
 
 import com.nhnacademy.inventory.assistant.dto.StockLot;
+import com.nhnacademy.inventory.assistant.dto.ZoneStock;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -9,10 +10,6 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
-/*
-    재고 리포지토리를 건드리지 않으려고 비서 전용 조회 인터페이스를 따로 둔다.
-    같은 엔티티에 리포지토리가 여럿이어도 문제되지 않는다.
- */
 public interface AssistantStockRepository extends Repository<MedicineInventory, Long> {
 
     @Query("""
@@ -43,5 +40,34 @@ public interface AssistantStockRepository extends Repository<MedicineInventory, 
             """)
     List<StockLot> findRemainingLots(
             @Param("zoneId") Long zoneId,
+            @Param("medicinePackageUnitId") Long medicinePackageUnitId);
+
+    @Query("""
+            SELECT new com.nhnacademy.inventory.assistant.dto.ZoneStock(
+                       z.id, z.name, SUM(i.currentQuantity), MIN(i.expirationDate))
+            FROM MedicineInventory i
+            JOIN i.zone z
+            WHERE z.storage.id = :storageId
+              AND z.id <> :excludedZoneId
+              AND i.medicinePackageUnit.id = :medicinePackageUnitId
+              AND i.currentQuantity > 0
+              AND i.managementStatus = com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus.NORMAL
+            GROUP BY z.id, z.name
+            ORDER BY MIN(i.expirationDate) ASC
+            """)
+    List<ZoneStock> findStockInOtherZones(
+            @Param("storageId") Long storageId,
+            @Param("excludedZoneId") Long excludedZoneId,
+            @Param("medicinePackageUnitId") Long medicinePackageUnitId);
+
+    @Query("""
+            SELECT COALESCE(SUM(i.currentQuantity), 0)
+            FROM MedicineInventory i
+            WHERE i.zone.storage.id = :storageId
+              AND i.medicinePackageUnit.id = :medicinePackageUnitId
+              AND i.managementStatus = com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus.NORMAL
+            """)
+    long sumStorageQuantity(
+            @Param("storageId") Long storageId,
             @Param("medicinePackageUnitId") Long medicinePackageUnitId);
 }

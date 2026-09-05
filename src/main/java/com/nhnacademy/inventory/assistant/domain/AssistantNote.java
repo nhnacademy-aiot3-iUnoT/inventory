@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.assistant.domain;
 
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.assistant.rule.FindingType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,6 +31,22 @@ public class AssistantNote {
     @Column(name = "severity", length = 20, nullable = false)
     private Severity severity;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "operation", length = 20, nullable = false)
+    private StockOperation operation;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "finding_type", length = 30)
+    private FindingType findingType;
+
+    @Column(name = "subject", length = 300, nullable = false)
+    private String subject;
+
+    @Column(name = "subject_detail", length = 300)
+    private String subjectDetail;
+
     @Column(name = "message", length = 1000, nullable = false)
     private String message;
 
@@ -50,10 +67,15 @@ public class AssistantNote {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    private AssistantNote(OrganizationMember organizationMember, Severity severity, String message,
+    private AssistantNote(OrganizationMember organizationMember, StockOperation operation, Severity severity, FindingType findingType,
+                          String subject, String subjectDetail, String message,
                           TargetType targetType, Long targetStorageId, Long targetId) {
         this.organizationMember = organizationMember;
+        this.operation = operation;
         this.severity = severity;
+        this.findingType = findingType;
+        this.subject = subject;
+        this.subjectDetail = subjectDetail;
         this.message = message;
         this.targetType = targetType;
         this.targetStorageId = targetStorageId;
@@ -62,9 +84,10 @@ public class AssistantNote {
         this.createdAt = LocalDateTime.now();
     }
 
-    public static AssistantNote of(OrganizationMember organizationMember, Severity severity, String message,
+    public static AssistantNote of(OrganizationMember organizationMember, StockOperation operation, Severity severity, FindingType findingType,
+                          String subject, String subjectDetail, String message,
                                    TargetType targetType, Long targetStorageId, Long targetId) {
-        return new AssistantNote(organizationMember, severity, message, targetType, targetStorageId, targetId);
+        return new AssistantNote(organizationMember, operation, severity, findingType, subject, subjectDetail, message, targetType, targetStorageId, targetId);
     }
 
     public void markRead() {

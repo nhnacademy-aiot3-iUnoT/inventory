@@ -1,10 +1,11 @@
 package com.nhnacademy.inventory.assistant.listener;
 
+import com.nhnacademy.inventory.assistant.domain.StockOperation;
 import com.nhnacademy.inventory.assistant.event.StockInboundCompletedEvent;
 import com.nhnacademy.inventory.assistant.event.StockOutboundCompletedEvent;
 import com.nhnacademy.inventory.assistant.rule.Finding;
-import com.nhnacademy.inventory.assistant.rule.InboundRule;
-import com.nhnacademy.inventory.assistant.rule.OutboundRule;
+import com.nhnacademy.inventory.assistant.rule.inbound.InboundRule;
+import com.nhnacademy.inventory.assistant.rule.outbound.OutboundRule;
 import com.nhnacademy.inventory.assistant.service.AssistantNoteService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.LongFunction;
 
 @Slf4j
 @Component
@@ -33,18 +35,18 @@ public class StockEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleInbound(StockInboundCompletedEvent event) {
-        handle(event.actorUuid(), "입고", organizationId ->
+        handle(event.actorUuid(), StockOperation.INBOUND, organizationId ->
                 evaluate(inboundRules, rule -> rule.evaluate(event, organizationId)));
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOutbound(StockOutboundCompletedEvent event) {
-        handle(event.actorUuid(), "출고", organizationId ->
+        handle(event.actorUuid(), StockOperation.OUTBOUND, organizationId ->
                 evaluate(outboundRules, rule -> rule.evaluate(event, organizationId)));
     }
 
-    private void handle(UUID actorUuid, String operation, Function<Long, List<Finding>> evaluator) {
+    private void handle(UUID actorUuid, StockOperation operation, LongFunction<List<Finding>> evaluator) {
         try {
             OrganizationMember member = organizationMemberRepository
                     .findByAccountUuid(actorUuid)
@@ -56,7 +58,7 @@ public class StockEventListener {
                 return;
             }
 
-            assistantNoteService.create(member, evaluator.apply(member.getOrganization().getId()));
+            assistantNoteService.create(member, operation, evaluator.apply(member.getOrganization().getId()));
         } catch (Exception e) {
             log.error("[Assistant] {} 알림 생성 실패. actorUuid={}", operation, actorUuid, e);
         }

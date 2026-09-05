@@ -1,8 +1,10 @@
 package com.nhnacademy.inventory.assistant.service;
 
 import com.nhnacademy.inventory.assistant.domain.AssistantNote;
+import com.nhnacademy.inventory.assistant.domain.StockOperation;
 import com.nhnacademy.inventory.assistant.repository.AssistantNoteRepository;
 import com.nhnacademy.inventory.assistant.rule.Finding;
+import com.nhnacademy.inventory.assistant.rule.FindingType;
 import com.nhnacademy.inventory.assistant.rule.TargetReference;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -23,25 +28,43 @@ public class AssistantNoteService {
     private final AssistantNoteRepository assistantNoteRepository;
     private final AssistantNarrator assistantNarrator;
 
-    // 여러 개의 판정 결과를 하나의 알림으로 묶기
     @Transactional
-    public void create(OrganizationMember member, List<Finding> findings) {
-        if (findings.isEmpty()) {
-            return;
+    public void create(OrganizationMember member, StockOperation operation, List<Finding> findings) {
+        groupByTarget(findings).forEach((target, group) -> save(member, operation, target, group));
+    }
+
+    private Map<TargetReference, List<Finding>> groupByTarget(List<Finding> findings) {
+        Map<TargetReference, List<Finding>> grouped = new LinkedHashMap<>();
+
+        for (Finding finding : findings) {
+            grouped.computeIfAbsent(finding.target(), key -> new ArrayList<>()).add(finding);
         }
 
-        String message = truncate(assistantNarrator.describe(findings));
+        return grouped;
+    }
+
+    private void save(OrganizationMember member, StockOperation operation,
+                      TargetReference target, List<Finding> findings) {
         Finding highest = highestSeverity(findings);
-        TargetReference target = highest.target();
 
         assistantNoteRepository.save(AssistantNote.of(
                 member,
+                operation,
                 highest.severity(),
-                message,
+                commonType(findings),
+                highest.subject(),
+                highest.detail(),
+                truncate(assistantNarrator.describe(findings)),
                 target == null ? null : target.type(),
                 target == null ? null : target.storageId(),
                 target == null ? null : target.targetId()));
+    }
 
+    // 종류가 섞이면 하나로 대표할 수 없으니 비워둔다.
+    private FindingType commonType(List<Finding> findings) {
+        return findings.stream().map(Finding::type).distinct().count() == 1
+                ? findings.getFirst().type()
+                : null;
     }
 
     private Finding highestSeverity(List<Finding> findings) {
