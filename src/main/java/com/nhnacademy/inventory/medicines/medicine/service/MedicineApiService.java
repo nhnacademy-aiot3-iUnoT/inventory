@@ -94,7 +94,6 @@ public class MedicineApiService {
 
 
         return result;
-
     }
 
 

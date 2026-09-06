@@ -2,7 +2,6 @@ package com.nhnacademy.inventory.inventories.inventory.repository;
 
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
-import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,6 +23,7 @@ public interface MedicineInventoryRepository extends JpaRepository<MedicineInven
             where mi.medicinePackageUnit.id = :medicinePackageUnitId
               and mi.zone.id = :zoneId
               and mi.managementStatus = :managementStatus
+              and mi.expirationDate >= CURRENT_DATE
               and mi.currentQuantity > 0
             """)
     long sumAvailableQuantity(
@@ -47,5 +47,5 @@ public interface MedicineInventoryRepository extends JpaRepository<MedicineInven
 
     long countByZone_StorageAndExpirationDateBetweenAndManagementStatusIn(Storage zoneStorage, LocalDate expirationDateAfter, LocalDate expirationDateBefore, Collection<ManagementStatus> managementStatuses);
 
-    List<MedicineInventory> findAllByZoneAndManagementStatus(Zone zone, ManagementStatus managementStatus);
+    List<MedicineInventory> findAllByZoneAndManagementStatusIn(Zone zone, Collection<ManagementStatus> managementStatuses);
 }

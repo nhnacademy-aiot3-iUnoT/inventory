@@ -89,6 +89,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 .where(
                         inventory.medicinePackageUnit.id.eq(medicinePackageUnitId),
                         inventory.zone.id.eq(zoneId),
+                        inventory.expirationDate.goe(LocalDate.now()),
                         inventory.managementStatus.eq(ManagementStatus.NORMAL),
                         inventory.currentQuantity.gt(0)
                 )
@@ -113,6 +114,17 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
         return Optional.ofNullable(content);
     }
 
+    @Override
+    public List<MedicineInventory> findAllByIdsForUpdate(
+            List<Long> inventoryIds
+    ) {
+        return queryFactory
+                .selectFrom(inventory)
+                .where(inventory.id.in(inventoryIds))
+                .orderBy(inventory.id.asc())
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                .fetch();
+    }
 
     @Override
     public Page<InventoriesResponse> findAllInventoriesByDepartmentIds(String search,Long storageId, List<Long> departmentIds, Pageable pageable) {
@@ -502,13 +514,14 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     }
 
     private BooleanExpression filterTypeEq(ExpiringSearchFilterType filterType, LocalDate today) {
+        LocalDate warningLimit = today.plusDays(7);
+
         if (filterType == ExpiringSearchFilterType.EXPIRED) {
             return inventory.expirationDate.lt(today);
         } else if (filterType == ExpiringSearchFilterType.WARNING) {
-            LocalDate warningLimit = today.plusDays(7);
             return inventory.expirationDate.goe(today).and(inventory.expirationDate.loe(warningLimit));
         }
-        return null;
+        return inventory.expirationDate.loe(warningLimit);
     }
 
     private OrderSpecifier<?> getOrderSpecifier(Pageable pageable){

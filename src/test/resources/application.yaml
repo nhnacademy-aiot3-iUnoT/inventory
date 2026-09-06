@@ -1,5 +1,11 @@
 # 임시 테스트 환경
 spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:}
+    port: ${RABBITMQ_PORT:}
+    username: ${RABBITMQ_USERNAME:}
+    password: ${RABBITMQ_PASSWORD:}
+
   test:
     database:
       replace: NONE
@@ -52,3 +58,4 @@ clients:
     base-url: ${ACCOUNT_BASE_URL:http://localhost:10413}
   rule-engine:
     base-url: ${RULE_ENGINE_BASE_URL:http://localhost:10406}
+

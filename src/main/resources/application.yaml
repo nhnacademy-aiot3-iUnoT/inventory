@@ -43,6 +43,13 @@ spring:
       password: ${REDIS_PASSWORD}
       database: ${REDIS_DATABASE:0}
 
+  # RabbitMQ Connection Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
   ai:
     google:
       genai:
@@ -81,3 +88,4 @@ security:
     key-id: account-key-001
     audiences:
       - inventory-api
+

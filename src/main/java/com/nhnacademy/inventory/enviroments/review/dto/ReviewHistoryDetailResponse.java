@@ -24,6 +24,7 @@ public record ReviewHistoryDetailResponse(
         String lotNumber,
         LocalDateTime createdAt,
         UUID reviewerId,
+        String reviewerName,
         Boolean isOut,
         Integer quantityAtReview,
         String memo,
@@ -34,7 +35,8 @@ public record ReviewHistoryDetailResponse(
     public static ReviewHistoryDetailResponse from(
             EnvironmentReview review,
             List<ReviewHistorySummaryResponse> inventoryReviewHistories,
-            List<EnvironmentEventItemResponse> environmentEvents
+            List<EnvironmentEventItemResponse> environmentEvents,
+            String reviewerName
     ){
         MedicineInventory medicineInventory = review.getMedicineInventory();
 
@@ -54,6 +56,7 @@ public record ReviewHistoryDetailResponse(
                 medicineInventory.getLotNumber(),
                 medicineInventory.getCreatedAt(),
                 review.getReviewerId(),
+                reviewerName,
                 review.getIsOut(),
                 review.getQuantityAtReview(),
                 review.getMemo(),

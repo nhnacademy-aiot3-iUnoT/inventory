@@ -55,4 +55,7 @@ public interface MedicineInventoryRepositoryCustom {
     );
 
     Optional<MedicineInventory> findByIdForUpdate(Long inventoryId);
+    List<MedicineInventory> findAllByIdsForUpdate(
+            List<Long> inventoryIds
+    );
 }

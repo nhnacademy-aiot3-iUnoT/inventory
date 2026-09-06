@@ -23,8 +23,11 @@ import com.nhnacademy.inventory.organizations.storage.repository.StorageReposito
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
+import com.nhnacademy.inventory.global.cache.CacheInvalidationEvent;
+import com.nhnacademy.inventory.global.cache.CacheNames;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +47,7 @@ public class StorageService {
     private final MemberDepartmentRepository memberDepartmentRepository;
     private final StoragePermissionRepository storagePermissionRepository;
     private final ZoneRepository zoneRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public StorageDetailResponse createStorage(StorageCreateRequest request){
@@ -191,6 +195,8 @@ public class StorageService {
             resetZoneEnvStatus(storage);
         }
 
+        invalidateZoneActivation(storage);
+
         return StorageDetailResponse.from(storage);
     }
 
@@ -201,6 +207,13 @@ public class StorageService {
         storage.close();
 
         resetZoneEnvStatus(storage);
+        invalidateZoneActivation(storage);
+    }
+
+    private void invalidateZoneActivation(Storage storage){
+        zoneRepository.findAllByStorageId(storage.getId())
+                .forEach(zone -> eventPublisher.publishEvent(
+                        CacheInvalidationEvent.of(CacheNames.ZONE_ACTIVATION, zone.getId())));
     }
 
     // 저장소가 비활성이면 소속 구역의 환경 판정도 멈추므로, 남아있던 경고 상태를 되돌린다.
@@ -291,20 +304,11 @@ public class StorageService {
         }
     }
 
-    public void checkStoragePermission(Long storageId){
+    public void checkStoragePermission(Long storageId) {
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS ||
-                member.getOrganizationRole() == OrganizationRole.ORG_OWNER){
-            return;
-        }
-
-        boolean hasPermission = storagePermissionRepository.hasStoragePermission(
-                UserContext.getUserUuid(), storageId
-        );
-
-        if(!hasPermission){
+        if (!getAccessibleStorageIds(member).contains(storageId)) {
             throw new ForbiddenException();
         }
     }
