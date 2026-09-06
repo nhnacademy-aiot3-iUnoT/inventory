@@ -2,7 +2,7 @@ package com.nhnacademy.inventory.assistant.rule.outbound;
 
 import com.nhnacademy.inventory.assistant.domain.Severity;
 import com.nhnacademy.inventory.assistant.domain.TargetType;
-import com.nhnacademy.inventory.assistant.event.StockOutboundCompletedEvent;
+import com.nhnacademy.inventory.assistant.event.StockOutboundInspectionEvent;
 import com.nhnacademy.inventory.assistant.repository.AssistantStockRepository;
 import com.nhnacademy.inventory.assistant.rule.Finding;
 import com.nhnacademy.inventory.assistant.rule.FindingType;
@@ -34,7 +34,7 @@ public class LowStockOutboundRule implements OutboundRule {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Finding> evaluate(StockOutboundCompletedEvent event, Long organizationId) {
+    public Optional<Finding> evaluate(StockOutboundInspectionEvent event, Long organizationId) {
         Zone zone = zoneRepository.findById(event.zoneId()).orElse(null);
         MedicinePackageUnit packUnit = medicinePackageUnitRepository
                 .findById(event.medicinePackageUnitId())

@@ -2,7 +2,7 @@ package com.nhnacademy.inventory.assistant.event;
 
 import java.util.UUID;
 
-public record StockOutboundCompletedEvent(
+public record StockOutboundInspectionEvent(
         UUID actorUuid,
         Long zoneId,
         Long medicinePackageUnitId,

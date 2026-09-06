@@ -6,7 +6,7 @@ import com.nhnacademy.inventory.assistant.rule.FindingType;
 import com.nhnacademy.inventory.assistant.rule.TargetReference;
 import com.nhnacademy.inventory.assistant.domain.TargetType;
 import com.nhnacademy.inventory.assistant.dto.StockLot;
-import com.nhnacademy.inventory.assistant.event.StockOutboundCompletedEvent;
+import com.nhnacademy.inventory.assistant.event.StockOutboundInspectionEvent;
 import com.nhnacademy.inventory.assistant.repository.AssistantStockRepository;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
@@ -38,7 +38,7 @@ public class ExpiringRemainderOutboundRule implements OutboundRule {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Finding> evaluate(StockOutboundCompletedEvent event, Long organizationId) {
+    public Optional<Finding> evaluate(StockOutboundInspectionEvent event, Long organizationId) {
         List<StockLot> remaining = assistantStockRepository
                 .findRemainingLots(event.zoneId(), event.medicinePackageUnitId());
 

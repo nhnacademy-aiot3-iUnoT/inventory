@@ -2,7 +2,7 @@ package com.nhnacademy.inventory.assistant.listener;
 
 import com.nhnacademy.inventory.assistant.domain.StockOperation;
 import com.nhnacademy.inventory.assistant.event.StockInboundCompletedEvent;
-import com.nhnacademy.inventory.assistant.event.StockOutboundCompletedEvent;
+import com.nhnacademy.inventory.assistant.event.StockOutboundInspectionEvent;
 import com.nhnacademy.inventory.assistant.rule.Finding;
 import com.nhnacademy.inventory.assistant.rule.inbound.InboundRule;
 import com.nhnacademy.inventory.assistant.rule.outbound.OutboundRule;
@@ -42,7 +42,7 @@ public class StockEventListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleOutbound(StockOutboundCompletedEvent event) {
+    public void handleOutbound(StockOutboundInspectionEvent event) {
         handle(event.actorUuid(), StockOperation.OUTBOUND, organizationId ->
                 evaluate(outboundRules, rule -> rule.evaluate(event, organizationId)));
     }

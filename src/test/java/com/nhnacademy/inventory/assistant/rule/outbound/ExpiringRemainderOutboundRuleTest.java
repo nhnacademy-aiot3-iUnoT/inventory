@@ -2,7 +2,7 @@ package com.nhnacademy.inventory.assistant.rule.outbound;
 
 import com.nhnacademy.inventory.assistant.domain.Severity;
 import com.nhnacademy.inventory.assistant.dto.StockLot;
-import com.nhnacademy.inventory.assistant.event.StockOutboundCompletedEvent;
+import com.nhnacademy.inventory.assistant.event.StockOutboundInspectionEvent;
 import com.nhnacademy.inventory.assistant.repository.AssistantStockRepository;
 import com.nhnacademy.inventory.assistant.rule.Finding;
 import com.nhnacademy.inventory.assistant.rule.FindingType;
@@ -163,7 +163,7 @@ class ExpiringRemainderOutboundRuleTest {
         return new StockLot(LocalDate.now().plusDays(daysLeft), "LOT-" + daysLeft, 10);
     }
 
-    private StockOutboundCompletedEvent event() {
-        return new StockOutboundCompletedEvent(UUID.randomUUID(), ZONE_ID, PACK_UNIT_ID, 5);
+    private StockOutboundInspectionEvent event() {
+        return new StockOutboundInspectionEvent(UUID.randomUUID(), ZONE_ID, PACK_UNIT_ID, 5);
     }
 }
