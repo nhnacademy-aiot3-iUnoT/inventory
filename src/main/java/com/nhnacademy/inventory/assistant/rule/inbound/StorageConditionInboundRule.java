@@ -23,12 +23,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/*
-    입고한 구역의 환경 기준이 그 의약품의 보관 기준을 벗어날 수 있는지 확인
-
-    환경이 실제로 이탈한 뒤 재고를 검토하는 기능(EnvironmentReview)과 달리
-    넣는 시점에 구역 선택 자체가 맞는지 본다.
- */
+// 입고한 구역의 환경 기준이 의약품 보관 기준을 벗어날 수 있는지 확인함 (EnvironmentReview 는 이탈 후 검토)
 @Component
 @RequiredArgsConstructor
 public class StorageConditionInboundRule implements InboundRule {
@@ -77,13 +72,7 @@ public class StorageConditionInboundRule implements InboundRule {
                 new TargetReference(TargetType.ZONE, zone.getStorage().getId(), zone.getId())));
     }
 
-    /**
-     * 구역이 의약품 기준보다 더 넓게 허용하는 경우만 문제 삼는다.
-     * <p>
-     * 냉장 구역에 실온 의약품을 넣는 것은 낭비일 뿐 사고가 아니지만,
-     * 실온 구역에 냉장 의약품을 넣으면 약효가 손상된다. 물리적인 보관 환경이 기준이므로
-     * 구역이 더 좁게 관리되는 것은 경고하지 않는다.
-     */
+    // 구역이 의약품 기준보다 더 넓게 허용할 때만 경고함 (구역이 더 좁은 것은 낭비일 뿐 사고가 아님)
     private List<String> breaches(List<EnvRange> medicineRanges, Map<String, EnvRange> zoneRanges) {
         List<String> breaches = new ArrayList<>();
 
@@ -96,7 +85,7 @@ public class StorageConditionInboundRule implements InboundRule {
 
             String label = TYPE_LABEL.getOrDefault(medicine.environmentType(), medicine.environmentType());
 
-            // 구역 기준이 null 이면 설정하지 않은 것이므로 판단하지 않는다. 제한 없음이 아니다.
+            // null 은 제한 없음이 아니라 미설정이므로 판단하지 않음
             if (exceeds(zone.max(), medicine.max())) {
                 breaches.add("%s 상한 %s > 기준 %s".formatted(label, plain(zone.max()), plain(medicine.max())));
             }
@@ -117,7 +106,7 @@ public class StorageConditionInboundRule implements InboundRule {
         return zoneMin != null && medicineMin != null && zoneMin.compareTo(medicineMin) < 0;
     }
 
-    // 8.00 대신 8 로 보여준다.
+    // 8.00 대신 8 로 표시
     private String plain(BigDecimal value) {
         return value.stripTrailingZeros().toPlainString();
     }

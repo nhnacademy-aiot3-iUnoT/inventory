@@ -142,7 +142,7 @@ class AssistantNoteServiceTest {
     @Test
     @DisplayName("의약품명이 길어도 컬럼 길이에 맞춰 잘라 저장한다.")
     void create_TruncatesOverlongSubject() {
-        // productName 은 500자, packUnit 은 200자까지 허용되는데 subject 컬럼은 300자다.
+        // productName 은 500자까지 허용되는데 subject 컬럼은 300자임
         String longName = "가".repeat(400);
 
         service.create(member, StockOperation.INBOUND, List.of(

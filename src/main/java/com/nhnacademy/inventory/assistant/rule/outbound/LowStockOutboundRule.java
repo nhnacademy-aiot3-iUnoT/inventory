@@ -20,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-/*
-    출고 후 저장소 전체 재고가 사용자가 설정한 임계값 아래로 내려갔는지 확인
- */
+// 출고 후 저장소 전체 재고가 임계값 아래로 내려갔는지 확인함
 @Component
 @RequiredArgsConstructor
 public class LowStockOutboundRule implements OutboundRule {
@@ -49,7 +47,7 @@ public class LowStockOutboundRule implements OutboundRule {
                 .findByStorageAndMedicinePackageUnit(storage, packUnit)
                 .orElse(null);
 
-        // 임계값이 존재하지 않으면 알리지 않음
+        // 임계값이 없으면 알리지 않음
         if (threshold == null || !threshold.getIsActive()) {
             return Optional.empty();
         }

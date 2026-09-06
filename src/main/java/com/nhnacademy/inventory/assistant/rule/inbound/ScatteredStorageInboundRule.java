@@ -18,9 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-/*
-    같은 저장소의 다른 구역에도 같은 품목이 있는지 확인
- */
+// 같은 저장소의 다른 구역에도 같은 품목이 있는지 확인함
 @Component
 @RequiredArgsConstructor
 public class ScatteredStorageInboundRule implements InboundRule {

@@ -20,11 +20,7 @@ public interface AssistantNoteRepository extends JpaRepository<AssistantNote, Lo
 
     Optional<AssistantNote> findByIdAndOrganizationMemberAccountUuid(Long id, UUID accountUuid);
 
-    /**
-     * 같은 작업으로 같은 대상에 대해 최근에 남긴 알림이 있는지 확인한다.
-     * <p>
-     * 같은 품목을 연달아 입고하면 같은 판정이 반복되는데, 사용자에게는 이미 본 알림이 또 쌓이는 것으로만 보인다.
-     */
+    // 같은 작업, 같은 대상으로 최근에 남긴 알림이 있는지 확인함 (중복 억제용)
     boolean existsByOrganizationMemberIdAndOperationAndTargetTypeAndTargetStorageIdAndTargetIdAndCreatedAtAfter(
             Long organizationMemberId,
             StockOperation operation,

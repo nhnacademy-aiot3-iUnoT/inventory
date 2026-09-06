@@ -29,10 +29,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-/**
- * 심각도 경계가 -1 / 0 / 7 / 30 네 군데라 하나만 어긋나도 조용히 틀린 알림이 나간다.
- * 경계마다 값을 하나씩 확인한다.
- */
+// 심각도 경계가 -1 / 0 / 7 / 30 네 군데라 경계마다 값을 하나씩 확인함
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ExpiringRemainderOutboundRuleTest {
@@ -131,7 +128,7 @@ class ExpiringRemainderOutboundRuleTest {
     @Test
     @DisplayName("유통기한이 가장 빠른 로트를 기준으로 판정한다.")
     void evaluate_UsesEarliestLot() {
-        // 리포지토리가 유통기한 오름차순으로 돌려주므로 첫 번째가 기준이 된다.
+        // 리포지토리가 유통기한 오름차순으로 돌려주므로 첫 번째가 기준임
         given(assistantStockRepository.findRemainingLots(ZONE_ID, PACK_UNIT_ID))
                 .willReturn(List.of(lot(3), lot(60)));
 

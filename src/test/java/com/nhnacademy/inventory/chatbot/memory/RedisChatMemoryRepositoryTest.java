@@ -121,7 +121,7 @@ class RedisChatMemoryRepositoryTest {
 
         Long ttlSeconds = redisTemplate.getExpire(KEY);
 
-        // 만료가 없으면 -1, 키가 없으면 -2를 돌려준다.
+        // 만료가 없으면 -1, 키가 없으면 -2를 돌려줌
         assertThat(ttlSeconds)
                 .isNotNull().
                 isPositive()

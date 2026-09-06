@@ -21,9 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-/*
-    출고하고 남은 재고 중 가장 빨리 만료되는 로트를 확인
- */
+// 출고하고 남은 재고 중 가장 빨리 만료되는 로트를 확인함
 @Component
 @RequiredArgsConstructor
 public class ExpiringRemainderOutboundRule implements OutboundRule {

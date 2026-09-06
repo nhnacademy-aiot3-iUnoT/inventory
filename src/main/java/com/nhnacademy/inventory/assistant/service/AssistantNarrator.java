@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Service
 public class AssistantNarrator {
 
-    // 엮을 사실이 둘 이상일 때만 LLM 을 쓴다.
+    // 엮을 사실이 둘 이상일 때만 LLM 을 씀
     private static final int LLM_THRESHOLD = 2;
 
     private static final String PROMPT = """
@@ -38,7 +38,7 @@ public class AssistantNarrator {
     public String describe(List<Finding> findings) {
         String explanations = explanations(findings);
 
-        // 사항이 하나면 규칙이 만든 문장이 이미 완결돼 있다.
+        // 하나면 규칙이 만든 문장이 이미 완결돼 있음
         if (findings.size() < LLM_THRESHOLD) {
             return explanations;
         }

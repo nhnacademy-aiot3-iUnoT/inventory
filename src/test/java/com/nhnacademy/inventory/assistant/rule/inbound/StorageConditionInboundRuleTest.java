@@ -87,7 +87,7 @@ class StorageConditionInboundRuleTest {
     @Test
     @DisplayName("구역이 더 좁게 관리되면 경고하지 않는다.")
     void evaluate_WhenZoneIsStricter_ReturnsEmpty() {
-        // 실온 의약품(1~30)을 냉장 구역(2~8)에 넣은 상황. 낭비일 뿐 사고는 아니다.
+        // 실온 의약품(1~30)을 냉장 구역(2~8)에 넣은 상황. 낭비일 뿐 사고는 아님
         givenRanges(range("TEMPERATURE", "1", "30"), range("TEMPERATURE", "2", "8"));
 
         assertThat(rule.evaluate(inboundEvent(), ORGANIZATION_ID)).isEmpty();
@@ -115,7 +115,7 @@ class StorageConditionInboundRuleTest {
     @Test
     @DisplayName("구역 기준이 설정되지 않은 항목은 판단하지 않는다.")
     void evaluate_WhenZoneThresholdIsNull_ReturnsEmpty() {
-        // null 은 제한 없음이 아니라 미설정이다.
+        // null 은 제한 없음이 아니라 미설정임
         givenRanges(range("TEMPERATURE", "2", "8"), new EnvRange("TEMPERATURE", null, null));
 
         assertThat(rule.evaluate(inboundEvent(), ORGANIZATION_ID)).isEmpty();

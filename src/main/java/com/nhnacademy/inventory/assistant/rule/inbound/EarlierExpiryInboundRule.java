@@ -21,9 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/*
-    방금 입고한 것보다 먼저 만료되는 같은 의약품이 같은 구역에 남아 있는지 확인
- */
+// 방금 입고한 것보다 먼저 만료되는 같은 의약품이 같은 구역에 남아 있는지 확인함
 @Component
 @RequiredArgsConstructor
 public class EarlierExpiryInboundRule implements InboundRule {

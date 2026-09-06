@@ -28,7 +28,7 @@ public class AssistantNoteService {
     private static final int DETAIL_MAX_LENGTH = 300;
     private static final int MESSAGE_MAX_LENGTH = 1000;
 
-    // 같은 작업으로 같은 대상에 대해 이 시간 안에 남긴 알림이 있으면 다시 만들지 않는다.
+    // 이 시간 안에 같은 대상으로 남긴 알림이 있으면 다시 만들지 않음
     private static final Duration DUPLICATE_WINDOW = Duration.ofMinutes(10);
 
     private final AssistantNoteRepository assistantNoteRepository;
@@ -48,9 +48,7 @@ public class AssistantNoteService {
         return grouped;
     }
 
-    /**
-     * 대상을 알 수 없는 알림은 중복을 판단할 기준이 없어 그대로 저장한다.
-     */
+    // 대상을 알 수 없으면 비교할 기준이 없어 중복으로 보지 않음
     private boolean isDuplicate(OrganizationMember member, StockOperation operation, TargetReference target) {
         if (target == null || target.type() == null || target.storageId() == null || target.targetId() == null) {
             return false;
@@ -83,7 +81,7 @@ public class AssistantNoteService {
                 target == null ? null : target.targetId()));
     }
 
-    // 종류가 섞이면 하나로 대표할 수 없으니 비워둔다.
+    // 종류가 섞이면 대표할 수 없어 비워둠
     private FindingType commonType(List<Finding> findings) {
         return findings.stream().map(Finding::type).distinct().count() == 1
                 ? findings.getFirst().type()
@@ -96,7 +94,7 @@ public class AssistantNoteService {
                 .orElseThrow();
     }
 
-    // 컬럼 길이를 넘으면 저장에 실패해 알림이 통째로 사라지므로 잘라서라도 남긴다.
+    // 컬럼 길이를 넘기면 저장이 실패해 알림이 사라지므로 잘라서라도 남김
     private String truncate(String value, int maxLength) {
         if (value == null || value.length() <= maxLength) {
             return value;
