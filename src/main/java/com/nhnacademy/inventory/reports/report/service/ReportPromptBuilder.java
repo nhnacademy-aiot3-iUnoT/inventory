@@ -176,6 +176,10 @@ public class ReportPromptBuilder {
     }
 
     private String formatOutOfRange(ReportEnvironmentSummary summary) {
+        if (!summary.hasThreshold()) {
+            return "판단 불가";
+        }
+
         if (!summary.hasOutOfRange()) {
             return "이탈 없음";
         }
