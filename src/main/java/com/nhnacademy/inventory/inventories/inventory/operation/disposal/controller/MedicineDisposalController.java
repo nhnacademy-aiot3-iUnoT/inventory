@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.disposal.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
+import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.ExpiredInventoryDisposalRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalTargetResponse;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.service.MedicineDisposalService;
@@ -37,6 +38,17 @@ public class MedicineDisposalController {
             @Valid @RequestBody MedicineDisposalRequest request
     ) {
         medicineDisposalService.dispose(inventoryId, request);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/expired-disposals")
+    public ResponseEntity<Void> disposeExpiredInventories(
+            @Valid
+            @RequestBody
+            ExpiredInventoryDisposalRequest request
+    ) {
+        medicineDisposalService.disposeExpiredInventories(request);
 
         return ResponseEntity.noContent().build();
     }

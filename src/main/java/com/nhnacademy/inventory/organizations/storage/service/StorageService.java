@@ -316,20 +316,11 @@ public class StorageService {
         }
     }
 
-    public void checkStoragePermission(Long storageId){
+    public void checkStoragePermission(Long storageId) {
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS ||
-                member.getOrganizationRole() == OrganizationRole.ORG_OWNER){
-            return;
-        }
-
-        boolean hasPermission = storagePermissionRepository.hasStoragePermission(
-                UserContext.getUserUuid(), storageId
-        );
-
-        if(!hasPermission){
+        if (!getAccessibleStorageIds(member).contains(storageId)) {
             throw new ForbiddenException();
         }
     }

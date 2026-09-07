@@ -30,7 +30,8 @@ public enum InventoryErrorCode implements ErrorCode {
     // 출고 에러코드
     INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "OD001", "출고 가능 재고가 부족합니다."),
     INVALID_OUTBOUND_TYPE(HttpStatus.BAD_REQUEST, "OD002", "출고 처리에 사용할 수 없는 유형입니다."),
-    DISPOSAL_NOT_FOUND(HttpStatus.NOT_FOUND, "OD003", "폐기할 재고를 찾을 수 없습니다.");
+    DISPOSAL_NOT_FOUND(HttpStatus.NOT_FOUND, "OD003", "폐기할 재고를 찾을 수 없습니다."),
+    INVALID_EXPIRED_DISPOSAL_TARGET(HttpStatus.CONFLICT, "OD004", "유통기한 경과 상태이며 수량이 남아 있는 재고만 선택 폐기할 수 있습니다.");
 
     private final HttpStatus status;
     private final String code;
