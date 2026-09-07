@@ -37,7 +37,7 @@ public class ExpirationAlertScheduler {
     private final OrganizationMemberRepository memberRepository;
     private final AlertService alertService;
 
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     @SchedulerLock(
             name = "checkExpirationAndCreateAlert",
             lockAtLeastFor = "PT5M",
