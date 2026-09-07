@@ -3,25 +3,21 @@ package com.nhnacademy.inventory.inventories.inventory.operation.outbound.servic
 import com.nhnacademy.inventory.assistant.event.StockOutboundInspectionEvent;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.alert.event.StockOutboundCompletedEvent;
-import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
+import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.inventories.inventory.exception.InsufficientStockException;
 import com.nhnacademy.inventory.inventories.inventory.exception.InventoryNotFoundException;
 import com.nhnacademy.inventory.inventories.inventory.operation.InventoryOperationAccessValidator;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.domain.OutboundOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundTargetResponse;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
-import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
-import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitNotFoundException;
-import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
-import com.nhnacademy.inventory.organizations.zone.domain.Zone;
-import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundException;
-import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -30,72 +26,48 @@ import java.util.List;
 public class MedicineOutboundService {
 
     private final MedicineInventoryRepository medicineInventoryRepository;
-    private final MedicinePackageUnitRepository medicinePackageUnitRepository;
     private final InventoryOperationAccessValidator accessValidator;
-    private final ZoneRepository zoneRepository;
     private final OutboundOperation outboundOperation;
     private final ApplicationEventPublisher eventPublisher;
 
-    public MedicineOutboundTargetResponse getOutboundTarget(
-            Long inventoryId
-    ) {
-        MedicineInventory selectedInventory =
-                medicineInventoryRepository.findById(inventoryId)
-                        .orElseThrow(InventoryNotFoundException::new);
+    public MedicineOutboundTargetResponse getOutboundTarget(Long inventoryId) {
+        MedicineInventory inventory = medicineInventoryRepository
+                .findById(inventoryId)
+                .orElseThrow(InventoryNotFoundException::new);
 
-        accessValidator.validate(
-                selectedInventory.getZone().getStorage(),
-                selectedInventory.getMedicinePackageUnit().getMedicine()
-        );
-
-        Long medicinePackageUnitId =
-                selectedInventory.getMedicinePackageUnit().getId();
-
-        Long zoneId = selectedInventory.getZone().getId();
-
-        int availableQuantity = Math.toIntExact(
-                medicineInventoryRepository.sumAvailableQuantity(
-                        medicinePackageUnitId,
-                        zoneId,
-                        ManagementStatus.NORMAL
-                )
-        );
+        validateAccess(inventory);
 
         return MedicineOutboundTargetResponse.from(
-                selectedInventory,
-                availableQuantity
+                inventory,
+                getAvailableQuantity(inventory)
         );
     }
 
     @Transactional
-    public void outbound(MedicineOutboundRequest request) {
-        Zone zone = zoneRepository.findById(request.zoneId())
-                .orElseThrow(ZoneNotFoundException::new);
+    public void outbound(Long inventoryId, MedicineOutboundRequest request) {
+        MedicineInventory inventory = medicineInventoryRepository
+                .findByIdForUpdate(inventoryId)
+                .orElseThrow(InventoryNotFoundException::new);
 
-        MedicinePackageUnit medicinePackageUnit =
-                medicinePackageUnitRepository.findById(request.medicinePackageUnitId())
-                        .orElseThrow(PackUnitNotFoundException::new);
+        validateAccess(inventory);
 
-        accessValidator.validate(
-                zone.getStorage(),
-                medicinePackageUnit.getMedicine()
-        );
+        int availableQuantity = getAvailableQuantity(inventory);
 
-        List<MedicineInventory> inventories =
-                medicineInventoryRepository.findOutboundInventories(
-                        request.medicinePackageUnitId(),
-                        request.zoneId()
-                );
+        if (request.quantity() == null
+                || request.quantity() <= 0
+                || request.quantity() > availableQuantity) {
+            throw new InsufficientStockException();
+        }
 
         outboundOperation.process(
-                zone,
-                inventories,
+                inventory.getZone(),
+                List.of(inventory),
                 request
         );
 
         eventPublisher.publishEvent(new StockOutboundCompletedEvent(
-                request.zoneId(),
-                request.medicinePackageUnitId()
+                inventory.getZone().getId(),
+                inventory.getMedicinePackageUnit().getId()
         ));
 
         eventPublisher.publishEvent(new StockOutboundInspectionEvent(
@@ -104,5 +76,22 @@ public class MedicineOutboundService {
                 request.medicinePackageUnitId(),
                 request.quantity()
         ));
+    }
+
+    private void validateAccess(MedicineInventory inventory) {
+        accessValidator.validate(
+                inventory.getZone().getStorage(),
+                inventory.getMedicinePackageUnit().getMedicine()
+        );
+    }
+
+    private int getAvailableQuantity(MedicineInventory inventory) {
+        if (inventory.getManagementStatus() != ManagementStatus.NORMAL
+                || inventory.getExpirationDate().isBefore(LocalDate.now())
+                || inventory.getCurrentQuantity() <= 0) {
+            return 0;
+        }
+
+        return inventory.getCurrentQuantity();
     }
 }
