@@ -1,6 +1,8 @@
 package com.nhnacademy.inventory.chatbot.service;
 
 import com.nhnacademy.inventory.chatbot.dto.response.ChatResponse;
+import com.nhnacademy.inventory.chatbot.tool.ReorderSuggestionTool;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.chatbot.tool.ExpiringInventoryTool;
 import com.nhnacademy.inventory.chatbot.tool.LowStockInventoryTool;
 import com.nhnacademy.inventory.chatbot.tool.MedicineInboundTool;
@@ -46,6 +48,16 @@ public class ChatbotService {
         message에 medicinePackageUnitId 또는 zoneId가 포함된 후보가 있으면 후보 식별 ID를 함께 안내하세요.
         사용자가 후보를 선택하면 해당 ID를 다음 registerMedicineInbound 호출에 포함하세요.
         success가 true이면 Tool 결과에 포함된 처리 내역만 안내하세요.
+          
+        getReorderSuggestion 결과:
+        analyzedWeeks 기준으로 분석했다고 먼저 알리고,
+        의약품명, 포장단위, 위치, 권장 발주 수량, 현재 수량, 주간 평균 출고량을 안내하세요.
+        daysUntilStockout이 있으면 예상 소진 일수를 함께 알리고, 값이 작은 것부터 안내하세요.
+        expiringSoonQuantity가 0보다 크면 유통기한 임박 수량이 가용 재고에서 제외됐음을 알리세요.
+        threshold가 null이면 최소재고 미설정으로 안내하세요.
+        adjustmentApplied가 true이면 폐기율(disposalRate)을 반영해 수량을 줄였다고 알리세요.
+        items가 비어 있으면 다음 주에 발주가 필요한 의약품이 없다고 안내하세요.
+        결과는 최대 10건까지만 제공됩니다.
         """;
 
     private final ChatClient chatClient;
@@ -56,6 +68,7 @@ public class ChatbotService {
             MedicineInventorySearchTool medicineInventorySearchTool,
             ExpiringInventoryTool expiringInventoryTool,
             LowStockInventoryTool lowStockInventoryTool,
+            ReorderSuggestionTool reorderSuggestionTool,
             MedicineInboundTool medicineInboundTool,
             MedicineOutboundTool medicineOutboundTool
     ) {
@@ -66,7 +79,8 @@ public class ChatbotService {
                         expiringInventoryTool,
                         lowStockInventoryTool,
                         medicineInboundTool,
-                        medicineOutboundTool
+                        medicineOutboundTool,
+                        reorderSuggestionTool
                 )
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();

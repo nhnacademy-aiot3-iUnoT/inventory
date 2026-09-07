@@ -53,7 +53,19 @@ public enum OrganizationErrorCode implements ErrorCode {
 
     // 부서 에러코드
     DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "부서를 찾을 수 없습니다."),
-    DEPARTMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "D002", "이미 존재하는 부서 입니다.");
+    DEPARTMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "D002", "이미 존재하는 부서 입니다."),
+
+    // 알림설정 에러코드
+    NOTIFICATION_PREFERENCE_NOT_FOUND(HttpStatus.NOT_FOUND, "NP001", "알림 설정을 찾을 수 없습니다."),
+    NOTIFICATION_PREFERENCE_ALREADY_EXISTS(HttpStatus.CONFLICT, "NP002", "이미 존재하는 알림 설정입니다."),
+    NOTIFICATION_PREFERENCE_INVALID_SCOPE(HttpStatus.BAD_REQUEST, "NP003", "알림 설정 범위가 올바르지 않습니다."),
+    NOTIFICATION_RECIPIENT_REQUIRED(HttpStatus.BAD_REQUEST, "NP004", "알림 수신자 정보가 필요합니다"),
+
+    // 부서 단톡방 에러코드
+    DEPARTMENT_TELEGRAM_CHAT_NOT_FOUND(HttpStatus.NOT_FOUND, "DT001", "부서에 연결된 단톡방이 없습니다."),
+    DEPARTMENT_TELEGRAM_CHAT_ALREADY_LINKED(HttpStatus.CONFLICT, "DT002", "이미 다른 부서에 연결된 단톡방입니다.");
+
+
 
 
 
