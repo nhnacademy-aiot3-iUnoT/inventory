@@ -27,6 +27,14 @@ public enum InventoryErrorCode implements ErrorCode {
     INVENTORY_NOT_FOUND(HttpStatus.NOT_FOUND,"ZP001","해당하는 의약품이 존재하지 않습니다."),
 
 
+    // 유통기한
+    INVENTORY_EXPIRATION_DATE_MISMATCH(HttpStatus.BAD_REQUEST,"EX001","동일 제조번호의 유통기한이 기존 재고와 다릅니다."),
+
+    // 재고변동내역
+    TRANSACTION_TYPE_INVALID(HttpStatus.BAD_REQUEST,"T001","입고 처리에 사용할 수 없는 유형입니다."),
+
+
+
     // 출고 에러코드
     INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "OD001", "출고 가능 재고가 부족합니다."),
     INVALID_OUTBOUND_TYPE(HttpStatus.BAD_REQUEST, "OD002", "출고 처리에 사용할 수 없는 유형입니다."),

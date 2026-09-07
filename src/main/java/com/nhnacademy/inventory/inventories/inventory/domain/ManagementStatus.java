@@ -4,5 +4,11 @@ public enum ManagementStatus {
     NORMAL,
     UNDER_REVIEW,
     DEPLETED,
+<<<<<<< Updated upstream
     DISPOSAL
+=======
+    DISPOSAL,
+
+
+>>>>>>> Stashed changes
 }
