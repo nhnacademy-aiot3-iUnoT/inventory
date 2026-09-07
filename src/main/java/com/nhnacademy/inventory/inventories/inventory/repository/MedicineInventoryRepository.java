@@ -37,7 +37,7 @@ public interface MedicineInventoryRepository extends JpaRepository<MedicineInven
             select coalesce(sum(mi.currentQuantity),0)
             from MedicineInventory mi
             where mi.zone in (:zones)
-                        and mi.medicinePackageUnit = :packUnitId
+                        and mi.medicinePackageUnit.id = :packUnitId
             group by mi.zone,mi.medicinePackageUnit
             """)
     Long findByZoneAndPackUnitSum(@Param("zones")List<Zone> zones,@Param("packUnitId") Long packUnitId);
