@@ -74,7 +74,6 @@ class MedicineOutboundServiceTest {
                 packageUnit, zone, "earlier-lot",
                 LocalDate.now().plusDays(10), 20
         );
-
         when(repository.findByIdForUpdate(75L))
                 .thenReturn(Optional.of(selected));
         when(repository.findById(75L))

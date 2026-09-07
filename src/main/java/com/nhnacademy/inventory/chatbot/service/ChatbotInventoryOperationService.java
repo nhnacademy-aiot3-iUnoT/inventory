@@ -82,32 +82,30 @@ public class ChatbotInventoryOperationService {
         }
 
         try {
-            OperationTarget target = resolveTarget(
-                    null,
-                    request.medicineName(),
-                    request.packUnit(),
-                    null,
-                    request.storageName(),
-                    request.zoneName(),
-                    false
+            var target = outboundService.getOutboundTarget(
+                    request.inventoryId()
             );
-            outboundService.outbound(new MedicineOutboundRequest(
-                    target.packageUnit().packageUnitId(),
-                    request.quantity(),
-                    target.zone().zoneId(),
-                    request.reason(),
-                    trimToNull(request.memo())
-            ));
+
+            outboundService.outbound(
+                    request.inventoryId(),
+                    new MedicineOutboundRequest(
+                            target.medicinePackageUnitId(),
+                            request.quantity(),
+                            target.zoneId(),
+                            request.reason(),
+                            trimToNull(request.memo())
+                    )
+            );
 
             return OutboundToolResponse.success(
-                    target.packageUnit().medicineName(),
-                    target.packageUnit().packUnit(),
-                    target.zone().storageName(),
-                    target.zone().zoneName(),
+                    target.productName(),
+                    target.packUnit(),
+                    target.storageName(),
+                    target.zoneName(),
                     request.quantity(),
                     request.reason()
             );
-        } catch (TargetResolutionException | BaseException e) {
+        } catch (BaseException e) {
             return OutboundToolResponse.failure(e.getMessage());
         }
     }

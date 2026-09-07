@@ -72,8 +72,8 @@ public class MedicineOutboundService {
 
         eventPublisher.publishEvent(new StockOutboundInspectionEvent(
                 UserContext.getUserUuid(),
-                zone.getId(),
-                request.medicinePackageUnitId(),
+                inventory.getZone().getId(),
+                inventory.getMedicinePackageUnit().getId(),
                 request.quantity()
         ));
     }

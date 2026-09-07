@@ -1,5 +1,8 @@
 package com.nhnacademy.inventory.chatbot.dto.response;
 
+import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
+
+import java.time.LocalDate;
 import java.util.List;
 
 public record SearchMedicineInventoryResponse(
@@ -15,6 +18,10 @@ public record SearchMedicineInventoryResponse(
     public record Location(
             String storageName,
             String zoneName,
-            int quantity
+            int quantity,
+            Long inventoryId,
+            String lotNumber,
+            LocalDate expirationDate,
+            ManagementStatus managementStatus
     ) {}
 }
