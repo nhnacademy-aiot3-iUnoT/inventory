@@ -2,10 +2,12 @@ package com.nhnacademy.inventory.telegram.service;
 
 import com.nhnacademy.inventory.telegram.client.TelegramApiClient;
 import com.nhnacademy.inventory.telegram.dto.TelegramUpdate;
+import com.nhnacademy.inventory.telegram.repository.TelegramOffsetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +22,7 @@ public class TelegramUpdatePoller {
 
     private final TelegramApiClient telegramApiClient;
     private final TelegramUpdateHandler updateHandler;
-    
-    private volatile Long offset;
+    private final TelegramOffsetRepository offsetRepository;
 
     @Scheduled(fixedDelay = 1000L)
     @SchedulerLock(
@@ -30,6 +31,17 @@ public class TelegramUpdatePoller {
             lockAtMostFor = "PT2M"
     )
     public void poll() {
+        Long offset;
+
+        // offset은 여러 인스턴스가 공유해야 한다. 읽지 못한 채로 폴링하면 이미 답한 메시지를 다시 답하게 되므로
+        // 이번 주기는 건너뛰고 다음 주기에 다시 시도한다.
+        try {
+            offset = offsetRepository.find().orElse(null);
+        } catch (DataAccessException e) {
+            log.warn("[Telegram] offset을 읽지 못해 이번 폴링을 건너뜁니다.", e);
+            return;
+        }
+
         List<TelegramUpdate> updates = telegramApiClient.getUpdates(offset);
 
         if (updates.isEmpty()) {
@@ -54,7 +66,7 @@ public class TelegramUpdatePoller {
         }
 
         if (maxUpdateId > 0L) {
-            offset = maxUpdateId + 1;
+            offsetRepository.save(maxUpdateId + 1);
         }
     }
 }
