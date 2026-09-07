@@ -101,6 +101,7 @@ public class ZoneService {
         // 비활성 구역상태 초기화
         if (!zone.isActive()){
             zone.changeEnvStatus(EnvStatus.NORMAL);
+            publishDecisionStateReset(zone);
         }
 
         eventPublisher.publishEvent(
@@ -151,6 +152,7 @@ public class ZoneService {
 
         zone.close();
         zone.changeEnvStatus(EnvStatus.NORMAL);
+        publishDecisionStateReset(zone);
 
         eventPublisher.publishEvent(
                 CacheInvalidationEvent.of(CacheNames.ZONE_ACTIVATION, zone.getId()));
@@ -230,5 +232,20 @@ public class ZoneService {
         if (zone.getStorage().getStatus() != StorageStatus.ACTIVE || zone.getStatus() != ZoneStatus.ACTIVE){
             throw new ZoneInactiveException();
         }
+    }
+
+    /**
+     * 인벤토리에서 환경 상태를 NORMAL로 되돌릴 때, 룰엔진이 들고 있는 판단 상태도 함께 지운다.
+     * 이걸 빼먹으면 룰엔진은 여전히 CRITICAL로 알고 있어서 다시 임계값을 넘어도 상태 전이가 일어나지 않는다.
+     */
+    private void publishDecisionStateReset(Zone zone) {
+        eventPublisher.publishEvent(CacheInvalidationEvent.of(
+                CacheNames.ZONE_DECISION_STATE,
+                CacheNames.zoneDecisionStateKey(
+                        zone.getStorage().getOrganization().getId(),
+                        zone.getStorage().getId(),
+                        zone.getId()
+                )
+        ));
     }
 }
