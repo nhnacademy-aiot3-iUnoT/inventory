@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.outbound.service;
 
+import com.nhnacademy.inventory.assistant.event.StockOutboundInspectionEvent;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.alert.event.StockOutboundCompletedEvent;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
@@ -94,6 +96,13 @@ public class MedicineOutboundService {
         eventPublisher.publishEvent(new StockOutboundCompletedEvent(
                 request.zoneId(),
                 request.medicinePackageUnitId()
+        ));
+
+        eventPublisher.publishEvent(new StockOutboundInspectionEvent(
+                UserContext.getUserUuid(),
+                zone.getId(),
+                request.medicinePackageUnitId(),
+                request.quantity()
         ));
     }
 }

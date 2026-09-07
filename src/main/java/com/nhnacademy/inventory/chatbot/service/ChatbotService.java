@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.chatbot.service;
 import com.nhnacademy.inventory.chatbot.dto.response.ChatResponse;
 import com.nhnacademy.inventory.chatbot.tool.ReorderSuggestionTool;
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.chatbot.tool.AssistantNoteTool;
 import com.nhnacademy.inventory.chatbot.tool.ExpiringInventoryTool;
 import com.nhnacademy.inventory.chatbot.tool.LowStockInventoryTool;
 import com.nhnacademy.inventory.chatbot.tool.MedicineInboundTool;
@@ -41,6 +42,11 @@ public class ChatbotService {
         의약품명, 현재 수량, 최소재고 기준, 위치를 안내하세요.
         수량이 0이면 품절임을 안내하세요.
 
+        getAssistantNotes 결과:
+        message를 그대로 전달하고 요약하면서 수치나 로트번호를 빠뜨리지 마세요.
+        severity가 CRITICAL이면 먼저 안내하세요.
+        notes가 비어 있으면 최근 점검 알림이 없다고 답하세요.
+        
         registerMedicineInbound와 registerMedicineOutbound는 실제 재고를 변경합니다.
         필수 정보가 빠졌으면 Tool을 호출하지 말고 사용자에게 필요한 정보를 질문하세요.
         모든 처리 정보를 먼저 요약하고 사용자가 명시적으로 최종 확인한 뒤에만 Tool을 한 번 호출하세요.
@@ -70,7 +76,8 @@ public class ChatbotService {
             LowStockInventoryTool lowStockInventoryTool,
             ReorderSuggestionTool reorderSuggestionTool,
             MedicineInboundTool medicineInboundTool,
-            MedicineOutboundTool medicineOutboundTool
+            MedicineOutboundTool medicineOutboundTool,
+            AssistantNoteTool assistantNoteTool
     ) {
         this.chatClient = chatClientBuilder
                 .defaultSystem(SYSTEM_PROMPT)
@@ -80,7 +87,8 @@ public class ChatbotService {
                         lowStockInventoryTool,
                         medicineInboundTool,
                         medicineOutboundTool,
-                        reorderSuggestionTool
+                        reorderSuggestionTool,
+                        assistantNoteTool
                 )
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();

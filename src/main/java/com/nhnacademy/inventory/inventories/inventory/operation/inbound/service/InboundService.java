@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.inbound.service;
 
+import com.nhnacademy.inventory.assistant.event.StockInboundCompletedEvent;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain.InboundOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
@@ -12,6 +14,7 @@ import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +27,7 @@ public class InboundService {
     private final ZoneRepository zoneRepository;
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final InboundOperation inboundOperation;
-
+    private final ApplicationEventPublisher eventPublisher;
 
     // 입고 등록
     @Transactional
@@ -51,7 +54,7 @@ public class InboundService {
                 medicineInventory,
                 request);
 
-
+        eventPublisher.publishEvent(new StockInboundCompletedEvent(UserContext.getUserUuid(), request.zoneId(), request.medicinePackageUnitId(), request.expirationDate(), request.quantity()));
     }
 
 
