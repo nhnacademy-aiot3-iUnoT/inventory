@@ -17,10 +17,10 @@ public interface AlertRepository extends JpaRepository<Alert, Long>, AlertReposi
 
     List<Alert> findAllByOrganizationMember(OrganizationMember organizationMember);
   
-    long countByOrganizationAndAlertTypeAndCreatedAtBetween(
+    long countByOrganizationMember_OrganizationAndAlertTypeAndCreatedAtBetween(
             Organization organization, AlertType alertType, LocalDateTime start, LocalDateTime end);
 
-    long countByOrganizationAndAlertTypeAndIsCheckedAndCreatedAtBetween(
+    long countByOrganizationMember_OrganizationAndAlertTypeAndIsCheckedAndCreatedAtBetween(
             Organization organization, AlertType alertType, Boolean isChecked,
             LocalDateTime start, LocalDateTime end);
 

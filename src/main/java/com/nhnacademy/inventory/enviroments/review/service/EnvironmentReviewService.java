@@ -9,17 +9,19 @@ import com.nhnacademy.inventory.enviroments.review.dto.ReviewHistorySummaryRespo
 import com.nhnacademy.inventory.enviroments.review.dto.UnderReviewInventoryResponse;
 import com.nhnacademy.inventory.enviroments.review.exception.ReviewNotFoundException;
 import com.nhnacademy.inventory.enviroments.review.repository.EnvironmentReviewRepository;
+import com.nhnacademy.inventory.global.client.AccountClient;
+import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.exception.InventoryNotFoundException;
+import com.nhnacademy.inventory.inventories.inventory.operation.disposal.domain.DisposalReason;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
-import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -42,6 +46,7 @@ public class EnvironmentReviewService {
     private final OrganizationMemberRepository organizationMemberRepository;
     private final StockTransactionService transactionService;
     private final StorageService storageService;
+    private final AccountClient accountClient;
 
     public Page<UnderReviewInventoryResponse> getUnderReviewPage(Long storageId, Pageable pageable){
         List<Long> targetStorageIds = getTargetStorageIds(storageId);
@@ -75,7 +80,7 @@ public class EnvironmentReviewService {
                     inventory.getZone(),
                     TransactionType.DISPOSAL,
                     inventory.getCurrentQuantity(),
-                    "검토중폐기",
+                    DisposalReason.DETERIORATED.toString(),
                     request.memo(),
                     UserContext.getUserUuid()
             ));
@@ -87,26 +92,45 @@ public class EnvironmentReviewService {
     public Page<ReviewHistorySummaryResponse> getReviewHistoryPage(Long storageId, Pageable pageable){
         List<Long> targetStorageIds = getTargetStorageIds(storageId);
 
-        return environmentReviewRepository.getReviewHistories(targetStorageIds, pageable);
+        Page<ReviewHistorySummaryResponse> reviews = environmentReviewRepository.getReviewHistories(targetStorageIds, pageable);
+
+        Map<UUID, String> names = loadProcessorNames(reviews.getContent());
+
+        return reviews.map(review ->
+                ReviewHistorySummaryResponse.of(review, names.get(review.reviewerId())));
     }
 
     public ReviewHistoryDetailResponse getReviewDetail(Long environmentReviewId){
         EnvironmentReview review = environmentReviewRepository.findByIdWithFetch(environmentReviewId)
                 .orElseThrow(ReviewNotFoundException::new);
 
-        List<ReviewHistorySummaryResponse> inventoryReviewHistories = environmentReviewRepository
-                .findAllByMedicineInventoryWithFetch(review.getMedicineInventory())
+        List<EnvironmentReview> reviewList = environmentReviewRepository
+                .findAllByMedicineInventoryWithFetch(review.getMedicineInventory());
+
+        LocalDateTime startDateTime = reviewList.stream()
+                .map(EnvironmentReview::getCreatedAt)
+                .filter(createAt -> createAt.isBefore(review.getCreatedAt()))
+                .max(LocalDateTime::compareTo)
+                .orElseGet(() -> review.getMedicineInventory().getCreatedAt());
+
+        LocalDateTime endDateTime = review.getCreatedAt();
+
+        List<ReviewHistorySummaryResponse> inventoryReviewHistories = reviewList
                 .stream()
+                .sorted(Comparator.comparing(EnvironmentReview::getCreatedAt).reversed())
+                .limit(5)
                 .map(ReviewHistorySummaryResponse::from)
                 .toList();
 
         List<EnvironmentEventItemResponse> environmentEvents = environmentEventRepository
-                .findAllByZoneAndCreatedAtAfter(review.getMedicineInventory().getZone(), review.getMedicineInventory().getCreatedAt())
+                .findAllByZoneAndCreatedAtBetween(review.getMedicineInventory().getZone(), startDateTime, endDateTime)
                 .stream()
                 .map(EnvironmentEventItemResponse::from)
                 .toList();
 
-        return ReviewHistoryDetailResponse.from(review, inventoryReviewHistories, environmentEvents);
+        List<AccountResponse> accounts = accountClient.findByUuids(List.of(review.getReviewerId()));
+
+        return ReviewHistoryDetailResponse.from(review, inventoryReviewHistories, environmentEvents, accounts.getFirst().name());
     }
 
     private List<Long> getTargetStorageIds(Long storageId){
@@ -118,6 +142,34 @@ public class EnvironmentReviewService {
             return List.of(storageId);
         }else{
             return storageService.getAccessibleStorageIds(member);
+        }
+    }
+
+    private Map<UUID, String> loadProcessorNames(List<ReviewHistorySummaryResponse> reviews) {
+        List<UUID> uuids = reviews.stream()
+                .map(ReviewHistorySummaryResponse::reviewerId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (uuids.isEmpty()) {
+            return Map.of();
+        }
+
+        try {
+            List<AccountResponse> accounts = accountClient.findByUuids(uuids);
+
+            if (accounts == null) {
+                return Map.of();
+            }
+
+            return accounts.stream()
+                    .filter(account -> account.accountUuid() != null && account.name() != null)
+                    .collect(Collectors.toMap(
+                            AccountResponse::accountUuid, AccountResponse::name, (a, b) -> a));
+        } catch (Exception e) {
+            log.warn("처리자 정보를 불러오지 못해 재고 변동 내역만 반환합니다. 처리자 수={}", uuids.size(), e);
+            return Map.of();
         }
     }
 }

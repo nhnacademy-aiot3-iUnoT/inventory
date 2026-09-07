@@ -11,4 +11,6 @@ public interface EnvironmentEventRepository extends JpaRepository<EnvironmentEve
     List<EnvironmentEvent> findAllByZoneAndCreatedAtAfterOrderByCreatedAtDesc(Zone zone, LocalDateTime createdAtAfter);
 
     List<EnvironmentEvent> findAllByZoneAndCreatedAtAfter(Zone zone, LocalDateTime createdAtAfter);
+
+    List<EnvironmentEvent> findAllByZoneAndCreatedAtBetween(Zone zone, LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
 }

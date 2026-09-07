@@ -43,6 +43,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class OrganizationMemberServiceTest {
@@ -58,6 +59,9 @@ class OrganizationMemberServiceTest {
 
     @Mock
     private OrganizationAccessService orgAccessService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private OrganizationMemberService orgMemberService;

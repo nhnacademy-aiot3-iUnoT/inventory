@@ -43,6 +43,19 @@ spring:
       password: ${REDIS_PASSWORD}
       database: ${REDIS_DATABASE:0}
 
+  # RabbitMQ Connection Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+  # 스케줄러 스레드 풀. 기본값 1이면 텔레그램 롱폴링이 유통기한 알림 스케줄러를 막는다.
+  task:
+    scheduling:
+      pool:
+        size: 2
+
   ai:
     google:
       genai:
@@ -65,6 +78,15 @@ management:
     mail:
       enabled: false # 메일이 안된다고 서버가 못뜨면 안되기 때문에 메일 헬스체크 비활성화
 
+# 단톡방 챗봇 (텔레그램)
+chatbot:
+  telegram:
+    enabled: ${TELEGRAM_CHATBOT_ENABLED:false}
+    bot-token: ${TELEGRAM_BOT_TOKEN:}
+    api-base-url: https://api.telegram.org
+    poll-timeout-seconds: 30
+    command-prefix: "/chatbot"
+
 # medicine API
 medicine:
   api:
@@ -81,3 +103,4 @@ security:
     key-id: account-key-001
     audiences:
       - inventory-api
+

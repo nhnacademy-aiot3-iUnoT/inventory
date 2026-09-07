@@ -1,5 +1,7 @@
 package com.nhnacademy.inventory.organizations.zone.service;
 
+import com.nhnacademy.inventory.global.cache.CacheInvalidationEvent;
+import com.nhnacademy.inventory.global.cache.CacheNames;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
@@ -18,6 +20,7 @@ import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundExcepti
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ public class ZoneService {
     private final ZoneRepository zoneRepository;
     private final OrganizationMemberRepository memberRepository;
     private final StorageService storageService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ZoneDetailResponse createZone(Long storageId, ZoneCreateRequest request){
@@ -50,6 +54,9 @@ public class ZoneService {
                 .build();
 
         Zone saved = zoneRepository.save(zone);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_LOCATION, saved.getId()));
 
         return ZoneDetailResponse.from(saved);
     }
@@ -94,7 +101,11 @@ public class ZoneService {
         // 비활성 구역상태 초기화
         if (!zone.isActive()){
             zone.changeEnvStatus(EnvStatus.NORMAL);
+            publishDecisionStateReset(zone);
         }
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_ACTIVATION, zone.getId()));
 
         return ZoneDetailResponse.from(zone);
     }
@@ -141,6 +152,12 @@ public class ZoneService {
 
         zone.close();
         zone.changeEnvStatus(EnvStatus.NORMAL);
+        publishDecisionStateReset(zone);
+
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_ACTIVATION, zone.getId()));
+        eventPublisher.publishEvent(
+                CacheInvalidationEvent.of(CacheNames.ZONE_LOCATION, zone.getId()));
     }
 
     public Zone validateMemberAndGetZone(Long zoneId){
@@ -215,5 +232,20 @@ public class ZoneService {
         if (zone.getStorage().getStatus() != StorageStatus.ACTIVE || zone.getStatus() != ZoneStatus.ACTIVE){
             throw new ZoneInactiveException();
         }
+    }
+
+    /**
+     * 인벤토리에서 환경 상태를 NORMAL로 되돌릴 때, 룰엔진이 들고 있는 판단 상태도 함께 지운다.
+     * 이걸 빼먹으면 룰엔진은 여전히 CRITICAL로 알고 있어서 다시 임계값을 넘어도 상태 전이가 일어나지 않는다.
+     */
+    private void publishDecisionStateReset(Zone zone) {
+        eventPublisher.publishEvent(CacheInvalidationEvent.of(
+                CacheNames.ZONE_DECISION_STATE,
+                CacheNames.zoneDecisionStateKey(
+                        zone.getStorage().getOrganization().getId(),
+                        zone.getStorage().getId(),
+                        zone.getId()
+                )
+        ));
     }
 }

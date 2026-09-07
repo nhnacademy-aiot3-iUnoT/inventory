@@ -16,6 +16,7 @@ import com.nhnacademy.inventory.inventories.threshold.repository.StockThresholdR
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
+import com.nhnacademy.inventory.organizations.member.domain.OrganizationRole;
 import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemberRepository;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
@@ -28,7 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -65,9 +68,21 @@ public class AlertService {
             return;
         }
 
-        List<OrganizationMember> memberList = memberRepository.findMemberByStorageId(storage.getId());
+        Set<OrganizationMember> memberSet = new HashSet<>();
 
-        for(OrganizationMember member : memberList){
+        memberSet.addAll(
+                memberRepository.findMemberByStorageId(storage.getId())
+        );
+
+        memberSet.addAll(
+                memberRepository.findAllByOrganizationAndOrganizationRoleIn(
+                        storage.getOrganization(),
+                        List.of(OrganizationRole.ORG_BOSS, OrganizationRole.ORG_OWNER)
+                )
+        );
+
+
+        for(OrganizationMember member : memberSet){
             createAlert(
                     member,
                     AlertType.LOW_STOCK,
@@ -96,16 +111,16 @@ public class AlertService {
      * 기간 안에 쌓인 특정 유형의 알림 수. 대시보드 KPI 에서 쓴다.
      */
     public long countAlerts(AlertType alertType, LocalDateTime start, LocalDateTime end) {
-        return alertRepository.countByOrganizationAndAlertTypeAndCreatedAtBetween(
-                validateOrganizationMember(), alertType, start, end);
+        return alertRepository.countByOrganizationMember_OrganizationAndAlertTypeAndCreatedAtBetween(
+                validateOrganizationMember().getOrganization(), alertType, start, end);
     }
 
     /**
      * 기간 안에 쌓인 특정 유형의 미확인 알림 수.
      */
     public long countUncheckedAlerts(AlertType alertType, LocalDateTime start, LocalDateTime end) {
-        return alertRepository.countByOrganizationAndAlertTypeAndIsCheckedAndCreatedAtBetween(
-                validateOrganizationMember(), alertType, false, start, end);
+        return alertRepository.countByOrganizationMember_OrganizationAndAlertTypeAndIsCheckedAndCreatedAtBetween(
+                validateOrganizationMember().getOrganization(), alertType, false, start, end);
     }
 
     @Transactional
