@@ -3,25 +3,36 @@ package com.nhnacademy.inventory.chatbot.repository.impl;
 import com.nhnacademy.inventory.chatbot.dto.ExpiringInventoryRow;
 import com.nhnacademy.inventory.chatbot.dto.LowStockInventoryRow;
 import com.nhnacademy.inventory.chatbot.dto.MedicineInventorySearchRow;
+import com.nhnacademy.inventory.chatbot.dto.MedicinePackageUnitTargetRow;
 import com.nhnacademy.inventory.chatbot.dto.QExpiringInventoryRow;
 import com.nhnacademy.inventory.chatbot.dto.QLowStockInventoryRow;
 import com.nhnacademy.inventory.chatbot.dto.QMedicineInventorySearchRow;
-import com.nhnacademy.inventory.chatbot.repository.MedicineInventoryChatbotRepository;
+import com.nhnacademy.inventory.chatbot.dto.QMedicinePackageUnitTargetRow;
+import com.nhnacademy.inventory.chatbot.dto.QZoneTargetRow;
+import com.nhnacademy.inventory.chatbot.dto.ZoneTargetRow;
 import com.nhnacademy.inventory.chatbot.dto.query.FindExpiringInventoryQuery;
 import com.nhnacademy.inventory.chatbot.dto.query.FindLowStockInventoryQuery;
+import com.nhnacademy.inventory.chatbot.dto.query.FindMedicinePackageUnitTargetQuery;
+import com.nhnacademy.inventory.chatbot.dto.query.FindZoneTargetQuery;
 import com.nhnacademy.inventory.chatbot.dto.query.SearchMedicineInventoryQuery;
-import static com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory.medicineInventory;
-import static com.nhnacademy.inventory.inventories.threshold.domain.QStockThreshold.stockThreshold;
-import static com.nhnacademy.inventory.organizations.storage.domain.QStorage.storage;
-import static com.nhnacademy.inventory.organizations.zone.domain.QZone.zone;
-import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicine.medicine;
-import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit.medicinePackageUnit;
+import com.nhnacademy.inventory.chatbot.repository.MedicineInventoryChatbotRepository;
+import com.nhnacademy.inventory.organizations.storage.domain.StorageStatus;
+import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+
+import static com.nhnacademy.inventory.inventories.inventory.domain.QMedicineInventory.medicineInventory;
+import static com.nhnacademy.inventory.inventories.threshold.domain.QStockThreshold.stockThreshold;
+import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicine.medicine;
+import static com.nhnacademy.inventory.medicines.medicine.domain.QMedicinePackageUnit.medicinePackageUnit;
+import static com.nhnacademy.inventory.organizations.storage.domain.QStorage.storage;
+import static com.nhnacademy.inventory.organizations.zone.domain.QZone.zone;
 
 @Repository
 @RequiredArgsConstructor
@@ -117,6 +128,90 @@ public class MedicineInventoryChatbotRepositoryImpl implements MedicineInventory
                 .fetch();
     }
 
+    @Override
+    public List<MedicinePackageUnitTargetRow> findPackageUnitTargets(
+            FindMedicinePackageUnitTargetQuery query
+    ) {
+        return queryFactory.select(new QMedicinePackageUnitTargetRow(
+                        medicinePackageUnit.id,
+                        medicine.productName,
+                        medicinePackageUnit.packUnit
+                ))
+                .from(medicinePackageUnit)
+                .join(medicinePackageUnit.medicine, medicine)
+                .where(
+                        medicine.productName.containsIgnoreCase(query.medicineName().trim()),
+                        packUnitCondition(query.packUnit())
+                )
+                .orderBy(medicine.productName.asc(), medicinePackageUnit.packUnit.asc())
+                .limit(query.limit())
+                .fetch();
+    }
+
+    @Override
+    public Optional<MedicinePackageUnitTargetRow> findPackageUnitTargetById(Long packageUnitId) {
+        MedicinePackageUnitTargetRow target = queryFactory.select(new QMedicinePackageUnitTargetRow(
+                        medicinePackageUnit.id,
+                        medicine.productName,
+                        medicinePackageUnit.packUnit
+                ))
+                .from(medicinePackageUnit)
+                .join(medicinePackageUnit.medicine, medicine)
+                .where(medicinePackageUnit.id.eq(packageUnitId))
+                .fetchOne();
+
+        return Optional.ofNullable(target);
+    }
+
+    @Override
+    public List<ZoneTargetRow> findZoneTargets(FindZoneTargetQuery query) {
+        if (query.storageIds().isEmpty()) {
+            return List.of();
+        }
+
+        return queryFactory.select(new QZoneTargetRow(
+                        zone.id,
+                        storage.name,
+                        zone.name
+                ))
+                .from(zone)
+                .join(zone.storage, storage)
+                .where(
+                        storage.id.in(query.storageIds()),
+                        storage.status.eq(StorageStatus.ACTIVE),
+                        zone.status.eq(ZoneStatus.ACTIVE),
+                        storage.name.containsIgnoreCase(query.storageName().trim()),
+                        zone.name.containsIgnoreCase(query.zoneName().trim())
+                )
+                .orderBy(storage.name.asc(), zone.name.asc())
+                .limit(query.limit())
+                .fetch();
+    }
+
+    @Override
+    public Optional<ZoneTargetRow> findZoneTargetById(Long zoneId, List<Long> storageIds) {
+        if (storageIds.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ZoneTargetRow target = queryFactory.select(new QZoneTargetRow(
+                        zone.id,
+                        storage.name,
+                        zone.name
+                ))
+                .from(zone)
+                .join(zone.storage, storage)
+                .where(
+                        zone.id.eq(zoneId),
+                        storage.id.in(storageIds),
+                        storage.status.eq(StorageStatus.ACTIVE),
+                        zone.status.eq(ZoneStatus.ACTIVE)
+                )
+                .fetchOne();
+
+        return Optional.ofNullable(target);
+    }
+
     private QMedicineInventorySearchRow searchRowProjection() {
         return new QMedicineInventorySearchRow(
                 medicinePackageUnit.id,
@@ -155,6 +250,14 @@ public class MedicineInventoryChatbotRepositoryImpl implements MedicineInventory
         return name == null || name.isBlank()
                 ? null
                 : medicine.productName.containsIgnoreCase(name.trim());
+    }
+
+    private BooleanExpression packUnitCondition(String packUnit) {
+        return Arrays.stream(packUnit.trim().split("[\\s\\p{Punct}]+"))
+                .filter(keyword -> !keyword.isBlank())
+                .map(medicinePackageUnit.packUnit::containsIgnoreCase)
+                .reduce(BooleanExpression::and)
+                .orElse(null);
     }
 
     private BooleanExpression storageNameCondition(String name) {

@@ -1,10 +1,12 @@
 package com.nhnacademy.inventory.chatbot.service;
 
 import com.nhnacademy.inventory.chatbot.dto.response.ChatResponse;
-import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.chatbot.tool.ExpiringInventoryTool;
 import com.nhnacademy.inventory.chatbot.tool.LowStockInventoryTool;
+import com.nhnacademy.inventory.chatbot.tool.MedicineInboundTool;
 import com.nhnacademy.inventory.chatbot.tool.MedicineInventorySearchTool;
+import com.nhnacademy.inventory.chatbot.tool.MedicineOutboundTool;
+import com.nhnacademy.inventory.global.util.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -36,6 +38,14 @@ public class ChatbotService {
         getLowStockInventory 결과:
         의약품명, 현재 수량, 최소재고 기준, 위치를 안내하세요.
         수량이 0이면 품절임을 안내하세요.
+
+        registerMedicineInbound와 registerMedicineOutbound는 실제 재고를 변경합니다.
+        필수 정보가 빠졌으면 Tool을 호출하지 말고 사용자에게 필요한 정보를 질문하세요.
+        모든 처리 정보를 먼저 요약하고 사용자가 명시적으로 최종 확인한 뒤에만 Tool을 한 번 호출하세요.
+        Tool 결과의 success가 false이면 재고가 변경되지 않은 것으로 안내하고 message에 따라 다시 질문하세요.
+        message에 medicinePackageUnitId 또는 zoneId가 포함된 후보가 있으면 후보 식별 ID를 함께 안내하세요.
+        사용자가 후보를 선택하면 해당 ID를 다음 registerMedicineInbound 호출에 포함하세요.
+        success가 true이면 Tool 결과에 포함된 처리 내역만 안내하세요.
         """;
 
     private final ChatClient chatClient;
@@ -45,11 +55,19 @@ public class ChatbotService {
             ChatMemory chatMemory,
             MedicineInventorySearchTool medicineInventorySearchTool,
             ExpiringInventoryTool expiringInventoryTool,
-            LowStockInventoryTool lowStockInventoryTool
+            LowStockInventoryTool lowStockInventoryTool,
+            MedicineInboundTool medicineInboundTool,
+            MedicineOutboundTool medicineOutboundTool
     ) {
         this.chatClient = chatClientBuilder
                 .defaultSystem(SYSTEM_PROMPT)
-                .defaultTools(medicineInventorySearchTool, expiringInventoryTool, lowStockInventoryTool)
+                .defaultTools(
+                        medicineInventorySearchTool,
+                        expiringInventoryTool,
+                        lowStockInventoryTool,
+                        medicineInboundTool,
+                        medicineOutboundTool
+                )
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
     }
