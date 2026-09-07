@@ -122,9 +122,9 @@ public class StorageService {
 
 
 
-        if(organizationMember.isBoss()){
+        if(organizationMember.isBoss() || organizationMember.isOwner()){
 
-            List<Storage> storages = storageRepository.findAllByOrganization(organizationMember.getOrganization());
+            List<Storage> storages = storageRepository.findAllByOrganizationAndStatus(organizationMember.getOrganization(),StorageStatus.ACTIVE);
 
             List<StorageInfoResponse> infoResponses = storages.stream()
                     .map(StorageInfoResponse::from
@@ -152,12 +152,16 @@ public class StorageService {
 
         List<StorageDepartment> storageDepartments = storageDepartmentRepository.findAllByDepartmentIdIn(departmentIds);
 
+        // 부서에 해당하는 저장소 찾기
         List<Storage> storages = storageDepartments.stream()
                 .map(
                         StorageDepartment::getStorage
                 )
+                .filter(storage -> storage.getStatus() == StorageStatus.ACTIVE)
                 .distinct()
                 .toList();
+
+
 
         List<StorageInfoResponse> infoResponses = storages.stream()
                 .map(
