@@ -89,6 +89,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 .where(
                         inventory.medicinePackageUnit.id.eq(medicinePackageUnitId),
                         inventory.zone.id.eq(zoneId),
+                        inventory.expirationDate.goe(LocalDate.now()),
                         inventory.managementStatus.eq(ManagementStatus.NORMAL),
                         inventory.currentQuantity.gt(0)
                 )
@@ -113,6 +114,17 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
         return Optional.ofNullable(content);
     }
 
+    @Override
+    public List<MedicineInventory> findAllByIdsForUpdate(
+            List<Long> inventoryIds
+    ) {
+        return queryFactory
+                .selectFrom(inventory)
+                .where(inventory.id.in(inventoryIds))
+                .orderBy(inventory.id.asc())
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                .fetch();
+    }
 
     @Override
     public Page<InventoriesResponse> findAllInventoriesByDepartmentIds(String search,Long storageId, List<Long> departmentIds, Pageable pageable) {

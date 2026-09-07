@@ -99,5 +99,9 @@ public class Medicine {
                 .companyName(companyName)
                 .build();
     }
-
+    public boolean requiresNarcoticHandlingPermission() {
+        return "마약".equals(narcoticKindCode)
+                || "향정".equals(narcoticKindCode)
+                || "향정신성의약품".equals(narcoticKindCode);
+    }
 }

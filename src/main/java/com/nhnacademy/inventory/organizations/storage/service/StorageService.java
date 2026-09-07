@@ -217,10 +217,22 @@ public class StorageService {
     }
 
     // 저장소가 비활성이면 소속 구역의 환경 판정도 멈추므로, 남아있던 경고 상태를 되돌린다.
+    // 룰엔진이 Redis에 들고 있는 판단 상태도 함께 지워야 다시 켰을 때 상태 전이가 정상 동작한다.
     private void resetZoneEnvStatus(Storage storage){
         List<Zone> zones = zoneRepository.findAllByStorageId(storage.getId());
 
-        zones.forEach(zone -> zone.changeEnvStatus(EnvStatus.NORMAL));
+        zones.forEach(zone -> {
+            zone.changeEnvStatus(EnvStatus.NORMAL);
+
+            eventPublisher.publishEvent(CacheInvalidationEvent.of(
+                    CacheNames.ZONE_DECISION_STATE,
+                    CacheNames.zoneDecisionStateKey(
+                            storage.getOrganization().getId(),
+                            storage.getId(),
+                            zone.getId()
+                    )
+            ));
+        });
     }
 
     public Storage validateMemberAndGetStorage(Long storageId){
@@ -304,20 +316,11 @@ public class StorageService {
         }
     }
 
-    public void checkStoragePermission(Long storageId){
+    public void checkStoragePermission(Long storageId) {
         OrganizationMember member = memberRepository.findByAccountUuid(UserContext.getUserUuid())
                 .orElseThrow(ForbiddenException::new);
 
-        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS ||
-                member.getOrganizationRole() == OrganizationRole.ORG_OWNER){
-            return;
-        }
-
-        boolean hasPermission = storagePermissionRepository.hasStoragePermission(
-                UserContext.getUserUuid(), storageId
-        );
-
-        if(!hasPermission){
+        if (!getAccessibleStorageIds(member).contains(storageId)) {
             throw new ForbiddenException();
         }
     }

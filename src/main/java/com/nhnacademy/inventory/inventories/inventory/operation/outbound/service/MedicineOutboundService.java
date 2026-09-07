@@ -1,13 +1,19 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.outbound.service;
 
+import com.nhnacademy.inventory.assistant.event.StockOutboundInspectionEvent;
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.alert.event.StockOutboundCompletedEvent;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.exception.InventoryNotFoundException;
+import com.nhnacademy.inventory.inventories.inventory.operation.InventoryOperationAccessValidator;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.domain.OutboundOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundTargetResponse;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitNotFoundException;
+import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.exception.ZoneNotFoundException;
 import com.nhnacademy.inventory.organizations.zone.repository.ZoneRepository;
@@ -24,6 +30,8 @@ import java.util.List;
 public class MedicineOutboundService {
 
     private final MedicineInventoryRepository medicineInventoryRepository;
+    private final MedicinePackageUnitRepository medicinePackageUnitRepository;
+    private final InventoryOperationAccessValidator accessValidator;
     private final ZoneRepository zoneRepository;
     private final OutboundOperation outboundOperation;
     private final ApplicationEventPublisher eventPublisher;
@@ -34,6 +42,11 @@ public class MedicineOutboundService {
         MedicineInventory selectedInventory =
                 medicineInventoryRepository.findById(inventoryId)
                         .orElseThrow(InventoryNotFoundException::new);
+
+        accessValidator.validate(
+                selectedInventory.getZone().getStorage(),
+                selectedInventory.getMedicinePackageUnit().getMedicine()
+        );
 
         Long medicinePackageUnitId =
                 selectedInventory.getMedicinePackageUnit().getId();
@@ -59,6 +72,15 @@ public class MedicineOutboundService {
         Zone zone = zoneRepository.findById(request.zoneId())
                 .orElseThrow(ZoneNotFoundException::new);
 
+        MedicinePackageUnit medicinePackageUnit =
+                medicinePackageUnitRepository.findById(request.medicinePackageUnitId())
+                        .orElseThrow(PackUnitNotFoundException::new);
+
+        accessValidator.validate(
+                zone.getStorage(),
+                medicinePackageUnit.getMedicine()
+        );
+
         List<MedicineInventory> inventories =
                 medicineInventoryRepository.findOutboundInventories(
                         request.medicinePackageUnitId(),
@@ -74,6 +96,13 @@ public class MedicineOutboundService {
         eventPublisher.publishEvent(new StockOutboundCompletedEvent(
                 request.zoneId(),
                 request.medicinePackageUnitId()
+        ));
+
+        eventPublisher.publishEvent(new StockOutboundInspectionEvent(
+                UserContext.getUserUuid(),
+                zone.getId(),
+                request.medicinePackageUnitId(),
+                request.quantity()
         ));
     }
 }
