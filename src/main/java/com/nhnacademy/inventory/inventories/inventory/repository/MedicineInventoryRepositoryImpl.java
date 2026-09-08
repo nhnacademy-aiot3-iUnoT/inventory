@@ -337,7 +337,14 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                         )
 
                 )
-                .groupBy(medicinePackageUnit.id,storage.id)
+                .groupBy(
+                        medicinePackageUnit.id,
+                        medicinePackageUnit.packUnit,
+                        medicine.productName,
+                        medicine.itemCode,
+                        storage.id,
+                        storage.name
+                )
                 .orderBy(medicine.productName.asc(),inventory.expirationDate.min().asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
