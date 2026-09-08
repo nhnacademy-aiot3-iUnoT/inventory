@@ -75,8 +75,11 @@ deploy_tag() {
 
     wait_until_all_up || return 1
 
-    echo "게이트웨이 반영 대기 (40초)"
-    sleep 40;
+    # 마지막 인스턴스 뒤에는 내릴 대상이 없으므로 기다리지 않음.
+    if [ "$i" -lt "$((INSTANCE_COUNT - 1))" ]; then
+      echo "게이트웨이 반영 대기 (40초)"
+      sleep 40;
+    fi
   done
 
   return 0
