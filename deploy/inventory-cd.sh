@@ -14,6 +14,29 @@ OLD_TAG=$(cat "$LAST_GOOD_FILE" 2>/dev/null || echo "latest")
 SERVICES=("inventory-1" "inventory-2")
 PORTS=("10411" "10412")
 
+EUREKA_URL="http://127.0.0.1:10402/eureka/apps/INVENTORY"
+INSTANCE_COUNT="${#SERVICES[@]}"
+
+# 유레카에 UP 인 인스턴스가 몇 개인지 확인
+count_up() {
+  curl -sf -H "Accept: application/json" "$EUREKA_URL" 2>/dev/null \
+    | grep -o '"status":"UP"' | wc -l | tr -d ' '
+}
+
+wait_until_all_up() {
+  for attempt in {1..40}; do
+    if [ "$(count_up)" -ge "$INSTANCE_COUNT" ]; then
+      echo "유레카 등록 확인 (UP=${INSTANCE_COUNT})"
+      return 0
+    fi
+
+    sleep 3
+  done
+
+  echo "유레카 등록 타임아웃"
+  return 1
+}
+
 # 지정한 태그로 전체 인스턴스 롤링 배포, 실패하면 false 반환
 deploy_tag() {
   local tag="$1"
@@ -49,6 +72,11 @@ deploy_tag() {
 
       sleep 2;
     done
+
+    wait_until_all_up || return 1
+
+    echo "게이트웨이 반영 대기 (40초)"
+    sleep 40;
   done
 
   return 0
