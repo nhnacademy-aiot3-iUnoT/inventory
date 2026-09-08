@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.inventories.error.InventoryErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -43,6 +44,20 @@ public class GlobalExceptionHandler{
         return ResponseEntity
                 .status(GlobalErrorCode.INVALID_INPUT.getStatus())
                 .body(ApiResponse.error(GlobalErrorCode.INVALID_INPUT.getCode(), message));
+    }
+
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePessimisticLock(
+            PessimisticLockingFailureException e
+    ) {
+        log.warn("비관적 락 시간 초과", e);
+
+        return ResponseEntity
+                .status(InventoryErrorCode.INVENTORY_LOCK_TIMEOUT.getStatus())
+                .body(ApiResponse.error(
+                        InventoryErrorCode.INVENTORY_LOCK_TIMEOUT.getCode(),
+                        InventoryErrorCode.INVENTORY_LOCK_TIMEOUT.getMessage()
+                ));
     }
 
     @ExceptionHandler(Exception.class)

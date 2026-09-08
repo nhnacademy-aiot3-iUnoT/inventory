@@ -2,6 +2,7 @@ package com.nhnacademy.inventory.inventories.inventory.operation.inbound.service
 
 
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+import com.nhnacademy.inventory.inventories.inventory.operation.InventoryOperationAccessValidator;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain.InboundOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
@@ -41,6 +42,8 @@ class InboundServiceTest {
     MedicineInventoryRepository medicineInventoryRepository;
     @Mock
     InboundOperation inboundOperation;
+    @Mock
+    InventoryOperationAccessValidator accessValidator;
     @Mock
     ApplicationEventPublisher eventPublisher;
 
@@ -113,8 +116,11 @@ class InboundServiceTest {
                 )
         ).willReturn(Optional.of(medicineInventory));
 
-
         inboundService.createInbound(request);
+        verify(accessValidator).validate(
+                zone.getStorage(),
+                medicine
+        );
 
         verify(inboundOperation).inboundInventory(
                 medicinePackageUnit,
