@@ -99,7 +99,7 @@ public class EnvironmentEventService {
         Zone targetZone = zoneService.findZone(request.zoneId());
 
         List<EnvironmentEvent> eventList = environmentEventRepository
-                .findAllByZoneAndCreatedAtAfterOrderByCreatedAtDesc(targetZone, request.lastReviewAt());
+                .find20ByZoneAndCreatedAtAfterOrderByCreatedAtDesc(targetZone, request.lastReviewAt());
 
         return eventList.stream()
                 .map(EnvironmentEventItemResponse::from)
