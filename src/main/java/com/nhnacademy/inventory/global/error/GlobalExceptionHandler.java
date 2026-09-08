@@ -48,7 +48,7 @@ public class GlobalExceptionHandler{
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception e) {
 
-        log.error("처리되지 않은 예외", e);
+        log.error("처리되지 않은 예외: {}", e.getMessage(), e);
 
         return ResponseEntity
                 .status(GlobalErrorCode.INTERNAL_SERVER_ERROR.getStatus())
@@ -60,7 +60,7 @@ public class GlobalExceptionHandler{
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(ObjectOptimisticLockingFailureException e){
 
-        log.warn("낙관적 락 충돌", e);
+        log.warn("낙관적 락 충돌: {}", e.getMessage(), e);
 
         return ResponseEntity.status(InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getStatus())
                 .body(ApiResponse.error(InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getCode(),
