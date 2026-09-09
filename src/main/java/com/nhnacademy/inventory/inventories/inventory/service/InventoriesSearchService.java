@@ -57,20 +57,22 @@ public class InventoriesSearchService {
                 return Page.empty();
             }
 
+
             List<Long> departmentIds = memberDepartments.stream()
                     .map(md -> md.getDepartment().getId())
                     .toList();
 
-            page = medicineInventoryRepository.findAllInventoriesByDepartmentIds(trimmed,storageId,departmentIds,pageable);
+            page = medicineInventoryRepository.findAllInventoriesByDepartmentIds(trimmed == null ? null : trimmed.replaceAll("\\s+", ""),storageId,departmentIds,pageable);
 
             log.info("departmentIds = {}", departmentIds);
             log.info("부서 전체 재고 조회 : {} ",page.getContent());
-        } else {
+        }
+        else {
             Long organizationId = member.getOrganization().getId();
             List<Storage> allStorages = storageRepository.findAllByOrganizationId(organizationId);
             List<Long> storageIds = allStorages.stream().map(Storage::getId).toList();
 
-            page = medicineInventoryRepository.findAllInventories(trimmed,storageId,storageIds,pageable);
+            page = medicineInventoryRepository.findAllInventories(trimmed == null ? null : trimmed.replaceAll("\\s+", ""),storageId,storageIds,pageable);
 
             log.info("Boss : 전체 재고 조회 : {} ",page);
         }
