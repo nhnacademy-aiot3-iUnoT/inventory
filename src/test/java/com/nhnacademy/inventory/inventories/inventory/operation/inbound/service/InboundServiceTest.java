@@ -118,7 +118,7 @@ class InboundServiceTest {
 
         inboundService.createInbound(request);
         verify(accessValidator).validate(
-                zone.getStorage(),
+                zone,
                 medicine
         );
 

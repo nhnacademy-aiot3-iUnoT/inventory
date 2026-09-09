@@ -14,7 +14,6 @@ import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInvento
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
-import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,11 +63,9 @@ class MedicineDisposalServiceTest {
         MedicineInventory inventory = mock(MedicineInventory.class);
         Zone zone = mock(Zone.class);
         MedicinePackageUnit packageUnit = mock(MedicinePackageUnit.class);
-        Storage storage = mock(Storage.class);
         Medicine medicine = mock(Medicine.class);
 
         when(inventory.getZone()).thenReturn(zone);
-        when(zone.getStorage()).thenReturn(storage);
         when(inventory.getMedicinePackageUnit())
                 .thenReturn(packageUnit);
         when(packageUnit.getMedicine()).thenReturn(medicine);
@@ -77,7 +74,7 @@ class MedicineDisposalServiceTest {
 
         medicineDisposalService.dispose(inventoryId, request);
 
-        verify(accessValidator).validate(storage, medicine);
+        verify(accessValidator).validate(zone, medicine);
         verify(medicineInventoryRepository)
                 .findByIdForUpdate(inventoryId);
         verify(disposalOperation)
@@ -154,12 +151,12 @@ class MedicineDisposalServiceTest {
                 );
 
         order.verify(accessValidator).validate(
-                first.storage(),
+                first.zone(),
                 first.medicine()
         );
 
         order.verify(accessValidator).validate(
-                second.storage(),
+                second.zone(),
                 second.medicine()
         );
 
@@ -271,14 +268,14 @@ class MedicineDisposalServiceTest {
         doNothing()
                 .when(accessValidator)
                 .validate(
-                        first.storage(),
+                        first.zone(),
                         first.medicine()
                 );
 
         doThrow(new ForbiddenException())
                 .when(accessValidator)
                 .validate(
-                        second.storage(),
+                        second.zone(),
                         second.medicine()
                 );
 
@@ -294,12 +291,12 @@ class MedicineDisposalServiceTest {
         );
 
         verify(accessValidator).validate(
-                first.storage(),
+                first.zone(),
                 first.medicine()
         );
 
         verify(accessValidator).validate(
-                second.storage(),
+                second.zone(),
                 second.medicine()
         );
 
@@ -314,7 +311,6 @@ class MedicineDisposalServiceTest {
                 mock(MedicineInventory.class);
 
         Zone zone = mock(Zone.class);
-        Storage storage = mock(Storage.class);
 
         MedicinePackageUnit packageUnit =
                 mock(MedicinePackageUnit.class);
@@ -333,9 +329,6 @@ class MedicineDisposalServiceTest {
         when(inventory.getZone())
                 .thenReturn(zone);
 
-        when(zone.getStorage())
-                .thenReturn(storage);
-
         when(inventory.getMedicinePackageUnit())
                 .thenReturn(packageUnit);
 
@@ -344,14 +337,14 @@ class MedicineDisposalServiceTest {
 
         return new InventoryFixture(
                 inventory,
-                storage,
+                zone,
                 medicine
         );
     }
 
     private record InventoryFixture(
             MedicineInventory inventory,
-            Storage storage,
+            Zone zone,
             Medicine medicine
     ) {
     }

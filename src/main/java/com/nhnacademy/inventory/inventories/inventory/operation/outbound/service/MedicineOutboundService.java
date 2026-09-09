@@ -80,7 +80,7 @@ public class MedicineOutboundService {
 
     private void validateAccess(MedicineInventory inventory) {
         accessValidator.validate(
-                inventory.getZone().getStorage(),
+                inventory.getZone(),
                 inventory.getMedicinePackageUnit().getMedicine()
         );
     }

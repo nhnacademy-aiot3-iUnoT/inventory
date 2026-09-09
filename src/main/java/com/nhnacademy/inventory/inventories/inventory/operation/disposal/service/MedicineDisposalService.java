@@ -37,7 +37,7 @@ public class MedicineDisposalService {
                 .orElseThrow(DisposalNotFoundException::new);
 
         accessValidator.validate(
-                inventory.getZone().getStorage(),
+                inventory.getZone(),
                 inventory.getMedicinePackageUnit().getMedicine()
         );
 
@@ -54,7 +54,7 @@ public class MedicineDisposalService {
                 .orElseThrow(DisposalNotFoundException::new);
 
         accessValidator.validate(
-                inventory.getZone().getStorage(),
+                inventory.getZone(),
                 inventory.getMedicinePackageUnit().getMedicine()
         );
 
@@ -90,7 +90,7 @@ public class MedicineDisposalService {
             validateExpiredDisposalTarget(inventory, today);
 
             accessValidator.validate(
-                    inventory.getZone().getStorage(),
+                    inventory.getZone(),
                     inventory.getMedicinePackageUnit().getMedicine()
             );
         }

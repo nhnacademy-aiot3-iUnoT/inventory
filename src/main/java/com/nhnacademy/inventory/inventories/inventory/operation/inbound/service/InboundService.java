@@ -42,7 +42,7 @@ public class InboundService {
                 .orElseThrow(ZoneNotFoundException::new);
 
         accessValidator.validate(
-                zone.getStorage(),
+                zone,
                 medicinePackageUnit.getMedicine()
         );
 

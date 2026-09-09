@@ -88,7 +88,7 @@ class MedicineOutboundServiceTest {
         assertEquals(10, selected.getCurrentQuantity());
         assertEquals(20, earlier.getCurrentQuantity());
 
-        verify(accessValidator).validate(storage, medicine);
+        verify(accessValidator).validate(zone, medicine);
         verify(repository).findByIdForUpdate(75L);
         verify(repository, never())
                 .findOutboundInventories(anyLong(), anyLong());
@@ -167,7 +167,7 @@ class MedicineOutboundServiceTest {
     @DisplayName("권한이 없으면 출고를 거절한다")
     void outbound_rejectsUnauthorizedAccess() {
         doThrow(new ForbiddenException())
-                .when(accessValidator).validate(storage, medicine);
+                .when(accessValidator).validate(zone, medicine);
 
         assertThrowsExactly(
                 ForbiddenException.class,
@@ -181,7 +181,7 @@ class MedicineOutboundServiceTest {
     @DisplayName("권한이 없으면 출고 대상 조회를 거절한다")
     void getOutboundTarget_rejectsUnauthorizedAccess() {
         doThrow(new ForbiddenException())
-                .when(accessValidator).validate(storage, medicine);
+                .when(accessValidator).validate(zone, medicine);
 
         assertThrowsExactly(
                 ForbiddenException.class,

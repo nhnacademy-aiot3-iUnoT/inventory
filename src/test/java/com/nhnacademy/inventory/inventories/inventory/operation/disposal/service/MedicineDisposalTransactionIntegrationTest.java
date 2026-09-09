@@ -7,7 +7,7 @@ import com.nhnacademy.inventory.inventories.inventory.operation.disposal.domain.
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.ExpiredInventoryDisposalRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.disposal.dto.MedicineDisposalRequest;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
-import com.nhnacademy.inventory.organizations.storage.domain.Storage;
+import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,7 +88,7 @@ class MedicineDisposalTransactionIntegrationTest {
         doNothing()
                 .when(accessValidator)
                 .validate(
-                        any(Storage.class),
+                        any(Zone.class),
                         any(Medicine.class)
                 );
 
