@@ -3,6 +3,7 @@ package com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 
+import com.nhnacademy.inventory.inventories.inventory.exception.ZoneNotAvailableException;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.exception.ExpirationdateMismatchException;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.exception.TransactionTypeInvalidException;
@@ -15,10 +16,13 @@ import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequ
 
 import com.nhnacademy.inventory.medicines.enviroment.service.MedicineEnvironmentService;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.exception.StorageInactiveException;
+import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 
 
+import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -33,19 +37,28 @@ public class InboundOperation {
 
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final StockTransactionService stockTransactionService;
-    private final MedicineEnvironmentService medicineEnvironmentService;
+    private final StorageRepository storageRepository;
+
 
 
     // 인벤토리에 저장
-    public void inboundInventory(MedicinePackageUnit medicinePackageUnit, Zone zone,MedicineInventory inventory, MedicineInboundRequest request){
+    public void inboundInventory(MedicinePackageUnit medicinePackageUnit, Zone zone, MedicineInventory inventory, MedicineInboundRequest request){
 
 
         log.info("==== 입고 등록 시작====");
 
+        Storage storage = zone.getStorage();
+
+        log.info("storage : {}", storage);
+
         //storage, zone active 검증
-        if(!zone.isActive()){
-            throw new StorageInactiveException();
+
+
+
+        if(zone.isActive()){
+            throw new ZoneNotAvailableException();
         }
+
 
 
         if(request.transactionType() != TransactionType.INBOUND &&
@@ -80,14 +93,6 @@ public class InboundOperation {
 
         }
 
-
-        // request 환경 기준 설정
-        MedicineEnvironmentRequest environmentRequest = request.medicineEnvironmentRequest();
-
-        if(environmentRequest != null){
-            medicineEnvironmentService.createTypes(medicinePackageUnit.getId(),environmentRequest);
-
-        }
 
 
         stockTransactionService.createStockTransaction(new StockTransactionCommand(

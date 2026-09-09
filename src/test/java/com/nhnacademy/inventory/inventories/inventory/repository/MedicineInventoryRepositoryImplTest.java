@@ -34,11 +34,10 @@ class MedicineInventoryRepositoryImplTest {
     void findByMedicinePackageUnitIdAndZoneIdAndLotNumberAndExpirationDateTest() {
 
 
-        MedicineInventory medicineInventory = medicineInventoryRepository.findByMedicinePackageUnitIdAndZoneIdAndLotNumberAndExpirationDate(
+        MedicineInventory medicineInventory = medicineInventoryRepository.findByMedicinePackageUnitIdAndZoneIdAndLotNumber(
                 1L,
                 1L,
-                "LOT-TY-001",
-                LocalDate.of(2027, Month.JANUARY,31)
+                "LOT-TY-001"
         ).orElse(null);
 
 
@@ -52,7 +51,6 @@ class MedicineInventoryRepositoryImplTest {
                 () -> assertEquals(1L,medicineInventory.getMedicinePackageUnit().getId()),
                 () -> assertEquals(1L,medicineInventory.getZone().getId()),
                 () -> assertEquals("LOT-TY-001",medicineInventory.getLotNumber()),
-                () -> assertEquals(LocalDate.of(2027, Month.JANUARY,31),medicineInventory.getExpirationDate()),
                 () -> assertEquals(100,medicineInventory.getCurrentQuantity()),
                 () -> assertEquals(ManagementStatus.NORMAL,medicineInventory.getManagementStatus())
 

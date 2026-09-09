@@ -1,8 +1,7 @@
 package com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto;
 
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
-import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
-import jakarta.validation.Valid;
+
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
@@ -25,9 +24,8 @@ public record MedicineInboundRequest(
         @Size(max=255, message= "메모는 255자 이하여야 합니다.")
         String memo,
         @NotNull(message = "입고 유형을 선택해주세요.")
-        TransactionType transactionType,
-        @Valid
-        MedicineEnvironmentRequest medicineEnvironmentRequest
+        TransactionType transactionType
+
 
 ) {
 }

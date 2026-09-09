@@ -62,8 +62,8 @@ class InboundServiceTest {
                 LocalDate.now(),
                 30,
                 null,
-                TransactionType.INBOUND,
-                null
+                TransactionType.INBOUND
+
         );
 
         Medicine medicine = Medicine.create(
@@ -107,11 +107,10 @@ class InboundServiceTest {
 
 
         given(zoneRepository.findById(request.zoneId())).willReturn(Optional.of(zone));
-        given(medicineInventoryRepository.findByMedicinePackageUnitIdAndZoneIdAndLotNumberAndExpirationDate
+        given(medicineInventoryRepository.findByMedicinePackageUnitIdAndZoneIdAndLotNumber
                 (request.medicinePackageUnitId(),
                         request.zoneId(),
-                        request.lotNumber(),
-                        request.expirationDate()
+                        request.lotNumber()
                 )
         ).willReturn(Optional.of(medicineInventory));
 

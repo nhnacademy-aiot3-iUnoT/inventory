@@ -94,7 +94,6 @@ public class MedicineEnvironmentService {
             .orElse(null);
 
 
-
         updateEnvironment(standard,tepType,EnvironmentType.TEMPERATURE,request.minTemperature(),request.maxTemperature());
         updateEnvironment(standard,humType, EnvironmentType.HUMIDITY,request.minHumidity(),request.maxHumidity());
         updateEnvironment(standard,illType,EnvironmentType.ILLUMINANCE,request.minIlluminance(),request.maxIlluminance());
