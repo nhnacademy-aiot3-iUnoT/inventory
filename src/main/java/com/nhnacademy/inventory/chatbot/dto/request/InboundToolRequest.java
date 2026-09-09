@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.chatbot.dto.request;
 
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -54,6 +55,10 @@ public record InboundToolRequest(
         @NotNull(message = "입고 수량은 필수입니다.")
         @Positive(message = "입고 수량은 1개 이상이어야 합니다.")
         Integer quantity,
+
+        @ToolParam(description = "변동 유형")
+        @NotNull(message = "입고 유형은 필수입니다.")
+        TransactionType transactionType,
 
         @ToolParam(description = "입고 메모", required = false)
         @Size(max = 255, message = "메모는 255자 이하여야 합니다.")

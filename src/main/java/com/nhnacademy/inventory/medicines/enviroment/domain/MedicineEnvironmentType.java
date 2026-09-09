@@ -1,5 +1,6 @@
 package com.nhnacademy.inventory.medicines.enviroment.domain;
 
+import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
 import com.nhnacademy.inventory.medicines.enviroment.exception.EnvironmentRangeInvalidException;
 import com.nhnacademy.inventory.medicines.enviroment.exception.EnvironmentRangeRequiredException;
 import jakarta.persistence.*;
@@ -11,6 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "medicine_environment_types",
@@ -79,6 +81,13 @@ public class MedicineEnvironmentType {
 
     }
 
+
+    public void update(BigDecimal min, BigDecimal max){
+
+        this.min = min;
+        this.max = max;
+
+    }
 
 
 

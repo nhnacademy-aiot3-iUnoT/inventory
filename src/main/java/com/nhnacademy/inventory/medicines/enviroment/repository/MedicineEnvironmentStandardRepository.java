@@ -28,6 +28,7 @@ public interface MedicineEnvironmentStandardRepository extends JpaRepository<Med
     Optional<MedicineEnvironmentStandard> findByOrganizationIdAndPackageUnitIdForUpdate(Long organizationId, Long medicinePackageUnitId);
 
 
+    Optional<MedicineEnvironmentStandard> findByMedicinePackageUnitId(Long packUnitId);
 
 
 

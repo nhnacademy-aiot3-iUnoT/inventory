@@ -3,7 +3,6 @@ package com.nhnacademy.inventory.inventories.inventory.service;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
-import com.nhnacademy.inventory.organizations.department.domain.Department;
 import com.nhnacademy.inventory.organizations.department.domain.MemberDepartment;
 import com.nhnacademy.inventory.organizations.department.repository.MemberDepartmentRepository;
 import com.nhnacademy.inventory.organizations.member.domain.OrganizationMember;
@@ -12,8 +11,6 @@ import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemb
 import com.nhnacademy.inventory.organizations.organization.domain.Organization;
 import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.repository.StorageRepository;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -78,11 +74,7 @@ class InventoriesSearchServiceTest {
 
 
         String search = "타이레놀";
-        List<Long> departmentIds = List.of(1L);
         OrganizationMember member = mock(OrganizationMember.class);
-
-        MemberDepartment memberDepartment = mock(MemberDepartment.class);
-        List<MemberDepartment> memberDepartments = List.of(memberDepartment);
         InventoriesResponse inventoriesResponse = new InventoriesResponse(
                 1L,
                 1L,
@@ -95,16 +87,16 @@ class InventoriesSearchServiceTest {
         );
 
        given(organizationMemberRepository.findByAccountUuid(accountId)).willReturn(Optional.of(member));
+       Organization organization = mock(Organization.class);
+       Storage storage = mock(Storage.class);
        given(member.getOrganizationRole()).willReturn(OrganizationRole.ORG_OWNER);
-       given(memberDepartmentRepository.findAllByOrganizationMember(member))
-               .willReturn(memberDepartments);
+       given(member.getOrganization()).willReturn(organization);
+       given(organization.getId()).willReturn(1L);
+       given(storage.getId()).willReturn(1L);
+       given(storageRepository.findAllByOrganizationId(1L)).willReturn(List.of(storage));
 
-       given(medicineInventoryRepository.findAllInventoriesByDepartmentIds(search.trim(),1L,departmentIds, Pageable.ofSize(10)))
+       given(medicineInventoryRepository.findAllInventories(search.trim(),1L,List.of(1L), Pageable.ofSize(10)))
                .willReturn(new PageImpl<>(List.of(inventoriesResponse),Pageable.ofSize(10),1));
-
-
-       given(memberDepartment.getDepartment()).willReturn(mock(Department.class));
-       given(memberDepartment.getDepartment().getId()).willReturn(1L);
 
 
 
@@ -112,8 +104,8 @@ class InventoriesSearchServiceTest {
        Page<InventoriesResponse> result = inventoriesSearchService.getInventories(search,1L,Pageable.ofSize(10));
 
        verify(organizationMemberRepository).findByAccountUuid(accountId);
-       verify(memberDepartmentRepository).findAllByOrganizationMember(member);
-       verify(medicineInventoryRepository).findAllInventoriesByDepartmentIds(eq(search),eq(1L),anyList(),any(Pageable.class));
+       verify(storageRepository).findAllByOrganizationId(1L);
+       verify(medicineInventoryRepository).findAllInventories(eq(search),eq(1L),eq(List.of(1L)),any(Pageable.class));
 
 
        InventoriesResponse response = result.getContent().getFirst();
@@ -217,6 +209,7 @@ class InventoriesSearchServiceTest {
 
 
         given(organizationMemberRepository.findByAccountUuid(accountId)).willReturn(Optional.of(organizationMember));
+        given(organizationMember.getOrganizationRole()).willReturn(OrganizationRole.ORG_MEMBER);
         given(memberDepartmentRepository.findAllByOrganizationMember(organizationMember))
                 .willReturn(memberDepartments);
 

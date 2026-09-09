@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.medicines.enviroment.controller;
 
 import com.nhnacademy.inventory.global.dto.ApiResponse;
+
 import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
 import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentTypeResponse;
 import com.nhnacademy.inventory.medicines.enviroment.service.EnvironmentTypeSearchService;
@@ -30,7 +31,7 @@ public class MedicineEnvironmentController {
     }
 
     // 환경기준 생성
-    @PostMapping("/package-units/{package-unit-id}/medicine-environment-types")
+    @PostMapping("/package-units/{package-unit-id}/medicine-environment-standards")
     public ResponseEntity<Void> createEnvironmentTypes(@PathVariable(name = "package-unit-id") Long packUnitId,
                                                        @Valid @RequestBody MedicineEnvironmentRequest medicineEnvironmentRequest){
 
@@ -38,6 +39,7 @@ public class MedicineEnvironmentController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
 
     }
+
 
     // 환경기준 수정
     @PutMapping("/package-units/{package-unit-id}/medicine-environment-standards")
@@ -50,14 +52,22 @@ public class MedicineEnvironmentController {
 
 
     // 환경기준 삭제
-    @DeleteMapping("/medicine-environment-standards/{standard-id}")
+    @DeleteMapping("/package-units/{package-unit-id}/medicine-environment-standards")
     public ResponseEntity<Void> deleteEnvironmentTypes(
-            @PathVariable(name = "standard-id")Long standardId){
+            @PathVariable(name = "package-unit-id")Long packUnitId){
 
-        medicineEnvironmentService.deleteTypes(standardId);
+        medicineEnvironmentService.deleteTypes(packUnitId);
 
         return ResponseEntity.noContent().build();
     }
+
+    //의약품 - 구역 환경 적합/비적합 비교
+//    @GetMapping("/package-units/{package-unit-id}/zones/{zone-id}/environment")
+//    public ResponseEntity<>
+
+
+
+
 
 
 }

@@ -6,7 +6,8 @@ import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageDetailResp
 import com.nhnacademy.inventory.medicines.medicine.dto.MedicinePackageSearchResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.QMedicinePackageDetailResponse;
 import com.nhnacademy.inventory.medicines.medicine.dto.QMedicinePackageSearchResponse;
-import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,10 @@ public class MedicinePackageUnitRepositoryImpl implements MedicinePackageUnitRep
     @Override
     public Page<MedicinePackageSearchResponse> findAllWithMedicineByProductName(String productName, Pageable pageable) {
 
+
+        StringExpression normalizedProductName =
+                Expressions.stringTemplate( "replace({0}, ' ', '')",medicine.productName);
+
         List<MedicinePackageSearchResponse> content = queryFactory.select(new QMedicinePackageSearchResponse(
                 medicine.id,
                 packageUnit.id,
@@ -40,7 +45,7 @@ public class MedicinePackageUnitRepositoryImpl implements MedicinePackageUnitRep
 
         )).from(packageUnit)
                 .join(packageUnit.medicine,medicine)
-                .where(medicine.productName.contains(productName))
+                .where(normalizedProductName.contains(productName))
                 .orderBy(medicine.itemCode.asc(),medicine.productName.asc(),packageUnit.packUnit.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -50,7 +55,8 @@ public class MedicinePackageUnitRepositoryImpl implements MedicinePackageUnitRep
         Long total = queryFactory.select(packageUnit.count())
                 .from(packageUnit)
                 .join(packageUnit.medicine,medicine)
-                .where(medicine.productName.contains(productName))
+                .where(normalizedProductName.contains(productName)
+                )
                 .fetchOne();
 
 
@@ -65,8 +71,6 @@ public class MedicinePackageUnitRepositoryImpl implements MedicinePackageUnitRep
 
     @Override
     public Page<MedicinePackageSearchResponse> findAllWithMedicineByItemCode(String itemCode, Pageable pageable) {
-
-
 
 
         List<MedicinePackageSearchResponse> content = queryFactory.select(new QMedicinePackageSearchResponse(

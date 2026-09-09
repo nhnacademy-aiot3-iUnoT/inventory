@@ -40,3 +40,6 @@ build/
 
 ### http파일 ###
 .http
+
+### AI agent instructions ###
+AGENTS.md

@@ -4,10 +4,12 @@ import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.zone.domain.EnvStatus;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 import com.nhnacademy.inventory.organizations.zone.domain.ZoneStatus;
@@ -25,6 +27,8 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,6 +67,7 @@ class InboundOperationTest {
                 "10ml");
 
         zone = Zone.builder()
+                .storage(mock(Storage.class))
                 .name("zone-test")
                 .description("description-test")
                 .status(ZoneStatus.ACTIVE)
@@ -81,13 +86,12 @@ class InboundOperationTest {
                 1L,
                 1L,
                 "ABC-123",
-                LocalDate.now().plusDays(1),
+                LocalDate.now(),
                 20,
                 null,
-                null
+                TransactionType.INBOUND
+
         );
-
-
 
 
     }
@@ -95,6 +99,9 @@ class InboundOperationTest {
     @Test
     @DisplayName("inventory가 null인 경우 새 의약품 입고 등록")
     void inboundInventory() {
+
+        given(zone.getStorage().isActive())
+                .willReturn(true);
 
         inboundOperation.inboundInventory(
                 medicinePackageUnit,
@@ -130,6 +137,9 @@ class InboundOperationTest {
     @DisplayName("inventory가 있는 경우 의약품 수량 증가")
     void isInventoryTest(){
 
+        given(zone.getStorage().isActive())
+                .willReturn(true);
+
         inboundOperation.inboundInventory(
                 medicinePackageUnit,
                 zone,
@@ -137,7 +147,6 @@ class InboundOperationTest {
                 request
 
         );
-
 
         assertEquals(40,medicineInventory.getCurrentQuantity());
 
