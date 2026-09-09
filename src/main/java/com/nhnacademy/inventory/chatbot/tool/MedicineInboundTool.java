@@ -21,6 +21,10 @@ public class MedicineInboundTool {
                 사용자가 최종 확인한 의약품 입고를 처리합니다.
                 실제 재고 수량이 변경되므로 의약품명, 포장단위, 저장소명, 구역명,
                 제조번호, 유통기한, 수량을 모두 확인한 후에만 호출해야 합니다.
+
+                실패 message에 medicinePackageUnitId 또는 zoneId 후보가 있으면
+                사용자에게 후보와 식별 ID를 함께 안내하고,
+                사용자가 고른 ID를 다음 호출에 포함하세요.
             """
     )
     public InboundToolResponse inbound(

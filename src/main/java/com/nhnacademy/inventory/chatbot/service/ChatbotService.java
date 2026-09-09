@@ -50,17 +50,7 @@ public class ChatbotService {
         registerMedicineInbound와 registerMedicineOutbound는 실제 재고를 변경합니다.
         필수 정보가 빠졌으면 Tool을 호출하지 말고 사용자에게 필요한 정보를 질문하세요.
         모든 처리 정보를 먼저 요약하고 사용자가 명시적으로 최종 확인한 뒤에만 Tool을 한 번 호출하세요.
-        Tool 결과의 success가 false이면 재고가 변경되지 않은 것으로 안내하고 message에 따라 다시 질문하세요.
-        message에 medicinePackageUnitId 또는 zoneId가 포함된 후보가 있으면 후보 식별 ID를 함께 안내하세요.
-        사용자가 후보를 선택하면 해당 ID를 다음 registerMedicineInbound 호출에 포함하세요.
-
-        registerMedicineOutbound는 출고할 로트를 지정해야 합니다.
-        searchMedicineInventory로 로트 목록을 조회해 로트번호와 유통기한, 수량을 보여주고
-        어느 로트에서 출고할지 사용자에게 물으세요. 로트가 하나뿐이어도 확인받으세요.
-        사용자가 로트를 고르면 registerMedicineOutbound를 호출하기 직전에
-        searchMedicineInventory를 다시 호출해 그 로트의 inventoryId를 확인하세요.
-        조회 결과는 다음 차례로 넘어가면 남지 않으므로 이전 차례의 값을 기억해 쓰지 말고,
-        같은 차례에서 조회한 inventoryId만 사용하세요. 값을 추측해서는 안 됩니다.
+        success가 false이면 재고가 변경되지 않은 것으로 안내하고 message에 따라 다시 질문하세요.
         success가 true이면 Tool 결과에 포함된 처리 내역만 안내하세요.
 
         getReorderSuggestion 결과:
