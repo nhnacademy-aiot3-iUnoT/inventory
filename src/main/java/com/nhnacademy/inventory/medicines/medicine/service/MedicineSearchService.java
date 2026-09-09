@@ -49,7 +49,7 @@ public class MedicineSearchService {
             }
 
 
-            searchResponse = packageUnitRepository.findAllWithMedicineByProductName(trimmed,pageable);
+            searchResponse = packageUnitRepository.findAllWithMedicineByProductName(trimmed.replaceAll("\\s+", ""),pageable);
             log.info("product name : {} , searchResponse : {}",trimmed,searchResponse.getContent());
 
         }
@@ -77,7 +77,6 @@ public class MedicineSearchService {
 
 
     }
-
 
 
 

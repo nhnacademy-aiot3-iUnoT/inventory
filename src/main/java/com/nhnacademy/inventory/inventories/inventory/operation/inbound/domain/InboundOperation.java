@@ -2,7 +2,10 @@ package com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain;
 
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
+
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
+import com.nhnacademy.inventory.inventories.inventory.operation.inbound.exception.ExpirationdateMismatchException;
+import com.nhnacademy.inventory.inventories.inventory.operation.inbound.exception.TransactionTypeInvalidException;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
@@ -12,6 +15,7 @@ import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequ
 
 import com.nhnacademy.inventory.medicines.enviroment.service.MedicineEnvironmentService;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
+import com.nhnacademy.inventory.organizations.storage.exception.StorageInactiveException;
 import com.nhnacademy.inventory.organizations.zone.domain.Zone;
 
 
@@ -19,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+
 
 
 @Component
@@ -37,8 +41,20 @@ public class InboundOperation {
 
 
         log.info("==== 입고 등록 시작====");
-        //zone active 검증
-        zone.validationStatus();
+
+        //storage, zone active 검증
+        if(!zone.isActive()){
+            throw new StorageInactiveException();
+        }
+
+
+        if(request.transactionType() != TransactionType.INBOUND &&
+                request.transactionType() != TransactionType.TRANSFER_IN &&
+                request.transactionType() != TransactionType.INFO_CORRECTION_IN){
+
+            throw new TransactionTypeInvalidException();
+        }
+
 
 
         if(inventory == null){
@@ -54,21 +70,30 @@ public class InboundOperation {
 
         }
         else{
+
+            // 같은 제조번호 유통기한 다를 경우 에러 처리
+            if(!inventory.getExpirationDate().equals(request.expirationDate())){
+                throw new ExpirationdateMismatchException();
+            }
+
             inventory.increaseQuantity(request.quantity());
+
         }
+
 
         // request 환경 기준 설정
         MedicineEnvironmentRequest environmentRequest = request.medicineEnvironmentRequest();
 
         if(environmentRequest != null){
             medicineEnvironmentService.createTypes(medicinePackageUnit.getId(),environmentRequest);
+
         }
 
 
         stockTransactionService.createStockTransaction(new StockTransactionCommand(
                 medicinePackageUnit,
                 zone,
-                TransactionType.INBOUND,
+                request.transactionType(),
                 request.quantity(),
                 null,
                 request.memo(),

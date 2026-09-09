@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain.InboundOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
@@ -61,6 +62,7 @@ class InboundServiceTest {
                 LocalDate.now(),
                 30,
                 null,
+                TransactionType.INBOUND,
                 null
         );
 

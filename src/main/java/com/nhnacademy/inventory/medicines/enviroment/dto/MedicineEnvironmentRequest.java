@@ -17,6 +17,18 @@ public record MedicineEnvironmentRequest(
 
 ) {
 
+
+    @AssertTrue(message = "하나 이상의 환경기준을 입력해 주세요.")
+    public boolean isAnyEnvironmentEntered() {
+        return minTemperature != null
+                || maxTemperature != null
+                || minHumidity != null
+                || maxHumidity != null
+                || minIlluminance != null
+                || maxIlluminance != null;
+    }
+
+
     @AssertTrue(message = "온도 최소값과 최대값 모두 입력해주세요.")
     public boolean isTempValid(){
 
@@ -78,7 +90,6 @@ public record MedicineEnvironmentRequest(
 
         return min.compareTo(max) <= 0;
     }
-
 
 
 

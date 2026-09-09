@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.inventories.transaction.dto.StockTransactionCommand;
 import com.nhnacademy.inventory.inventories.transaction.service.StockTransactionService;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
@@ -84,6 +85,7 @@ class InboundOperationTest {
                 LocalDate.now().plusDays(1),
                 20,
                 null,
+                TransactionType.INBOUND,
                 null
         );
 

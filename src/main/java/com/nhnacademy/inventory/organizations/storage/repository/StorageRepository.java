@@ -22,6 +22,8 @@ public interface StorageRepository extends JpaRepository<Storage, Long> {
 
     List<Storage> findAllByOrganizationId(Long organizationId);
 
+
+
     List<Storage> findAllByOrganization(Organization organization);
 
     boolean existsByOrganizationAndNameAndStatusNotAndIdNot(Organization organization, String name, StorageStatus status, Long id);

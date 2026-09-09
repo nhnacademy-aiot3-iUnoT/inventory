@@ -21,6 +21,8 @@ import com.nhnacademy.inventory.organizations.storage.domain.QStorage;
 import com.nhnacademy.inventory.organizations.zone.domain.QZone;
 import com.querydsl.core.types.dsl.BooleanExpression;
 
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.nhnacademy.inventory.inventories.expiration.domain.ExpiringSearchFilterType;
 import com.nhnacademy.inventory.inventories.expiration.dto.ExpiringInventoryResponse;
@@ -60,16 +62,16 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     private static final QMedicinePackageUnit packageUnit = QMedicinePackageUnit.medicinePackageUnit;
 
 
+
     @Override
-    public Optional<MedicineInventory> findByMedicinePackageUnitIdAndZoneIdAndLotNumberAndExpirationDate
-            (Long medicinePackageUnitId, Long zoneId, String lotNumber, LocalDate expiration) {
+    public Optional<MedicineInventory> findByMedicinePackageUnitIdAndZoneIdAndLotNumber
+            (Long medicinePackageUnitId, Long zoneId, String lotNumber) {
 
         MedicineInventory content = queryFactory.selectFrom(inventory)
                 .where(
                         inventory.medicinePackageUnit.id.eq(medicinePackageUnitId),
                         inventory.zone.id.eq(zoneId),
-                        inventory.lotNumber.eq(lotNumber),
-                        inventory.expirationDate.eq(expiration)
+                        inventory.lotNumber.eq(lotNumber)
 
                 )
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE) //비관적 락
@@ -130,14 +132,6 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     public Page<InventoriesResponse> findAllInventoriesByDepartmentIds(String search,Long storageId, List<Long> departmentIds, Pageable pageable) {
 
 
-        // 제품명 또는 품목기준코드로 조회
-        BooleanExpression searchCondition =
-                search == null || search.isBlank()
-                        ? null :
-                        medicine.productName
-                                .containsIgnoreCase(search.trim())
-                                .or(medicine.itemCode.containsIgnoreCase(search.trim()));
-
 
         // 저장소 필터적용
         BooleanExpression storageCondition =
@@ -176,7 +170,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                                 ManagementStatus.UNDER_REVIEW
                         ),
 
-                        searchCondition,
+                        searchCondition(search),
                         storageCondition
 
                 )
@@ -218,7 +212,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                                 ManagementStatus.UNDER_REVIEW
                         ),
 
-                        searchCondition,
+                        searchCondition(search),
                         storageCondition
                 )
                 .groupBy(
@@ -302,11 +296,6 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     public Page<InventoriesResponse> findAllInventories(String search, Long storageId, List<Long> storageIds, Pageable pageable) {
 
 
-        BooleanExpression searchCondition =
-                search == null || search.isBlank() ? null :
-                        medicine.productName.containsIgnoreCase(search.trim())
-                                .or(medicine.itemCode.containsIgnoreCase(search.trim()));
-
 
         BooleanExpression storageCondition = storageId == null ? null :
                 storage.id.eq(storageId);
@@ -328,7 +317,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 .join(inventory.zone,zone)
                 .join(zone.storage,storage)
                 .where(
-                    searchCondition,
+                    searchCondition(search),
                         storageCondition,
                         zone.storage.id.in(storageIds),
                         inventory.managementStatus.notIn(
@@ -351,7 +340,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 .join(inventory.zone,zone)
                 .join(zone.storage,storage)
                 .where(
-                        searchCondition,
+                        searchCondition(search),
                         storageCondition,
                         zone.storage.id.in(storageIds),
                         inventory.managementStatus.notIn(
@@ -539,4 +528,32 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 ManagementStatus.UNDER_REVIEW
         );
     }
+
+
+
+
+    private BooleanExpression searchCondition(String search){
+
+
+        StringExpression normalizedProductName =
+                Expressions.stringTemplate( "replace({0}, ' ', '')",medicine.productName);
+
+
+        String normalizedSearch =
+                search == null
+                        ? null
+                        : search.replace(" ", "").trim();
+
+
+        return normalizedSearch == null || normalizedSearch.isBlank() ? null :
+                        normalizedProductName.containsIgnoreCase(normalizedSearch).or(
+                                medicine.itemCode.containsIgnoreCase(normalizedSearch)
+                        );
+
+
+    }
+
+
+
+
 }

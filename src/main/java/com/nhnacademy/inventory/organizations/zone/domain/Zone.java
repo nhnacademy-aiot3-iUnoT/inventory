@@ -90,11 +90,7 @@ public class Zone {
         return this.status == ZoneStatus.ACTIVE && storage.isActive();
     }
 
-    public void validationStatus(){
-        if(this.status != ZoneStatus.ACTIVE){
-            throw new ZoneNotAvailableException();
-        }
-    }
+
 
 
 
