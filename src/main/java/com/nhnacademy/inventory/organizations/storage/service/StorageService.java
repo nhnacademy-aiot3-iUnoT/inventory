@@ -325,7 +325,7 @@ public class StorageService {
                 .orElseThrow(ForbiddenException::new);
 
         if (!getAccessibleStorageIds(member).contains(storageId)) {
-            throw new ForbiddenException();
+            throw new StorageInactiveException();
         }
     }
 
