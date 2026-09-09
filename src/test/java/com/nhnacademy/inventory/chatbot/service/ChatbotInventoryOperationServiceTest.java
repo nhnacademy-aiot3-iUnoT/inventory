@@ -14,6 +14,10 @@ import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.Medi
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.service.InboundService;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.domain.OutboundReason;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundRequest;
+import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundTargetResponse;
+import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundTargetResponse;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.service.MedicineOutboundService;
 import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import jakarta.validation.Validation;
@@ -35,8 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("챗봇 입출고 작업 서비스 테스트")
@@ -147,22 +150,24 @@ class ChatbotInventoryOperationServiceTest {
     }
 
     @Test
-    @DisplayName("유일한 의약품과 구역이 검색되면 출고를 처리한다")
+    @DisplayName("선택한 재고 ID로 출고를 처리한다")
     void outbound() {
         OutboundToolRequest request = outboundRequest();
-        givenTargets();
+        givenOutboundTarget();
 
         OutboundToolResponse response = operationService.outbound(request);
 
         assertTrue(response.success());
         assertEquals(OutboundReason.DISPENSING, response.reason());
-        verify(outboundService).outbound(new MedicineOutboundRequest(
+        verify(outboundService).getOutboundTarget(75L);
+        verify(outboundService).outbound(75L, new MedicineOutboundRequest(
                 11L,
                 3,
                 21L,
                 OutboundReason.DISPENSING,
                 "처방 출고"
         ));
+        verifyNoInteractions(inventoryRepository, accessService);
     }
 
     @Test
@@ -183,57 +188,50 @@ class ChatbotInventoryOperationServiceTest {
     }
 
     @Test
-    @DisplayName("출고 후보가 여러 개면 입고 ID가 아닌 정확한 포장단위를 요청한다")
-    void outboundWithMultiplePackageUnits() {
-        given(inventoryRepository.findPackageUnitTargets(any(FindMedicinePackageUnitTargetQuery.class)))
-                .willReturn(List.of(
-                        new MedicinePackageUnitTargetRow(11L, "타이레놀정", "500mg 10정"),
-                        new MedicinePackageUnitTargetRow(12L, "타이레놀정", "500mg 30정")
-                ));
-
-        OutboundToolResponse response = operationService.outbound(outboundRequest());
-
-        assertFalse(response.success());
-        assertTrue(response.message().contains("의약품명과 포장단위를 더 정확하게 입력해주세요."));
-        assertFalse(response.message().contains("medicinePackageUnitId"));
-        verify(accessService, never()).getAccessibleStorageIds();
-        verify(outboundService, never()).outbound(any(MedicineOutboundRequest.class));
-    }
-
-    @Test
-    @DisplayName("필수 입력이 없으면 대상을 조회하거나 출고하지 않는다")
-    void outboundWithInvalidRequest() {
+    @DisplayName("재고 ID가 없으면 조회하거나 출고하지 않는다")
+    void outboundWithoutInventoryId() {
         OutboundToolRequest request = new OutboundToolRequest(
-                " ",
-                "500mg",
-                "A창고",
-                "1구역",
-                3,
-                OutboundReason.DISPENSING,
-                null
+                null, 3, OutboundReason.DISPENSING, null
         );
 
         OutboundToolResponse response = operationService.outbound(request);
 
         assertFalse(response.success());
-        assertEquals("의약품명은 필수입니다.", response.message());
-        verify(inventoryRepository, never())
-                .findPackageUnitTargets(any(FindMedicinePackageUnitTargetQuery.class));
-        verify(outboundService, never()).outbound(any(MedicineOutboundRequest.class));
+        assertEquals("출고할 LOT의 재고 ID는 필수입니다.", response.message());
+        verifyNoInteractions(outboundService, inventoryRepository, accessService);
+    }
+
+    @Test
+    @DisplayName("출고 수량이 유효하지 않으면 조회하거나 출고하지 않는다")
+    void outboundWithInvalidRequest() {
+        OutboundToolRequest request = new OutboundToolRequest(
+                75L, 0, OutboundReason.DISPENSING, null
+        );
+
+        OutboundToolResponse response = operationService.outbound(request);
+
+        assertFalse(response.success());
+        assertEquals("출고 수량은 1개 이상이어야 합니다.", response.message());
+        verifyNoInteractions(outboundService, inventoryRepository, accessService);
     }
 
     @Test
     @DisplayName("기존 출고 서비스의 업무 오류를 실패 응답으로 반환한다")
     void outboundWithDomainFailure() {
-        givenTargets();
+        givenOutboundTarget();
+        MedicineOutboundRequest command = new MedicineOutboundRequest(
+                11L, 3, 21L, OutboundReason.DISPENSING, "처방 출고"
+        );
         willThrow(new InsufficientStockException())
                 .given(outboundService)
-                .outbound(any(MedicineOutboundRequest.class));
+                .outbound(75L, command);
 
         OutboundToolResponse response = operationService.outbound(outboundRequest());
 
         assertFalse(response.success());
         assertEquals("출고 가능 재고가 부족합니다.", response.message());
+        verify(outboundService).outbound(75L, command);
+        verifyNoMoreInteractions(outboundService);
     }
 
     private void givenTargets() {
@@ -262,13 +260,18 @@ class ChatbotInventoryOperationServiceTest {
 
     private OutboundToolRequest outboundRequest() {
         return new OutboundToolRequest(
-                " 타이레놀 ",
-                " 500mg ",
-                " A창고 ",
-                " 1구역 ",
+                75L,
                 3,
                 OutboundReason.DISPENSING,
                 " 처방 출고 "
         );
+    }
+
+    private void givenOutboundTarget() {
+        given(outboundService.getOutboundTarget(75L))
+                .willReturn(new MedicineOutboundTargetResponse(
+                        75L, 11L, "ITEM-001", "타이레놀정", "500mg",
+                        20, 1L, "A창고", 21L, "1구역"
+                ));
     }
 }

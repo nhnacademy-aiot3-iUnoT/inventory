@@ -2,8 +2,9 @@ package com.nhnacademy.inventory.inventories.inventory.operation;
 
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.organizations.organization.service.OrganizationAccessService;
-import com.nhnacademy.inventory.organizations.storage.domain.Storage;
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
+import com.nhnacademy.inventory.organizations.zone.domain.Zone;
+import com.nhnacademy.inventory.organizations.zone.service.ZoneService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,14 +13,16 @@ import org.springframework.stereotype.Component;
 public class InventoryOperationAccessValidator {
 
     private final StorageService storageService;
+    private final ZoneService zoneService;
     private final OrganizationAccessService organizationAccessService;
 
-    public void validate(Storage storage, Medicine medicine) {
-        storageService.checkStoragePermission(storage.getId());
+    public void validate(Zone zone, Medicine medicine) {
+        storageService.checkStoragePermission(zone.getStorage().getId());
+        zoneService.validateZoneStatus(zone);
 
         if (medicine.requiresNarcoticHandlingPermission()) {
             organizationAccessService.requireOwnerOrBossOf(
-                    storage.getOrganization().getId()
+                    zone.getStorage().getOrganization().getId()
             );
         }
     }

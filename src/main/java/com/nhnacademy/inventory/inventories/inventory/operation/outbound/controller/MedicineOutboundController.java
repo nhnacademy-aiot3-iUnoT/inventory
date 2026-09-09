@@ -27,11 +27,12 @@ public class MedicineOutboundController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/outbound")
+    @PostMapping("/{inventory-id}/outbound")
     public ResponseEntity<Void> outbound(
+            @PathVariable(name = "inventory-id") Long inventoryId,
             @Valid @RequestBody MedicineOutboundRequest request
     ) {
-        medicineOutboundService.outbound(request);
+        medicineOutboundService.outbound(inventoryId, request);
 
         return ResponseEntity.noContent().build();
     }

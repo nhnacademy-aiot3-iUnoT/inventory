@@ -4,6 +4,7 @@ import com.nhnacademy.inventory.assistant.event.StockInboundCompletedEvent;
 import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain.InboundOperation;
+import com.nhnacademy.inventory.inventories.inventory.operation.InventoryOperationAccessValidator;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 
@@ -27,17 +28,23 @@ public class InboundService {
     private final ZoneRepository zoneRepository;
     private final MedicineInventoryRepository medicineInventoryRepository;
     private final InboundOperation inboundOperation;
+    private final InventoryOperationAccessValidator accessValidator;
     private final ApplicationEventPublisher eventPublisher;
 
     // 입고 등록
     @Transactional
-    public void createInbound(MedicineInboundRequest request){
+    public void createInbound(MedicineInboundRequest request) {
 
 
         MedicinePackageUnit medicinePackageUnit = medicinePackageUnitRepository.findById(request.medicinePackageUnitId())
                 .orElseThrow(MedicineNotFoundException::new);
         Zone zone = zoneRepository.findById(request.zoneId())
                 .orElseThrow(ZoneNotFoundException::new);
+
+        accessValidator.validate(
+                zone,
+                medicinePackageUnit.getMedicine()
+        );
 
         MedicineInventory medicineInventory = medicineInventoryRepository
                 .findByMedicinePackageUnitIdAndZoneIdAndLotNumber(
@@ -54,9 +61,6 @@ public class InboundService {
 
         eventPublisher.publishEvent(new StockInboundCompletedEvent(UserContext.getUserUuid(), request.zoneId(), request.medicinePackageUnitId(), request.expirationDate(), request.quantity()));
     }
-
-
-
 
 
 }

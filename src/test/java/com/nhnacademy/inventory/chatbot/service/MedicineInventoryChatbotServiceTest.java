@@ -118,8 +118,14 @@ class MedicineInventoryChatbotServiceTest {
     }
 
     private MedicineInventorySearchRow searchRow(String storageName, int quantity) {
-        return new MedicineInventorySearchRow(1L, "타이레놀", "500mg",
-                storageName, "2구역", quantity);
+        return new MedicineInventorySearchRow(
+                1L, "타이레놀", "500mg",
+                storageName, "2구역", quantity,
+                "A창고".equals(storageName) ? 75L : 76L,
+                "LOT-" + storageName,
+                LocalDate.now().plusDays(20),
+                com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus.NORMAL
+        );
     }
 
     private ExpiringInventoryRow expiringRow(LocalDate expirationDate, int quantity) {

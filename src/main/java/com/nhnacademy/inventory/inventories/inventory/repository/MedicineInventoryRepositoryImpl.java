@@ -60,6 +60,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
     private static final QStorageDepartment storageDepartment = QStorageDepartment.storageDepartment;
     private static final QOrganization organization = QOrganization.organization; // 조직 테이블
     private static final QMedicinePackageUnit packageUnit = QMedicinePackageUnit.medicinePackageUnit;
+    private static final int LOCK_TIMEOUT_MILLIS = 3_000;
 
 
 
@@ -111,6 +112,7 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                 .selectFrom(inventory)
                 .where(inventory.id.eq(inventoryId))
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                .setHint("jakarta.persistence.lock.timeout", LOCK_TIMEOUT_MILLIS)
                 .fetchOne();
 
         return Optional.ofNullable(content);
@@ -326,7 +328,14 @@ public class MedicineInventoryRepositoryImpl implements MedicineInventoryReposit
                         )
 
                 )
-                .groupBy(medicinePackageUnit.id,storage.id)
+                .groupBy(
+                        medicinePackageUnit.id,
+                        medicinePackageUnit.packUnit,
+                        medicine.productName,
+                        medicine.itemCode,
+                        storage.id,
+                        storage.name
+                )
                 .orderBy(medicine.productName.asc(),inventory.expirationDate.min().asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

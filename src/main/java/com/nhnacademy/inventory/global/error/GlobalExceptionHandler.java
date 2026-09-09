@@ -5,6 +5,7 @@ import com.nhnacademy.inventory.inventories.error.InventoryErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -45,10 +46,24 @@ public class GlobalExceptionHandler{
                 .body(ApiResponse.error(GlobalErrorCode.INVALID_INPUT.getCode(), message));
     }
 
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePessimisticLock(
+            PessimisticLockingFailureException e
+    ) {
+        log.warn("비관적 락 시간 초과", e);
+
+        return ResponseEntity
+                .status(InventoryErrorCode.INVENTORY_LOCK_TIMEOUT.getStatus())
+                .body(ApiResponse.error(
+                        InventoryErrorCode.INVENTORY_LOCK_TIMEOUT.getCode(),
+                        InventoryErrorCode.INVENTORY_LOCK_TIMEOUT.getMessage()
+                ));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception e) {
 
-        log.error("처리되지 않은 예외", e);
+        log.error("처리되지 않은 예외: {}", e.getMessage(), e);
 
         return ResponseEntity
                 .status(GlobalErrorCode.INTERNAL_SERVER_ERROR.getStatus())
@@ -60,7 +75,7 @@ public class GlobalExceptionHandler{
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(ObjectOptimisticLockingFailureException e){
 
-        log.warn("낙관적 락 충돌", e);
+        log.warn("낙관적 락 충돌: {}", e.getMessage(), e);
 
         return ResponseEntity.status(InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getStatus())
                 .body(ApiResponse.error(InventoryErrorCode.ENVIRONMENT_STANDARD_CONFLICT.getCode(),

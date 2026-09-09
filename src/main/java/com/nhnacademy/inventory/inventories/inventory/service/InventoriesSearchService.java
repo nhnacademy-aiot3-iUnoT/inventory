@@ -50,35 +50,12 @@ public class InventoriesSearchService {
 
         Page<InventoriesResponse> page;
 
-
-        // 권한이 BOSS면 전체 저장소 의약품 조회
-        if(member.getOrganizationRole() == OrganizationRole.ORG_BOSS){
-
-            Long organizationId = member.getOrganization().getId();
-            List<Storage> allStorages = storageRepository.findAllByOrganizationId(organizationId);
-            List<Long> storageIds = allStorages.stream()
-                    .map(Storage::getId).toList();
-
-
-            
-
-            page = medicineInventoryRepository.findAllInventories(trimmed,storageId,storageIds,pageable);
-
-
-            log.info("Boss : 전체 재고 조회 : {} ",page);
-
-        }
-
-        // 부서내 멤버면 부서에 해당하는 저장소 의약품 조회
-        else{
-
-
+        if(member.getOrganizationRole() == OrganizationRole.ORG_MEMBER) {
             List<MemberDepartment> memberDepartments = memberDepartmentRepository.findAllByOrganizationMember(member);
 
             if(memberDepartments.isEmpty()){
                 return Page.empty();
             }
-
 
             List<Long> departmentIds = memberDepartments.stream()
                     .map(md -> md.getDepartment().getId())
@@ -88,9 +65,15 @@ public class InventoriesSearchService {
 
             log.info("departmentIds = {}", departmentIds);
             log.info("부서 전체 재고 조회 : {} ",page.getContent());
+        } else {
+            Long organizationId = member.getOrganization().getId();
+            List<Storage> allStorages = storageRepository.findAllByOrganizationId(organizationId);
+            List<Long> storageIds = allStorages.stream().map(Storage::getId).toList();
 
+            page = medicineInventoryRepository.findAllInventories(trimmed,storageId,storageIds,pageable);
+
+            log.info("Boss : 전체 재고 조회 : {} ",page);
         }
-
 
         return page;
 

@@ -49,6 +49,13 @@ deploy_tag() {
 
       sleep 2;
     done
+
+    # 재기동한 인스턴스가 게이트웨이에 반영될 때까지 대기
+    # 마지막 인스턴스 뒤에는 내릴 대상이 없으므로 기다리지 않음
+    if [ "$i" -lt "$((${#SERVICES[@]} - 1))" ]; then
+      echo "${SERVICE} 게이트웨이 반영 대기 (65초)"
+      sleep 65;
+    fi
   done
 
   return 0
