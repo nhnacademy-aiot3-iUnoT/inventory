@@ -17,8 +17,8 @@ public class MedicineOutboundTool {
             name = "registerMedicineOutbound",
             description = """
                 사용자가 최종 확인한 의약품 출고를 처리합니다.
-                실제 재고 수량이 변경되므로 의약품명, 포장단위, 저장소명, 구역명,
-                수량과 출고 사유를 모두 확인한 후에만 호출해야 합니다.
+                실제 재고 수량이 변경되므로 searchMedicineInventory 로 로트를 조회해
+                inventoryId 를 확인하고, 수량과 출고 사유까지 확인한 후에만 호출해야 합니다.
             """
     )
     public OutboundToolResponse outbound(
