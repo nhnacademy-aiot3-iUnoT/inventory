@@ -9,7 +9,6 @@ import com.nhnacademy.inventory.chatbot.tool.LowStockInventoryTool;
 import com.nhnacademy.inventory.chatbot.tool.MedicineInboundTool;
 import com.nhnacademy.inventory.chatbot.tool.MedicineInventorySearchTool;
 import com.nhnacademy.inventory.chatbot.tool.MedicineOutboundTool;
-import com.nhnacademy.inventory.global.util.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -32,6 +31,7 @@ public class ChatbotService {
 
         searchMedicineInventory 결과:
         의약품명, 총 수량, 위치별 수량을 안내하세요.
+        출고를 위해 조회한 경우에는 위치마다 로트번호와 유통기한, 수량을 함께 안내하세요.
 
         getExpiringInventory 결과:
         searchDays 기준으로 유통기한 임박 의약품명, 유통기한, 남은 일수, 수량, 위치를 안내하세요.
@@ -50,11 +50,9 @@ public class ChatbotService {
         registerMedicineInbound와 registerMedicineOutbound는 실제 재고를 변경합니다.
         필수 정보가 빠졌으면 Tool을 호출하지 말고 사용자에게 필요한 정보를 질문하세요.
         모든 처리 정보를 먼저 요약하고 사용자가 명시적으로 최종 확인한 뒤에만 Tool을 한 번 호출하세요.
-        Tool 결과의 success가 false이면 재고가 변경되지 않은 것으로 안내하고 message에 따라 다시 질문하세요.
-        message에 medicinePackageUnitId 또는 zoneId가 포함된 후보가 있으면 후보 식별 ID를 함께 안내하세요.
-        사용자가 후보를 선택하면 해당 ID를 다음 registerMedicineInbound 호출에 포함하세요.
+        success가 false이면 재고가 변경되지 않은 것으로 안내하고 message에 따라 다시 질문하세요.
         success가 true이면 Tool 결과에 포함된 처리 내역만 안내하세요.
-          
+
         getReorderSuggestion 결과:
         analyzedWeeks 기준으로 분석했다고 먼저 알리고,
         의약품명, 포장단위, 위치, 권장 발주 수량, 현재 수량, 주간 평균 출고량을 안내하세요.

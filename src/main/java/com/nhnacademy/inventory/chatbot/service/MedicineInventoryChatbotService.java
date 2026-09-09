@@ -131,15 +131,27 @@ public class MedicineInventoryChatbotService {
         return new LowStockInventoryResponse(items);
     }
 
-    private MedicineInventoryItem toMedicineInventoryItem(List<MedicineInventorySearchRow> rows) {
+    private MedicineInventoryItem toMedicineInventoryItem(
+            List<MedicineInventorySearchRow> rows
+    ) {
         MedicineInventorySearchRow first = rows.getFirst();
 
         return new MedicineInventoryItem(
                 first.productName(),
                 first.packUnit(),
-                rows.stream().mapToInt(MedicineInventorySearchRow::currentQuantity).sum(),
                 rows.stream()
-                        .map(row -> new Location(row.storageName(), row.zoneName(), row.currentQuantity()))
+                        .mapToInt(MedicineInventorySearchRow::currentQuantity)
+                        .sum(),
+                rows.stream()
+                        .map(row -> new Location(
+                                row.storageName(),
+                                row.zoneName(),
+                                row.currentQuantity(),
+                                row.inventoryId(),
+                                row.lotNumber(),
+                                row.expirationDate(),
+                                row.managementStatus()
+                        ))
                         .toList()
         );
     }

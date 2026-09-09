@@ -219,7 +219,11 @@ public class MedicineInventoryChatbotRepositoryImpl implements MedicineInventory
                 medicinePackageUnit.packUnit,
                 storage.name,
                 zone.name,
-                medicineInventory.currentQuantity
+                medicineInventory.currentQuantity,
+                medicineInventory.id,
+                medicineInventory.lotNumber,
+                medicineInventory.expirationDate,
+                medicineInventory.managementStatus
         );
     }
 
