@@ -11,8 +11,8 @@ public record EnvironmentEventItemResponse(
         Long environmentEventId,
         BigDecimal detectedValue,
         BigDecimal thresholdValue,
-        EnvironmentType environmentType,
-        BreachType breachType,
+        String environmentType,
+        String breachType,
         LocalDateTime createdAt
 ) {
     public static EnvironmentEventItemResponse from(EnvironmentEvent event){
@@ -20,8 +20,8 @@ public record EnvironmentEventItemResponse(
                 event.getId(),
                 event.getDetectedValue(),
                 event.getThresholdValue(),
-                event.getEnvironmentType(),
-                event.getBreachType(),
+                event.getEnvironmentType().getKo(),
+                event.getBreachType().getKo(),
                 event.getCreatedAt()
         );
     }
