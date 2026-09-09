@@ -47,12 +47,10 @@ public class InboundService {
         );
 
         MedicineInventory medicineInventory = medicineInventoryRepository
-                .findByMedicinePackageUnitIdAndZoneIdAndLotNumberAndExpirationDate(
+                .findByMedicinePackageUnitIdAndZoneIdAndLotNumber(
                         medicinePackageUnit.getId(),
                         zone.getId(),
-                        request.lotNumber().trim(),
-                        request.expirationDate()
-                )
+                        request.lotNumber().trim())
                 .orElse(null);
 
         // 입고 처리

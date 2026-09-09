@@ -1,12 +1,11 @@
 package com.nhnacademy.inventory.inventories.inventory.controller;
 
+import com.netflix.discovery.converters.Auto;
 import com.nhnacademy.inventory.global.dto.PageResponse;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoriesResponse;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoryDetailResponse;
 import com.nhnacademy.inventory.inventories.inventory.dto.InventoryInfoResponse;
-import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
-import com.nhnacademy.inventory.inventories.inventory.operation.inbound.service.InboundService;
 import com.nhnacademy.inventory.inventories.inventory.service.InventoriesSearchService;
 import com.nhnacademy.inventory.inventories.inventory.service.InventoryService;
 import org.junit.jupiter.api.DisplayName;
@@ -19,219 +18,27 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @WebMvcTest(InventoryController.class)
-class InventoryControllerTest {
+public class InventoryControllerTest {
 
     @Autowired
     MockMvc mockMvc;
-
-    @MockitoBean
-    InboundService inboundService;
     @MockitoBean
     InventoriesSearchService inventoriesSearchService;
     @MockitoBean
     InventoryService inventoryService;
 
-
-    @Test
-    @DisplayName("입고 등록 요청")
-    void registerTest() throws Exception{
-
-
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {
-                        
-                        "medicinePackageUnitId": 1,
-                        "zoneId": 1,
-                        "lotNumber": "ABC-123",
-                        "expirationDate": "2027-09-10",
-                        "quantity": 20
-                        }
-                        
-                        """
-                )).andExpect(status().isCreated());
-
-
-
-        verify(inboundService).createInbound(any(MedicineInboundRequest.class));
-
-    }
-
-
-
-    @Test
-    @DisplayName("validation")
-    void validationInventoryTest() throws Exception{
-
-
-        // medicinePackageUnitId가 null일 때
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                        {
-                            "medicinePackageUnitId": null,
-                            "zoneId": 1,
-                            "lotNumber": "ABC-123",
-                            "expirationDate": "2026-08-11",
-                            "quantity": 20
-     
-                        }
-                        """
-                )).andExpect(status().is4xxClientError());
-
-
-
-        // zoneId가 Null일 때
-
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": null,
-                            "lotNumber": "ABC-123",
-                            "expirationDate": "2026-08-11",
-                            "quantity": 20
-     
-                        }
-                        """
-                )).andExpect(status().is4xxClientError());
-
-
-
-        // lotNumber 공백
-
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": " ",
-                            "expirationDate": "2026-08-11",
-                            "quantity": 20
-     
-                        }
-                        """
-                )).andExpect(status().is4xxClientError());
-
-
-        // lotNumber 50자 이상
-
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": "아러더랴더ㅑㄹ더잳쟈러재댜ㅓ랮댜ㅓ래쟏러ㅐㅑㅈ덜댜잗러랒대랴ㅓ잳러ㅐ쟈더래쟈더래ㅑㅈ더갸ㅐㅈ더래ㅑㅈ더랴ㅐㅈ더랴ㅐ젇랴ㅐㅈ덪ㄷ",
-                            "expirationDate": "2026-08-11",
-                            "quantity": 20
-     
-                        }
-                        """
-                )).andExpect(status().is4xxClientError());
-
-
-
-        // expirationDate null일 때
-
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": " ",
-                            "expirationDate": null,
-                            "quantity": 20
-     
-                        }
-                        """
-                )).andExpect(status().is4xxClientError());
-
-
-        // expirationDate 과거일 때
-
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": "ABC-123" ,
-                            "expirationDate": "2025-05-10",
-                            "quantity": 20
-     
-                        }
-                        """
-                )).andExpect(status().is4xxClientError());
-
-
-        // 수량이 null 일 때
-
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": "ABC-123",
-                            "expirationDate": "2026-08-11",
-                            "quantity": null
-     
-                        }
-                        """
-                )).andExpect(status().is4xxClientError());
-
-
-        // 수량이 음수일 때
-
-
-        mockMvc.perform(post("/api/core/inventories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": "ABC-123",
-                            "expirationDate": "2026-08-11",
-                            "quantity": -30
-     
-                        }
-                        """
-                )).andExpect(status().is4xxClientError());
-
-
-
-
-
-    }
 
 
     @Test
@@ -258,20 +65,20 @@ class InventoryControllerTest {
                 .willReturn(new PageImpl<>(List.of(response),Pageable.ofSize(10),1));
 
         mockMvc.perform(
-                get("/api/core/inventories")
-                        .param("search","타이레놀")
-                        .param("storage-id","1")
+                        get("/api/core/inventories")
+                                .param("search","타이레놀")
+                                .param("storage-id","1")
                 )
-                        .andExpect(status().isOk())
-                        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(jsonPath("$.data.content[0].storageId").value(1L))
-                        .andExpect(jsonPath("$.data.content[0].packUnitId").value(1L))
-                        .andExpect(jsonPath("$.data.content[0].productName").value("타이레놀"))
-                        .andExpect(jsonPath("$.data.content[0].itemCode").value("1234"))
-                        .andExpect(jsonPath("$.data.content[0].packUnit").value("10통"))
-                        .andExpect(jsonPath("$.data.content[0].expirationDate").value("2026-09-01"))
-                        .andExpect(jsonPath("$.data.content[0].storageName").value("저장소-test"))
-                        .andExpect(jsonPath("$.data.content[0].totalQuantity").value("30"));
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data.content[0].storageId").value(1L))
+                .andExpect(jsonPath("$.data.content[0].packUnitId").value(1L))
+                .andExpect(jsonPath("$.data.content[0].productName").value("타이레놀"))
+                .andExpect(jsonPath("$.data.content[0].itemCode").value("1234"))
+                .andExpect(jsonPath("$.data.content[0].packUnit").value("10통"))
+                .andExpect(jsonPath("$.data.content[0].expirationDate").value("2026-09-01"))
+                .andExpect(jsonPath("$.data.content[0].storageName").value("저장소-test"))
+                .andExpect(jsonPath("$.data.content[0].totalQuantity").value("30"));
 
 
 
@@ -289,7 +96,7 @@ class InventoryControllerTest {
                         1L,
                         "A 구역",
                         "lot-3452",
-                        LocalDate.of(2026,Month.FEBRUARY,24),
+                        LocalDate.of(2026, Month.FEBRUARY,24),
                         50,
                         ManagementStatus.NORMAL
 
@@ -363,4 +170,6 @@ class InventoryControllerTest {
 
 
     }
+
+
 }

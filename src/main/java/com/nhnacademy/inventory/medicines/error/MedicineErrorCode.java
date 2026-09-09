@@ -32,6 +32,7 @@ public enum MedicineErrorCode implements ErrorCode {
     PACK_UNIT_INVALID(HttpStatus.BAD_REQUEST,"P002","잘못된 입력값입니다."),
     PACK_UNIT_REQUIRED(HttpStatus.BAD_REQUEST,"P003","포장단위는 필수입니다."),
 
+
     // 의약품 검색
     MEDICINE_SEARCH_REQUEST_REQUIRED(HttpStatus.BAD_REQUEST,"S001","의약품 검색 요청 정보는 필수입니다."),
     MEDICINE_SEARCH_TYPE_REQUIRED(HttpStatus.BAD_REQUEST,"S002","조건 선택은 필수입니다."),
@@ -39,7 +40,8 @@ public enum MedicineErrorCode implements ErrorCode {
 
     // 환경
     ENVIRONMENT_RANGE_INVALID(HttpStatus.BAD_REQUEST,"E001","환경 기준의 최소값은 최대값보다 클 수 없습니다."),
-    ENVIRONMENT_RANGE_REQUIRED(HttpStatus.BAD_REQUEST,"E002","최소값과 최대값은 null일 수 없습니다.");
+    ENVIRONMENT_RANGE_REQUIRED(HttpStatus.BAD_REQUEST,"E002","최소값과 최대값은 null일 수 없습니다."),
+    MEDICINE_ENVIRONMENT_REQUIRED(HttpStatus.BAD_REQUEST,"E003","환경기준 값을 입력해주세요.");
 
 
     private final HttpStatus status;

@@ -14,6 +14,7 @@ import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.Medi
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.service.InboundService;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.MedicineOutboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.service.MedicineOutboundService;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +59,7 @@ public class ChatbotInventoryOperationService {
                     request.expirationDate(),
                     request.quantity(),
                     trimToNull(request.memo()),
-                    null
+                    TransactionType.INBOUND
             ));
 
             return InboundToolResponse.success(

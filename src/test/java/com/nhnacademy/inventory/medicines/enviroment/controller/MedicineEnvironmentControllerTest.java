@@ -1,11 +1,14 @@
 package com.nhnacademy.inventory.medicines.enviroment.controller;
 
+import com.nhnacademy.inventory.global.util.UserContext;
 import com.nhnacademy.inventory.medicines.enviroment.domain.EnvironmentType;
 
 import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentRequest;
 import com.nhnacademy.inventory.medicines.enviroment.dto.MedicineEnvironmentTypeResponse;
 import com.nhnacademy.inventory.medicines.enviroment.service.EnvironmentTypeSearchService;
 import com.nhnacademy.inventory.medicines.enviroment.service.MedicineEnvironmentService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,10 +20,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 
 import static org.mockito.BDDMockito.given;
 
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -36,6 +41,26 @@ class MedicineEnvironmentControllerTest {
     EnvironmentTypeSearchService environmentTypeSearchService;
     @MockitoBean
     MedicineEnvironmentService medicineEnvironmentService;
+
+
+
+
+    @BeforeEach
+    void setUp(){
+
+        UUID accountId = UUID.randomUUID();
+        UserContext.setUserUuid(accountId);
+
+
+    }
+
+    @AfterEach
+    void afterSetUp(){
+        UserContext.clear();
+    }
+
+
+
 
     @Test
     @DisplayName("환경기준 조회")
@@ -122,7 +147,17 @@ class MedicineEnvironmentControllerTest {
     @DisplayName("환경기준 삭제")
     void deleteEnvironmentTypes() throws Exception{
 
-        mockMvc.perform(delete("/api/core/medicine-environment-standards/1"))
+
+
+
+        // given
+        willDoNothing()
+                .given(medicineEnvironmentService)
+                .deleteTypes(1L);
+
+
+
+        mockMvc.perform(delete("/api/core/package-units/1/medicine-environment-standards"))
                 .andExpect(status().isNoContent());
 
 

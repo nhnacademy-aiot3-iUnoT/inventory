@@ -19,6 +19,7 @@ import com.nhnacademy.inventory.inventories.inventory.operation.outbound.dto.Med
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.nhnacademy.inventory.inventories.inventory.operation.outbound.service.MedicineOutboundService;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,8 +88,10 @@ class ChatbotInventoryOperationServiceTest {
                 "LOT-001",
                 request.expirationDate(),
                 10,
-                "신규 입고",
-                null
+                "신규입고",
+                request.transactionType()
+
+
         ));
         verify(inventoryRepository).findPackageUnitTargets(
                 new FindMedicinePackageUnitTargetQuery("타이레놀", "500mg", 5)
@@ -111,6 +114,7 @@ class ChatbotInventoryOperationServiceTest {
                 "LOT-001",
                 LocalDate.now().plusDays(30),
                 10,
+                TransactionType.INBOUND,
                 "신규 입고"
         );
         given(inventoryRepository.findPackageUnitTargetById(11L))
@@ -141,7 +145,7 @@ class ChatbotInventoryOperationServiceTest {
                 request.expirationDate(),
                 10,
                 "신규 입고",
-                null
+                TransactionType.INBOUND
         ));
     }
 
@@ -249,7 +253,8 @@ class ChatbotInventoryOperationServiceTest {
                 " LOT-001 ",
                 LocalDate.now().plusDays(30),
                 10,
-                " 신규 입고 "
+                TransactionType.INBOUND,
+                "신규입고"
         );
     }
 

@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.inventories.inventory.operation.InventoryOperati
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain.InboundOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
+import com.nhnacademy.inventory.inventories.transaction.domain.TransactionType;
 import com.nhnacademy.inventory.medicines.medicine.domain.Medicine;
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
 import com.nhnacademy.inventory.medicines.medicine.repository.MedicinePackageUnitRepository;
@@ -64,7 +65,8 @@ class InboundServiceTest {
                 LocalDate.now(),
                 30,
                 null,
-                null
+                TransactionType.INBOUND
+
         );
 
         Medicine medicine = Medicine.create(
@@ -108,11 +110,10 @@ class InboundServiceTest {
 
 
         given(zoneRepository.findById(request.zoneId())).willReturn(Optional.of(zone));
-        given(medicineInventoryRepository.findByMedicinePackageUnitIdAndZoneIdAndLotNumberAndExpirationDate
+        given(medicineInventoryRepository.findByMedicinePackageUnitIdAndZoneIdAndLotNumber
                 (request.medicinePackageUnitId(),
                         request.zoneId(),
-                        request.lotNumber(),
-                        request.expirationDate()
+                        request.lotNumber()
                 )
         ).willReturn(Optional.of(medicineInventory));
 
