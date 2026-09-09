@@ -27,6 +27,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -93,16 +94,14 @@ class InboundOperationTest {
         );
 
 
-
-
     }
 
     @Test
     @DisplayName("inventory가 null인 경우 새 의약품 입고 등록")
     void inboundInventory() {
 
-
-
+        given(zone.getStorage().isActive())
+                .willReturn(true);
 
         inboundOperation.inboundInventory(
                 medicinePackageUnit,
@@ -137,6 +136,9 @@ class InboundOperationTest {
     @Test
     @DisplayName("inventory가 있는 경우 의약품 수량 증가")
     void isInventoryTest(){
+
+        given(zone.getStorage().isActive())
+                .willReturn(true);
 
         inboundOperation.inboundInventory(
                 medicinePackageUnit,

@@ -55,7 +55,7 @@ public class InboundOperation {
 
 
 
-        if(zone.isActive()){
+        if(!zone.isActive()){
             throw new ZoneNotAvailableException();
         }
 
@@ -98,9 +98,9 @@ public class InboundOperation {
         stockTransactionService.createStockTransaction(new StockTransactionCommand(
                 medicinePackageUnit,
                 zone,
-                request.transactionType(),
+                TransactionType.INBOUND,
                 request.quantity(),
-                null,
+                request.transactionType().name(),
                 request.memo(),
                 UserContext.getUserUuid()
 
