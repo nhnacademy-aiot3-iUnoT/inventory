@@ -1,6 +1,7 @@
 package com.nhnacademy.inventory.medicines.enviroment.service;
 
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.medicines.enviroment.domain.EnvironmentType;
 import com.nhnacademy.inventory.medicines.enviroment.domain.MedicineEnvironmentStandard;
 import com.nhnacademy.inventory.medicines.enviroment.domain.MedicineEnvironmentType;
 import com.nhnacademy.inventory.medicines.enviroment.repository.MedicineEnvironmentStandardRepository;
@@ -65,8 +66,7 @@ class EnvironmentTypeSearchServiceTest {
         MedicineEnvironmentType type = mock(MedicineEnvironmentType.class);
         Organization organization = mock(Organization.class);
 
-
-
+        given(type.getEnvironmentType()).willReturn(EnvironmentType.TEMPERATURE);
 
         given(memberRepository.findByAccountUuid(accountId))
                 .willReturn(Optional.of(organizationMember));
