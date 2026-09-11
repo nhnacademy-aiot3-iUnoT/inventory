@@ -65,8 +65,8 @@ class InboundServiceTest {
                 LocalDate.now(),
                 30,
                 null,
-                TransactionType.INBOUND
-
+                TransactionType.INBOUND,
+                false
         );
 
         Medicine medicine = Medicine.create(

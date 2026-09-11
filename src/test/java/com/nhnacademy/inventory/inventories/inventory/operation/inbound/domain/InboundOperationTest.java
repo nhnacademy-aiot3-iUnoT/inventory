@@ -89,8 +89,8 @@ class InboundOperationTest {
                 LocalDate.now(),
                 20,
                 null,
-                TransactionType.INBOUND
-
+                TransactionType.INBOUND,
+                false
         );
 
 
