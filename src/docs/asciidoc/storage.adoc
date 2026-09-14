@@ -14,19 +14,8 @@
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/storage-create/http-request.adoc[]
-
-
-// ===== Request Headers
-//
-// include::{snippets}/storage-create/request-headers.adoc[]
-//
-//
-// ===== Request Parameters
-//
-// include::{snippets}/storage-create/query-parameters.adoc[]
 
 
 ===== Request Body
@@ -43,7 +32,6 @@ include::{snippets}/storage-create/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/storage-create/http-response.adoc[]
 
@@ -65,36 +53,13 @@ include::{snippets}/storage-create/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/storage-get-list/http-request.adoc[]
-
-
-// ===== Request Headers
-//
-// include::{snippets}/storage-get-list/request-headers.adoc[]
-//
-//
-// ===== Request Parameters
-//
-// include::{snippets}/storage-get-list/query-parameters.adoc[]
-
-
-===== Request Body
-
-include::{snippets}/storage-get-list/request-body.adoc[]
-
-
-// ===== Request Fields
-//
-// include::{snippets}/storage-get-list/request-fields.adoc[]
-
 
 
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/storage-get-list/http-response.adoc[]
 
@@ -116,20 +81,8 @@ include::{snippets}/storage-get-list/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/storage-update/http-request.adoc[]
-
-
-// ===== Request Headers
-//
-// include::{snippets}/storage-update/request-headers.adoc[]
-//
-//
-// ===== Request Parameters
-//
-// include::{snippets}/storage-update/query-parameters.adoc[]
-
 
 ===== Request Body
 
@@ -145,7 +98,6 @@ include::{snippets}/storage-update/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/storage-update/http-response.adoc[]
 
@@ -167,20 +119,8 @@ include::{snippets}/storage-update/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/storage-update-status/http-request.adoc[]
-
-
-// ===== Request Headers
-//
-// include::{snippets}/storage-update-status/request-headers.adoc[]
-//
-//
-// ===== Request Parameters
-//
-// include::{snippets}/storage-update-status/query-parameters.adoc[]
-
 
 ===== Request Body
 
@@ -196,7 +136,6 @@ include::{snippets}/storage-update-status/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/storage-update-status/http-response.adoc[]
 
@@ -217,40 +156,12 @@ include::{snippets}/storage-update-status/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/storage-delete/http-request.adoc[]
-
-
-// ===== Request Headers
-//
-// include::{snippets}/storage-delete/request-headers.adoc[]
-//
-//
-// ===== Request Parameters
-//
-// include::{snippets}/storage-delete/query-parameters.adoc[]
-
-
-===== Request Body
-
-include::{snippets}/storage-delete/request-body.adoc[]
-
-
-// ===== Request Fields
-//
-// include::{snippets}/storage-delete/request-fields.adoc[]
-
 
 
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/storage-delete/http-response.adoc[]
-
-
-// ===== Response Fields
-//
-// include::{snippets}/storage-delete/response-fields.adoc[]

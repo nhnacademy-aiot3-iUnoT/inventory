@@ -81,7 +81,6 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.saveThreshold(111L, request)).willReturn(response);
 
             mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -89,7 +88,6 @@ class ThresholdControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.minValue").value(20))
                     .andExpect(jsonPath("$.data.maxValue").value(30))
                     .andDo(document("threshold-save",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("zoneId").description("구역 ID")
                             ),
@@ -112,7 +110,6 @@ class ThresholdControllerTest extends SupportControllerTest {
                     null, BigDecimal.valueOf(20), BigDecimal.valueOf(30), 5);
 
             mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -129,7 +126,6 @@ class ThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -146,7 +142,6 @@ class ThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new ZoneNotFoundException());
 
             mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -163,7 +158,6 @@ class ThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new ThresholdInvalidRangeException());
 
             mockMvc.perform(post("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -190,15 +184,13 @@ class ThresholdControllerTest extends SupportControllerTest {
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(thresholdInfoResponseFields("data[]."));
 
-            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 111L))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(1))
                     .andExpect(jsonPath("$.data[0].minValue").value(20))
                     .andExpect(jsonPath("$.data[0].maxValue").value(30))
                     .andDo(document("threshold-get-list",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("zoneId").description("구역 ID")
                             ),
@@ -214,8 +206,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.getThresholds(111L))
                     .willReturn(List.of());
 
-            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 111L))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(0));
@@ -227,8 +218,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.getThresholds(111L))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 111L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -240,8 +230,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             given(thresholdService.getThresholds(111L))
                     .willThrow(new ZoneNotFoundException());
 
-            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/zones/{zoneId}/zone-thresholds", 111L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -254,11 +243,9 @@ class ThresholdControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 111L, 1L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 111L, 1L))
                     .andExpect(status().isNoContent())
                     .andDo(document("threshold-delete",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("zoneId").description("구역 ID"),
                                     parameterWithName("zoneThresholdId").description("구역 임계값 ID")
@@ -274,8 +261,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             willThrow(new ForbiddenException()).given(thresholdService)
                     .deleteThreshold(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 111L, 1L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 111L, 1L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -286,8 +272,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             willThrow(new ZoneNotFoundException()).given(thresholdService)
                     .deleteThreshold(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 111L, 1L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 111L, 1L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -298,8 +283,7 @@ class ThresholdControllerTest extends SupportControllerTest {
             willThrow(new ThresholdNotFoundException()).given(thresholdService)
                     .deleteThreshold(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 111L, 1L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/zones/{zoneId}/zone-thresholds/{zoneThresholdId}", 111L, 1L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }

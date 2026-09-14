@@ -10,7 +10,6 @@ import com.nhnacademy.inventory.medicines.medicine.exception.PackUnitNotFoundExc
 import com.nhnacademy.inventory.organizations.storage.exception.StorageNotFoundException;
 import com.nhnacademy.inventory.support.RestDocsUtils;
 import com.nhnacademy.inventory.support.SupportControllerTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,13 +23,10 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
@@ -48,13 +44,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
 
     @MockitoBean
     private StockThresholdService stockThresholdService;
-
-    private UUID accountUuid;
-
-    @BeforeEach
-    void setUp() {
-        accountUuid = UUID.randomUUID();
-    }
 
     @Nested
     @DisplayName("최소 재고 임계값 저장 POST /api/core/storages/{storage-id}/stock-thresholds")
@@ -79,7 +68,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .willReturn(response);
 
             mockMvc.perform(post("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -87,7 +75,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.stockThreshold").value(10))
                     .andExpect(jsonPath("$.data.isActive").value(true))
                     .andDo(document("stock-threshold-save",
-                            requestHeaders(headerWithName("X-User-Id").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storage-id").description("저장소 ID")
                             ),
@@ -109,7 +96,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
             );
 
             mockMvc.perform(post("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -127,7 +113,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(post("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -145,7 +130,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(post("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -164,7 +148,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new PackUnitNotFoundException());
 
             mockMvc.perform(post("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -192,15 +175,13 @@ class StockThresholdControllerTest extends SupportControllerTest {
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(stockThresholdInfoResponseFields("data[]."));
 
-            mockMvc.perform(get("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/storages/{storage-id}/stock-thresholds", 111L))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(1))
                     .andExpect(jsonPath("$.data[0].stockThreshold").value(10))
                     .andExpect(jsonPath("$.data[0].isActive").value(true))
                     .andDo(document("stock-threshold-get-list",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storage-id").description("저장소 ID")
                             ),
@@ -216,8 +197,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
             given(stockThresholdService.getStockThresholds(111L))
                     .willReturn(List.of());
 
-            mockMvc.perform(get("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/storages/{storage-id}/stock-thresholds", 111L))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(0));
@@ -229,8 +209,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
             given(stockThresholdService.getStockThresholds(111L))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(get("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/storages/{storage-id}/stock-thresholds", 111L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -241,8 +220,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
             given(stockThresholdService.getStockThresholds(111L))
                     .willThrow(new StorageNotFoundException());
 
-            mockMvc.perform(get("/api/core/storages/{storage-id}/stock-thresholds", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/storages/{storage-id}/stock-thresholds", 111L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -271,7 +249,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .willReturn(response);
 
             mockMvc.perform(put("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -279,7 +256,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.stockThreshold").value(20))
                     .andExpect(jsonPath("$.data.isActive").value(true))
                     .andDo(document("stock-threshold-update",
-                            requestHeaders(headerWithName("X-User-Id").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storage-id").description("저장소 ID"),
                                     parameterWithName("stock-threshold-id").description("최소 재고 임계값 ID")
@@ -302,7 +278,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
             );
 
             mockMvc.perform(put("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -320,7 +295,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(put("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -338,7 +312,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -356,7 +329,6 @@ class StockThresholdControllerTest extends SupportControllerTest {
                     .willThrow(new StockThresholdNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -371,11 +343,9 @@ class StockThresholdControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            mockMvc.perform(delete("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L))
                     .andExpect(status().isNoContent())
                     .andDo(document("stock-threshold-delete",
-                            requestHeaders(headerWithName("X-User-Id").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storage-id").description("저장소 ID"),
                                     parameterWithName("stock-threshold-id").description("최소 재고 임계값 ID")
@@ -391,8 +361,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
             willThrow(new ForbiddenException()).given(stockThresholdService)
                     .deleteStockThreshold(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -403,8 +372,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
             willThrow(new StorageNotFoundException()).given(stockThresholdService)
                     .deleteStockThreshold(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -415,8 +383,7 @@ class StockThresholdControllerTest extends SupportControllerTest {
             willThrow(new PackUnitNotFoundException()).given(stockThresholdService)
                     .deleteStockThreshold(111L, 1L);
 
-            mockMvc.perform(delete("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L)
-                            .header("X-User-Id", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/storages/{storage-id}/stock-thresholds/{stock-threshold-id}", 111L, 1L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }

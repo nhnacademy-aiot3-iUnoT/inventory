@@ -63,7 +63,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/health", "/actuator/health/**", "/actuator/serviceregistry", "/actuator/prometheus"
                         ).permitAll()
-                        .requestMatchers("/api/core/internal/**", "/api/core/invitations/**").permitAll()
+                        .requestMatchers("/api/core/internal/**", "/api/core/invitations/**", "/api/core/docs/**").permitAll()
                         .requestMatchers("/api/core/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 );

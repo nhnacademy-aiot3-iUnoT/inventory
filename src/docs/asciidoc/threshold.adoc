@@ -13,7 +13,6 @@
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/threshold-save/http-request.adoc[]
 
@@ -21,12 +20,6 @@ include::{snippets}/threshold-save/http-request.adoc[]
 ===== Request Headers
 
 include::{snippets}/threshold-save/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/threshold-save/query-parameters.adoc[]
-
 
 ===== Request Body
 
@@ -42,7 +35,6 @@ include::{snippets}/threshold-save/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/threshold-save/http-response.adoc[]
 
@@ -62,7 +54,6 @@ include::{snippets}/threshold-save/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/threshold-get-list/http-request.adoc[]
 
@@ -71,27 +62,9 @@ include::{snippets}/threshold-get-list/http-request.adoc[]
 
 include::{snippets}/threshold-get-list/request-headers.adoc[]
 
-
-// ===== Request Parameters
-//
-// include::{snippets}/threshold-get-list/query-parameters.adoc[]
-
-
-===== Request Body
-
-include::{snippets}/threshold-get-list/request-body.adoc[]
-
-
-// ===== Request Fields
-//
-// include::{snippets}/threshold-get-list/request-fields.adoc[]
-
-
-
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/threshold-get-list/http-response.adoc[]
 
@@ -111,7 +84,6 @@ include::{snippets}/threshold-get-list/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/threshold-delete/http-request.adoc[]
 
@@ -120,31 +92,8 @@ include::{snippets}/threshold-delete/http-request.adoc[]
 
 include::{snippets}/threshold-delete/request-headers.adoc[]
 
-
-// ===== Request Parameters
-//
-// include::{snippets}/threshold-delete/query-parameters.adoc[]
-
-
-===== Request Body
-
-include::{snippets}/threshold-delete/request-body.adoc[]
-
-
-// ===== Request Fields
-//
-// include::{snippets}/threshold-delete/request-fields.adoc[]
-
-
-
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/threshold-delete/http-response.adoc[]
-
-
-// ===== Response Fields
-//
-// include::{snippets}/threshold-delete/response-fields.adoc[]
