@@ -1,18 +1,32 @@
-= iUnoT API Documentation
+= iUnoT Inventory API
 
 :toc: left
+:toc-title: 목차
+:toclevels: 2
 :source-highlighter: highlightjs
+:icons: font
+:snippets: ../../../target/generated-snippets
+:description: iUnoT Inventory REST API 문서
+:docinfo: shared
 
-// .adoc만들어서 추가
+이 문서는 iUnoT Inventory 서비스의 REST API 사용 방법을 설명합니다.
+
+include::organization.adoc[]
+
+include::invitation.adoc[]
+
+include::organization-member.adoc[]
 
 include::storage.adoc[]
 
 include::zone.adoc[]
 
-include::sensor-type.adoc[]
-
 include::threshold.adoc[]
 
-include::organization.adoc[]
+include::sensor-type.adoc[]
+
+include::inventory.adoc[]
 
 include::report.adoc[]
+
+include::chatbot.adoc[]

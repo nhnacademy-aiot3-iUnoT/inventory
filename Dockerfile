@@ -6,7 +6,7 @@ COPY mvnw pom.xml lombok.config ./
 RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
 
 COPY src ./src
-RUN ./mvnw clean package -DskipTests -B
+RUN ./mvnw clean package -B
 
 FROM eclipse-temurin:21-jre
 

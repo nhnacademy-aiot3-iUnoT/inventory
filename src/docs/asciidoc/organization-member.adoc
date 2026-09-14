@@ -1,0 +1,87 @@
+== 조직원 API
+
+조직원 목록을 조회하고 조직원의 역할을 변경하거나 조직에서 삭제합니다.
+
+=== 조직원 목록 조회
+
+현재 조직에 소속된 조직원을 페이지 단위로 조회합니다.
+
+==== Request
+
+include::{snippets}/orgMember-list/http-request.adoc[]
+
+===== 쿼리 파라미터
+
+include::{snippets}/orgMember-list/query-parameters.adoc[]
+
+==== Response
+
+include::{snippets}/orgMember-list/http-response.adoc[]
+
+===== Response Fields
+
+include::{snippets}/orgMember-list/response-fields.adoc[]
+
+=== 부서 미지정 조직원 조회
+
+부서가 지정되지 않은 조직원만 조회합니다.
+
+==== Request
+
+include::{snippets}/orgMember-without-department-list/http-request.adoc[]
+
+===== 쿼리 파라미터
+
+include::{snippets}/orgMember-without-department-list/query-parameters.adoc[]
+
+==== Response
+
+include::{snippets}/orgMember-without-department-list/http-response.adoc[]
+
+===== Response Fields
+
+include::{snippets}/orgMember-without-department-list/response-fields.adoc[]
+
+=== 조직원 역할 변경
+
+조직원의 역할을 변경합니다.
+
+==== Request
+
+include::{snippets}/member-role-change/http-request.adoc[]
+
+===== Path Parameters
+
+include::{snippets}/member-role-change/path-parameters.adoc[]
+
+==== Response
+
+include::{snippets}/member-role-change/http-response.adoc[]
+
+=== 조직원 삭제
+
+조직원을 현재 조직에서 삭제합니다.
+
+==== Request
+
+include::{snippets}/member-delete/http-request.adoc[]
+
+===== Path Parameters
+
+include::{snippets}/member-delete/path-parameters.adoc[]
+
+==== Response
+
+include::{snippets}/member-delete/http-response.adoc[]
+
+=== 조직 탈퇴
+
+현재 사용자가 조직에서 탈퇴합니다.
+
+==== Request
+
+include::{snippets}/leave-organization/http-request.adoc[]
+
+==== Response
+
+include::{snippets}/leave-organization/http-response.adoc[]
