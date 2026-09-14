@@ -14,20 +14,8 @@
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/zone-create/http-request.adoc[]
-
-
-===== Request Headers
-
-include::{snippets}/zone-create/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/zone-create/query-parameters.adoc[]
-
 
 ===== Request Body
 
@@ -43,7 +31,6 @@ include::{snippets}/zone-create/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/zone-create/http-response.adoc[]
 
@@ -65,36 +52,12 @@ include::{snippets}/zone-create/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/zone-get-list/http-request.adoc[]
-
-
-===== Request Headers
-
-include::{snippets}/zone-get-list/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/zone-get-list/query-parameters.adoc[]
-
-
-===== Request Body
-
-include::{snippets}/zone-get-list/request-body.adoc[]
-
-
-// ===== Request Fields
-//
-// include::{snippets}/zone-get-list/request-fields.adoc[]
-
-
 
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/zone-get-list/http-response.adoc[]
 
@@ -116,20 +79,8 @@ include::{snippets}/zone-get-list/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/zone-update/http-request.adoc[]
-
-
-===== Request Headers
-
-include::{snippets}/zone-update/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/zone-update/query-parameters.adoc[]
-
 
 ===== Request Body
 
@@ -145,7 +96,6 @@ include::{snippets}/zone-update/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/zone-update/http-response.adoc[]
 
@@ -167,20 +117,8 @@ include::{snippets}/zone-update/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/zone-update-status/http-request.adoc[]
-
-
-===== Request Headers
-
-include::{snippets}/zone-update-status/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/zone-update-status/query-parameters.adoc[]
-
 
 ===== Request Body
 
@@ -196,7 +134,6 @@ include::{snippets}/zone-update-status/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/zone-update-status/http-response.adoc[]
 
@@ -219,19 +156,8 @@ include::{snippets}/zone-update-status/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/zone-update-env/http-request.adoc[]
-
-
-===== Request Headers
-
-include::{snippets}/zone-update-env/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/zone-update-env/query-parameters.adoc[]
 
 
 ===== Request Body
@@ -248,7 +174,6 @@ include::{snippets}/zone-update-env/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/zone-update-env/http-response.adoc[]
 
@@ -269,40 +194,10 @@ include::{snippets}/zone-update-env/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
-
 include::{snippets}/zone-delete/http-request.adoc[]
-
-
-===== Request Headers
-
-include::{snippets}/zone-delete/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/zone-delete/query-parameters.adoc[]
-
-
-===== Request Body
-
-include::{snippets}/zone-delete/request-body.adoc[]
-
-
-// ===== Request Fields
-//
-// include::{snippets}/zone-delete/request-fields.adoc[]
-
 
 
 ==== Response
 
 
-===== HTTP Response
-
 include::{snippets}/zone-delete/http-response.adoc[]
-
-
-// ===== Response Fields
-//
-// include::{snippets}/zone-delete/response-fields.adoc[]

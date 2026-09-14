@@ -1,0 +1,21 @@
+== 챗봇 API
+
+재고 조회와 관리에 관한 자연어 질문을 챗봇에 전달합니다.
+
+=== 챗봇에게 질문
+
+==== Request
+
+include::{snippets}/chatbot-chat/http-request.adoc[]
+
+===== Request Fields
+
+include::{snippets}/chatbot-chat/request-fields.adoc[]
+
+==== Response
+
+include::{snippets}/chatbot-chat/http-response.adoc[]
+
+===== Response Fields
+
+include::{snippets}/chatbot-chat/response-fields.adoc[]

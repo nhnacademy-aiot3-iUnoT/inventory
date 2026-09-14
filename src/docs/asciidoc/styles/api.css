@@ -1,0 +1,211 @@
+:root {
+    --brand: #16a34a;
+    --brand-dark: #334155;
+    --text: #1f2937;
+    --border: #dbe3ef;
+    --surface-blue: #f8fafc;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0 4rem 4rem 23rem;
+    color: var(--text);
+    font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+    line-height: 1.7;
+}
+
+#header h1 {
+    margin-bottom: .4rem;
+    color: var(--brand-dark);
+    font-size: 2.35rem;
+    letter-spacing: -.04em;
+}
+
+#toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 19rem;
+    margin: 0;
+    border: 0;
+    border-right: 1px solid var(--border);
+    border-radius: 0;
+    background: #f8fafc;
+    padding: 2rem 1.25rem;
+    overflow-y: auto;
+    box-shadow: 4px 0 18px rgba(15, 23, 42, .04);
+}
+
+#toctitle {
+    margin-bottom: 1rem;
+    color: #334155;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+#toc a {
+    color: #475569;
+    text-decoration: none;
+}
+
+#toc a:hover {
+    color: var(--brand);
+    text-decoration: underline;
+}
+
+h2,
+h3,
+h4 {
+    color: #334155;
+    letter-spacing: -.025em;
+}
+
+h2 {
+    margin-top: 2.75rem;
+    border-bottom: 2px solid #cbd5e1;
+    padding-bottom: .45rem;
+}
+
+h3 {
+    margin-top: 2.5rem;
+    border-left: 4px solid #cbd5e1;
+    padding-left: .75rem;
+}
+
+h4 {
+    margin-top: 1.75rem;
+}
+
+/* 문서 용어와 제목 크기를 일관되게 유지 */
+.sect3 > h4,
+.sect3 > h5 {
+    margin-top: 1.25rem;
+    color: #475569;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+table.tableblock {
+    width: 100%;
+    margin: 1rem 0 1.75rem;
+    border: 1px solid #e2e8f0;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    table-layout: fixed;
+    overflow-wrap: anywhere;
+}
+
+table.tableblock th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+}
+
+table.tableblock th,
+table.tableblock td {
+    border-bottom: 1px solid var(--border);
+    padding: .7rem .85rem;
+    vertical-align: top;
+}
+
+table.tableblock tr:last-child td {
+    border-bottom: 0;
+}
+
+/* REST Docs가 표 위에 자동으로 넣는 "Table N. /api/..." 캡션 제거 */
+table.tableblock > caption.title {
+    display: none;
+}
+
+.listingblock pre,
+.literalblock pre,
+.sourceblock pre {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    padding: 1rem 1.15rem;
+    color: #1f2937;
+    font-size: .9rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    overflow-x: auto;
+}
+
+.listingblock code,
+.literalblock code,
+.sourceblock code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+}
+
+.json-format-button {
+    display: block;
+    margin: .5rem 0 0 auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #ffffff;
+    padding: .3rem .65rem;
+    color: var(--brand-dark);
+    cursor: pointer;
+    font: inherit;
+    font-size: .78rem;
+}
+
+.json-format-button:hover {
+    background: #f0fdf4;
+}
+
+code,
+tt {
+    border-radius: 4px;
+    background: #f1f5f9;
+    padding: .12rem .35rem;
+    color: #334155;
+}
+
+.admonitionblock {
+    margin: 1.25rem 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: var(--surface-blue);
+}
+
+.admonitionblock td.icon {
+    padding: 1rem;
+    color: var(--brand);
+    font-weight: 700;
+}
+
+.admonitionblock td.content {
+    padding: 1rem 1rem 1rem 0;
+}
+
+@media (max-width: 800px) {
+    body {
+        padding: 0 1rem 2rem;
+    }
+
+    #toc {
+        position: static;
+        width: auto;
+        margin: 0 -1rem 2rem;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        box-shadow: none;
+    }
+
+    table.tableblock {
+        display: block;
+        overflow-x: auto;
+    }
+}
