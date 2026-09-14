@@ -84,9 +84,17 @@ public class InboundOperation {
         }
         else{
 
-            // 같은 제조번호 유통기한 다를 경우 에러 처리
-            if(!inventory.getExpirationDate().equals(request.expirationDate())){
-                throw new ExpirationdateMismatchException();
+            // 동일 제조번호의 유통기한이 다르면 사용자 확인 여부에 따라 정정
+            if (!inventory.getExpirationDate()
+                    .equals(request.expirationDate())) {
+
+                if (!request.overwriteExpirationDate()) {
+                    throw new ExpirationdateMismatchException();
+                }
+
+                inventory.changeExpirationDate(
+                        request.expirationDate()
+                );
             }
 
             inventory.increaseQuantity(request.quantity());

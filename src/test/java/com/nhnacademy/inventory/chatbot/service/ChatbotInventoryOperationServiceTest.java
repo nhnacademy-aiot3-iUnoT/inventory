@@ -89,9 +89,8 @@ class ChatbotInventoryOperationServiceTest {
                 request.expirationDate(),
                 10,
                 "신규입고",
-                request.transactionType()
-
-
+                request.transactionType(),
+                false
         ));
         verify(inventoryRepository).findPackageUnitTargets(
                 new FindMedicinePackageUnitTargetQuery("타이레놀", "500mg", 5)
@@ -145,7 +144,8 @@ class ChatbotInventoryOperationServiceTest {
                 request.expirationDate(),
                 10,
                 "신규 입고",
-                TransactionType.INBOUND
+                TransactionType.INBOUND,
+                false
         ));
     }
 
