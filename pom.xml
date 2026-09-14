@@ -306,6 +306,15 @@
                         <configuration>
                             <backend>html</backend>
                             <doctype>book</doctype>
+                            <attributes>
+                                <toc>left</toc>
+                                <toc-title>목차</toc-title>
+                                <toclevels>2</toclevels>
+                                <source-highlighter>highlightjs</source-highlighter>
+                                <stylesdir>styles</stylesdir>
+                                <stylesheet>api.css</stylesheet>
+                                <linkcss>true</linkcss>
+                            </attributes>
                         </configuration>
 
                     </execution>

@@ -13,21 +13,21 @@ OWNER 권한을 가진 조직원만 부서를 생성, 수정, 상태 변경, 삭
 
 부서 이름은 동일한 조직 내에서 중복될 수 없습니다.
 
-==== 요청
+==== Request
 
 include::{snippets}/department-create/http-request.adoc[]
 
-==== 요청 필드
+==== Request Fields
 
 include::{snippets}/department-create/request-fields.adoc[]
 
-==== 응답
+==== Response
 
 부서가 정상적으로 생성되면 생성된 부서의 ID와 이름을 반환합니다.
 
 include::{snippets}/department-create/http-response.adoc[]
 
-==== 응답 필드
+==== Response Fields
 
 include::{snippets}/department-create/response-fields.adoc[]
 
@@ -37,15 +37,15 @@ include::{snippets}/department-create/response-fields.adoc[]
 
 조직에 소속된 모든 사용자가 조회할 수 있습니다.
 
-==== 요청
+==== Request
 
 include::{snippets}/department-list/http-request.adoc[]
 
-==== 응답
+==== Response
 
 include::{snippets}/department-list/http-response.adoc[]
 
-==== 응답 필드
+==== Response Fields
 
 include::{snippets}/department-list/response-fields.adoc[]
 
@@ -55,19 +55,19 @@ include::{snippets}/department-list/response-fields.adoc[]
 
 현재 사용자가 소속된 조직의 부서만 조회할 수 있습니다.
 
-==== 요청
+==== Request
 
 include::{snippets}/department-get/http-request.adoc[]
 
-==== 경로 변수
+==== Path Parameters
 
 include::{snippets}/department-get/path-parameters.adoc[]
 
-==== 응답
+==== Response
 
 include::{snippets}/department-get/http-response.adoc[]
 
-==== 응답 필드
+==== Response Fields
 
 include::{snippets}/department-get/response-fields.adoc[]
 
@@ -79,27 +79,26 @@ OWNER 권한을 가진 조직원만 상태를 변경할 수 있습니다.
 
 `ACTIVE` 또는 `INACTIVE` 상태로 변경할 수 있습니다.
 
-==== 요청
+==== Request
 
 include::{snippets}/department-status-update/http-request.adoc[]
 
-==== 경로 변수
+==== Path Parameters
 
 include::{snippets}/department-status-update/path-parameters.adoc[]
 
-==== 요청 필드
+==== Request Fields
 
 include::{snippets}/department-status-update/request-fields.adoc[]
 
-==== 응답
+==== Response
 
 상태 변경이 완료된 부서 정보를 반환합니다.
 
 include::{snippets}/department-status-update/http-response.adoc[]
 
-==== 응답 필드
+==== Response Fields
 
-include::{snippets}/department-status-update/response-fields.adoc[]
 
 === 부서 정보 수정
 
@@ -109,27 +108,26 @@ OWNER 권한을 가진 조직원만 수정할 수 있습니다.
 
 동일한 조직 내에서 다른 부서가 사용하고 있는 이름으로 변경할 수 없습니다.
 
-==== 요청
+==== Request
 
 include::{snippets}/department-update/http-request.adoc[]
 
-==== 경로 변수
+==== Path Parameters
 
 include::{snippets}/department-update/path-parameters.adoc[]
 
-==== 요청 필드
+==== Request Fields
 
 include::{snippets}/department-update/request-fields.adoc[]
 
-==== 응답
+==== Response
 
 수정된 부서 정보를 반환합니다.
 
 include::{snippets}/department-update/http-response.adoc[]
 
-==== 응답 필드
+==== Response Fields
 
-include::{snippets}/department-update/response-fields.adoc[]
 
 === 부서 삭제
 
@@ -139,15 +137,15 @@ OWNER 권한을 가진 조직원만 삭제할 수 있습니다.
 
 부서 삭제 시 해당 부서와 연결된 조직원-부서 및 저장소-부서 관계도 함께 삭제됩니다.
 
-==== 요청
+==== Request
 
 include::{snippets}/department-delete/http-request.adoc[]
 
-==== 경로 변수
+==== Path Parameters
 
 include::{snippets}/department-delete/path-parameters.adoc[]
 
-==== 응답
+==== Response
 
 부서가 정상적으로 삭제되면 `204 No Content`를 반환합니다.
 

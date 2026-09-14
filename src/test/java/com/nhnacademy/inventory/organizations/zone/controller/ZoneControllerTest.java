@@ -77,7 +77,6 @@ class ZoneControllerTest extends SupportControllerTest {
             responseFields.addAll(zoneDetailResponseFields("data."));
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -85,7 +84,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.name").value("테스트 구역"))
                     .andExpect(jsonPath("$.data.status").value("ACTIVE"))
                     .andDo(document("zone-create",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storageId").description("저장소 ID")
                             ),
@@ -105,7 +103,6 @@ class ZoneControllerTest extends SupportControllerTest {
             ZoneCreateRequest request = new ZoneCreateRequest("", "설명");
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -121,7 +118,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -137,7 +133,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -153,7 +148,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ZoneNameAlreadyExistsException());
 
             mockMvc.perform(post("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
@@ -180,15 +174,13 @@ class ZoneControllerTest extends SupportControllerTest {
             List<FieldDescriptor> responseFields = new ArrayList<>(RestDocsUtils.successResponseFields());
             responseFields.addAll(zoneInfoResponseFields("data[]."));
 
-            mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(1))
                     .andExpect(jsonPath("$.data[0].name").value("테스트 구역"))
                     .andExpect(jsonPath("$.data[0].status").value("ACTIVE"))
                     .andDo(document("zone-get-list",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storageId").description("저장소 ID")
                             ),
@@ -204,8 +196,7 @@ class ZoneControllerTest extends SupportControllerTest {
             given(zoneService.getZones(111L))
                     .willReturn(List.of());
 
-            mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(0));
@@ -217,8 +208,7 @@ class ZoneControllerTest extends SupportControllerTest {
             given(zoneService.getZones(111L))
                     .willThrow(new ForbiddenException());
 
-            mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -230,8 +220,7 @@ class ZoneControllerTest extends SupportControllerTest {
             given(zoneService.getZones(111L))
                     .willThrow(new StorageNotFoundException());
 
-            mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(get("/api/core/storages/{storageId}/zones", 111L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -258,7 +247,6 @@ class ZoneControllerTest extends SupportControllerTest {
             responseFields.addAll(zoneDetailResponseFields("data."));
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -266,7 +254,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.name").value("업데이트 구역"))
                     .andExpect(jsonPath("$.data.status").value("ACTIVE"))
                     .andDo(document("zone-update",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storageId").description("저장소 ID"),
                                     parameterWithName("zoneId").description("구역 ID")
@@ -287,7 +274,6 @@ class ZoneControllerTest extends SupportControllerTest {
             ZoneUpdateRequest request = new ZoneUpdateRequest("", "업데이트 설명");
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -303,7 +289,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -319,7 +304,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -335,7 +319,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ZoneNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -351,7 +334,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ZoneNameAlreadyExistsException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
@@ -381,7 +363,6 @@ class ZoneControllerTest extends SupportControllerTest {
             responseFields.addAll(zoneDetailResponseFields("data."));
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -389,7 +370,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.name").value("테스트 구역"))
                     .andExpect(jsonPath("$.data.status").value("INACTIVE"))
                     .andDo(document("zone-update-status",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storageId").description("저장소 ID"),
                                     parameterWithName("zoneId").description("구역 ID")
@@ -409,7 +389,6 @@ class ZoneControllerTest extends SupportControllerTest {
             ZoneStatusUpdateRequest request = new ZoneStatusUpdateRequest(null);
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -425,7 +404,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -441,7 +419,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -457,7 +434,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ZoneNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -487,7 +463,6 @@ class ZoneControllerTest extends SupportControllerTest {
             responseFields.addAll(zoneDetailResponseFields("data."));
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -495,7 +470,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .andExpect(jsonPath("$.data.name").value("테스트 구역"))
                     .andExpect(jsonPath("$.data.envStatus").value("CRITICAL"))
                     .andDo(document("zone-update-env",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storageId").description("저장소 ID"),
                                     parameterWithName("zoneId").description("구역 ID")
@@ -515,7 +489,6 @@ class ZoneControllerTest extends SupportControllerTest {
             ZoneEnvStatusUpdateRequest request = new ZoneEnvStatusUpdateRequest(null);
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -531,7 +504,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ForbiddenException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -547,7 +519,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new StorageNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -563,7 +534,6 @@ class ZoneControllerTest extends SupportControllerTest {
                     .willThrow(new ZoneNotFoundException());
 
             mockMvc.perform(put("/api/core/storages/{storageId}/zones/{zoneId}/env-status", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -578,11 +548,9 @@ class ZoneControllerTest extends SupportControllerTest {
         @Test
         @DisplayName("정상 처리 테스트")
         void success() throws Exception {
-            mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L))
                     .andExpect(status().isNoContent())
                     .andDo(document("zone-delete",
-                            requestHeaders(headerWithName("X-USER-ID").description("유저 UUID")),
                             pathParameters(
                                     parameterWithName("storageId").description("저장소 ID"),
                                     parameterWithName("zoneId").description("구역 ID")
@@ -598,8 +566,7 @@ class ZoneControllerTest extends SupportControllerTest {
             willThrow(new ForbiddenException()).given(zoneService)
                     .closeZone(111L, 1111L);
 
-            mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -610,8 +577,7 @@ class ZoneControllerTest extends SupportControllerTest {
             willThrow(new StorageNotFoundException()).given(zoneService)
                     .closeZone(111L, 1111L);
 
-            mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }
@@ -622,8 +588,7 @@ class ZoneControllerTest extends SupportControllerTest {
             willThrow(new ZoneNotFoundException()).given(zoneService)
                     .closeZone(111L, 1111L);
 
-            mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L)
-                            .header("X-USER-ID", accountUuid.toString()))
+            mockMvc.perform(delete("/api/core/storages/{storageId}/zones/{zoneId}", 111L, 1111L))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false));
         }

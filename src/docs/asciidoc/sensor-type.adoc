@@ -12,20 +12,8 @@
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/sensor-type-create/http-request.adoc[]
-
-
-// ===== Request Headers
-//
-// include::{snippets}/sensor-type-create/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/sensor-type-create/query-parameters.adoc[]
-
 
 ===== Request Body
 
@@ -41,7 +29,6 @@ include::{snippets}/sensor-type-create/request-fields.adoc[]
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/sensor-type-create/http-response.adoc[]
 
@@ -61,36 +48,13 @@ include::{snippets}/sensor-type-create/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/sensor-type-get-list/http-request.adoc[]
-
-
-// ===== Request Headers
-//
-// include::{snippets}/sensor-type-get-list/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/sensor-type-get-list/query-parameters.adoc[]
-
-
-===== Request Body
-
-include::{snippets}/sensor-type-get-list/request-body.adoc[]
-
-
-// ===== Request Fields
-//
-// include::{snippets}/sensor-type-get-list/request-fields.adoc[]
-
 
 
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/sensor-type-get-list/http-response.adoc[]
 
@@ -98,7 +62,6 @@ include::{snippets}/sensor-type-get-list/http-response.adoc[]
 ===== Response Fields
 
 include::{snippets}/sensor-type-get-list/response-fields.adoc[]
-
 
 
 === 센서타입 삭제
@@ -110,40 +73,12 @@ include::{snippets}/sensor-type-get-list/response-fields.adoc[]
 ==== Request
 
 
-===== HTTP Request
 
 include::{snippets}/sensor-type-delete/http-request.adoc[]
-
-
-// ===== Request Headers
-//
-// include::{snippets}/sensor-type-delete/request-headers.adoc[]
-
-
-// ===== Request Parameters
-//
-// include::{snippets}/zone-update/query-parameters.adoc[]
-
-
-===== Request Body
-
-include::{snippets}/sensor-type-delete/request-body.adoc[]
-
-
-// ===== Request Fields
-//
-// include::{snippets}/sensor-type-delete/request-fields.adoc[]
-
 
 
 ==== Response
 
 
-===== HTTP Response
 
 include::{snippets}/sensor-type-delete/http-response.adoc[]
-
-
-// ===== Response Fields
-//
-// include::{snippets}/sensor-type-delete/response-fields.adoc[]

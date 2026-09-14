@@ -2,28 +2,22 @@ package com.nhnacademy.inventory.inventories.inventory.operation.inbound.control
 
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.service.InboundService;
+import com.nhnacademy.inventory.support.SupportControllerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
-
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 
 
 @WebMvcTest(InboundController.class)
-class InboundControllerTest {
-
-    @Autowired
-    MockMvc mockMvc;
+class InboundControllerTest extends SupportControllerTest {
 
     @MockitoBean
     InboundService inboundService;
@@ -50,7 +44,19 @@ class InboundControllerTest {
                         }
                         
                         """
-                )).andExpect(status().isCreated());
+                )).andExpect(status().isCreated())
+                .andDo(document("inventory-inbound-create",
+                        requestFields(
+                                fieldWithPath("medicinePackageUnitId").description("의약품 포장 단위 ID"),
+                                fieldWithPath("zoneId").description("입고 구역 ID"),
+                                fieldWithPath("lotNumber").description("제조번호"),
+                                fieldWithPath("expirationDate").description("유통기한"),
+                                fieldWithPath("quantity").description("입고 수량"),
+                                fieldWithPath("memo").description("메모").optional(),
+                                fieldWithPath("transactionType").description("거래 유형"),
+                                fieldWithPath("overwriteExpirationDate").description("유통기한 정정 여부")
+                        )
+                ));
 
         verify(inboundService).createInbound(any(MedicineInboundRequest.class));
 

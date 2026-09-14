@@ -1,0 +1,29 @@
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.listingblock pre').forEach(function (pre) {
+        var source = pre.textContent;
+        var start = source.indexOf('{');
+        var end = source.lastIndexOf('}');
+        if (start < 0 || end <= start) return;
+        try {
+            var oneLine = JSON.stringify(JSON.parse(source.substring(start, end + 1)));
+            var button = document.createElement('button');
+            button.className = 'json-format-button';
+            button.type = 'button';
+            button.textContent = 'JSON 정렬';
+            var expanded = false;
+            button.addEventListener('click', function () {
+                var current = pre.textContent;
+                var currentStart = current.indexOf('{');
+                var currentEnd = current.lastIndexOf('}');
+                expanded = !expanded;
+                var json = JSON.stringify(JSON.parse(current.substring(currentStart, currentEnd + 1)), null, expanded ? 2 : 0);
+                pre.textContent = current.substring(0, currentStart) + json + current.substring(currentEnd + 1);
+                button.textContent = expanded ? 'JSON 한 줄' : 'JSON 정렬';
+            });
+            pre.textContent = source.substring(0, start) + oneLine + source.substring(end + 1);
+            pre.parentElement.appendChild(button);
+        } catch (ignored) { }
+    });
+});
+</script>
