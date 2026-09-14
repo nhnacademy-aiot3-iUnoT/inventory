@@ -58,7 +58,8 @@ public class ChatbotInventoryOperationService {
                     request.expirationDate(),
                     request.quantity(),
                     trimToNull(request.memo()),
-                    request.transactionType()
+                    request.transactionType(),
+                    false
             ));
 
             return InboundToolResponse.success(

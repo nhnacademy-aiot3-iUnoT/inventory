@@ -29,10 +29,9 @@ class InboundControllerTest {
     InboundService inboundService;
 
 
-
     @Test
     @DisplayName("입고 등록 요청")
-    void registerTest() throws Exception{
+    void registerTest() throws Exception {
 
 
         mockMvc.perform(post("/api/core/inventories")
@@ -46,8 +45,8 @@ class InboundControllerTest {
                         "expirationDate": "2027-09-10",
                         "quantity": 20,
                         "memo": null,
-                        "transactionType": "INBOUND"
-                     
+                        "transactionType": "INBOUND",
+                        "overwriteExpirationDate": false
                         }
                         
                         """
@@ -58,10 +57,9 @@ class InboundControllerTest {
     }
 
 
-
     @Test
     @DisplayName("validation")
-    void validationInventoryTest() throws Exception{
+    void validationInventoryTest() throws Exception {
 
 
         // medicinePackageUnitId가 null일 때
@@ -69,19 +67,18 @@ class InboundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                         """
-                        {
-                            "medicinePackageUnitId": null,
-                            "zoneId": 1,
-                            "lotNumber": "ABC-123",
-                            "expirationDate": "2026-08-11",
-                            "quantity": 20,
-                            "memo": null,
-                            "transactionType": "INBOUND"
-     
-                        }
-                        """
+                                {
+                                    "medicinePackageUnitId": null,
+                                    "zoneId": 1,
+                                    "lotNumber": "ABC-123",
+                                    "expirationDate": "2026-08-11",
+                                    "quantity": 20,
+                                    "memo": null,
+                                    "transactionType": "INBOUND",
+                                    "overwriteExpirationDate": false
+                                }
+                                """
                 )).andExpect(status().is4xxClientError());
-
 
 
         // zoneId가 Null일 때
@@ -90,19 +87,18 @@ class InboundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                         """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": null,
-                            "lotNumber": "ABC-123",
-                            "expirationDate": "2026-08-11",
-                            "quantity": 20,
-                            "memo": null,
-                            "transactionType": "INBOUND"
-     
-                        }
-                        """
+                                {
+                                    "medicinePackageUnitId": 1,
+                                    "zoneId": null,
+                                    "lotNumber": "ABC-123",
+                                    "expirationDate": "2026-08-11",
+                                    "quantity": 20,
+                                    "memo": null,
+                                    "transactionType": "INBOUND",
+                                    "overwriteExpirationDate": false
+                                }
+                                """
                 )).andExpect(status().is4xxClientError());
-
 
 
         // lotNumber 공백
@@ -111,17 +107,17 @@ class InboundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                         """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": " ",
-                            "expirationDate": "2026-08-11",
-                            "quantity": 20,
-                            "memo": null,
-                            "transactionType": "INBOUND"
-     
-                        }
-                        """
+                                {
+                                    "medicinePackageUnitId": 1,
+                                    "zoneId": 1,
+                                    "lotNumber": " ",
+                                    "expirationDate": "2026-08-11",
+                                    "quantity": 20,
+                                    "memo": null,
+                                    "transactionType": "INBOUND",
+                                    "overwriteExpirationDate": false
+                                }
+                                """
                 )).andExpect(status().is4xxClientError());
 
 
@@ -131,19 +127,18 @@ class InboundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                         """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": "아러더랴더ㅑㄹ더잳쟈러재댜ㅓ랮댜ㅓ래쟏러ㅐㅑㅈ덜댜잗러랒대랴ㅓ잳러ㅐ쟈더래쟈더래ㅑㅈ더갸ㅐㅈ더래ㅑㅈ더랴ㅐㅈ더랴ㅐ젇랴ㅐㅈ덪ㄷ",
-                            "expirationDate": "2026-08-11",
-                            "quantity": 20,
-                            "memo": null,
-                            "transactionType": "INBOUND"
-     
-                        }
-                        """
+                                {
+                                    "medicinePackageUnitId": 1,
+                                    "zoneId": 1,
+                                    "lotNumber": "아러더랴더ㅑㄹ더잳쟈러재댜ㅓ랮댜ㅓ래쟏러ㅐㅑㅈ덜댜잗러랒대랴ㅓ잳러ㅐ쟈더래쟈더래ㅑㅈ더갸ㅐㅈ더래ㅑㅈ더랴ㅐㅈ더랴ㅐ젇랴ㅐㅈ덪ㄷ",
+                                    "expirationDate": "2026-08-11",
+                                    "quantity": 20,
+                                    "memo": null,
+                                    "transactionType": "INBOUND",
+                                    "overwriteExpirationDate": false
+                                }
+                                """
                 )).andExpect(status().is4xxClientError());
-
 
 
         // expirationDate null일 때
@@ -152,17 +147,17 @@ class InboundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                         """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": " ",
-                            "expirationDate": null,
-                            "quantity": 20,
-                            "memo": null,
-                            "transactionType": "INBOUND"
-     
-                        }
-                        """
+                                {
+                                    "medicinePackageUnitId": 1,
+                                    "zoneId": 1,
+                                    "lotNumber": " ",
+                                    "expirationDate": null,
+                                    "quantity": 20,
+                                    "memo": null,
+                                    "transactionType": "INBOUND",
+                                    "overwriteExpirationDate": false
+                                }
+                                """
                 )).andExpect(status().is4xxClientError());
 
 
@@ -172,17 +167,17 @@ class InboundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                         """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": "ABC-123" ,
-                            "expirationDate": "2025-05-10",
-                            "quantity": 20,
-                            "memo": null,
-                            "transactionType": "INBOUND"
-     
-                        }
-                        """
+                                {
+                                    "medicinePackageUnitId": 1,
+                                    "zoneId": 1,
+                                    "lotNumber": "ABC-123" ,
+                                    "expirationDate": "2025-05-10",
+                                    "quantity": 20,
+                                    "memo": null,
+                                    "transactionType": "INBOUND",
+                                    "overwriteExpirationDate": false
+                                }
+                                """
                 )).andExpect(status().is4xxClientError());
 
 
@@ -192,17 +187,17 @@ class InboundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                         """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": "ABC-123",
-                            "expirationDate": "2026-08-11",
-                            "quantity": null,
-                            "memo": null,
-                            "transactionType": "INBOUND"
-     
-                        }
-                        """
+                                {
+                                    "medicinePackageUnitId": 1,
+                                    "zoneId": 1,
+                                    "lotNumber": "ABC-123",
+                                    "expirationDate": "2026-08-11",
+                                    "quantity": null,
+                                    "memo": null,
+                                    "transactionType": "INBOUND",
+                                    "overwriteExpirationDate": false
+                                }
+                                """
                 )).andExpect(status().is4xxClientError());
 
 
@@ -213,25 +208,21 @@ class InboundControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                         """
-                        {
-                            "medicinePackageUnitId": 1,
-                            "zoneId": 1,
-                            "lotNumber": "ABC-123",
-                            "expirationDate": "2026-08-11",
-                            "quantity": -30,
-                            "memo": null,
-                            "transactionType": "INBOUND"
-     
-                        }
-                        """
+                                {
+                                    "medicinePackageUnitId": 1,
+                                    "zoneId": 1,
+                                    "lotNumber": "ABC-123",
+                                    "expirationDate": "2026-08-11",
+                                    "quantity": -30,
+                                    "memo": null,
+                                    "transactionType": "INBOUND",
+                                    "overwriteExpirationDate": false
+                                }
+                                """
                 )).andExpect(status().is4xxClientError());
 
 
-
-
-
     }
-
 
 
 }

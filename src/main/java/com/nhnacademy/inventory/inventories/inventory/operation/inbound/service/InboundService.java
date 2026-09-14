@@ -6,6 +6,7 @@ import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.domain.InboundOperation;
 import com.nhnacademy.inventory.inventories.inventory.operation.InventoryOperationAccessValidator;
 import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.MedicineInboundRequest;
+import com.nhnacademy.inventory.inventories.inventory.operation.inbound.dto.ExistingLotExpirationResponse;
 import com.nhnacademy.inventory.inventories.inventory.repository.MedicineInventoryRepository;
 
 import com.nhnacademy.inventory.medicines.medicine.domain.MedicinePackageUnit;
@@ -30,6 +31,40 @@ public class InboundService {
     private final InboundOperation inboundOperation;
     private final InventoryOperationAccessValidator accessValidator;
     private final ApplicationEventPublisher eventPublisher;
+
+    @Transactional
+    public ExistingLotExpirationResponse getExistingLotExpiration(
+            Long medicinePackageUnitId,
+            Long zoneId,
+            String lotNumber
+    ) {
+        MedicinePackageUnit medicinePackageUnit =
+                medicinePackageUnitRepository
+                        .findById(medicinePackageUnitId)
+                        .orElseThrow(MedicineNotFoundException::new);
+
+        Zone zone = zoneRepository
+                .findById(zoneId)
+                .orElseThrow(ZoneNotFoundException::new);
+
+        accessValidator.validate(
+                zone,
+                medicinePackageUnit.getMedicine()
+        );
+
+        return medicineInventoryRepository
+                .findByMedicinePackageUnitIdAndZoneIdAndLotNumber(
+                        medicinePackageUnitId,
+                        zoneId,
+                        lotNumber.trim()
+                )
+                .map(inventory ->
+                        ExistingLotExpirationResponse.from(
+                                inventory.getExpirationDate()
+                        )
+                )
+                .orElseGet(ExistingLotExpirationResponse::empty);
+    }
 
     // 입고 등록
     @Transactional

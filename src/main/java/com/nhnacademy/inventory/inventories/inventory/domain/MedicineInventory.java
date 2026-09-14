@@ -108,6 +108,10 @@ public class MedicineInventory {
 
     }
 
+    public void changeExpirationDate(LocalDate expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
     public void increaseQuantity(int quantity){
 
         this.currentQuantity += quantity;
