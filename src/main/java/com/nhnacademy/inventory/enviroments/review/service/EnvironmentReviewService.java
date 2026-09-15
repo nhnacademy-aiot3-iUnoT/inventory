@@ -13,6 +13,7 @@ import com.nhnacademy.inventory.global.client.AccountClient;
 import com.nhnacademy.inventory.global.dto.account.AccountResponse;
 import com.nhnacademy.inventory.global.exception.ForbiddenException;
 import com.nhnacademy.inventory.global.util.UserContext;
+import com.nhnacademy.inventory.inventories.alert.event.StockOutboundCompletedEvent;
 import com.nhnacademy.inventory.inventories.inventory.domain.ManagementStatus;
 import com.nhnacademy.inventory.inventories.inventory.domain.MedicineInventory;
 import com.nhnacademy.inventory.inventories.inventory.exception.InventoryNotFoundException;
@@ -26,6 +27,7 @@ import com.nhnacademy.inventory.organizations.member.repository.OrganizationMemb
 import com.nhnacademy.inventory.organizations.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,7 @@ public class EnvironmentReviewService {
     private final StockTransactionService transactionService;
     private final StorageService storageService;
     private final AccountClient accountClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Page<UnderReviewInventoryResponse> getUnderReviewPage(Long storageId, Pageable pageable){
         List<Long> targetStorageIds = getTargetStorageIds(storageId);
@@ -83,6 +86,11 @@ public class EnvironmentReviewService {
                     DisposalReason.DETERIORATED.toString(),
                     request.memo(),
                     UserContext.getUserUuid()
+            ));
+
+            eventPublisher.publishEvent(new StockOutboundCompletedEvent(
+                    inventory.getZone().getId(),
+                    inventory.getMedicinePackageUnit().getId()
             ));
         }else{
             inventory.setManagementStatus(ManagementStatus.NORMAL);
