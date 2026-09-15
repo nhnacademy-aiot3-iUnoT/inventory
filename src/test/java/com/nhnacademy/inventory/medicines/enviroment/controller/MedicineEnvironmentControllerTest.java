@@ -68,7 +68,7 @@ class MedicineEnvironmentControllerTest {
 
 
         MedicineEnvironmentTypeResponse response = new MedicineEnvironmentTypeResponse(
-                EnvironmentType.TEMPERATURE.getKo(),
+                EnvironmentType.TEMPERATURE,
                 new BigDecimal("1"),
                 new BigDecimal("30")
         );
@@ -85,7 +85,7 @@ class MedicineEnvironmentControllerTest {
                     "success": true,
                     "data": [
                         {
-                          "type": "온도",
+                          "type": "TEMPERATURE",
                           "min" : 1,
                           "max" : 30
                         }
