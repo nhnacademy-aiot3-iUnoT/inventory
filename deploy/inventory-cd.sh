@@ -7,6 +7,7 @@ cd ~/inventory
 set -a
 source ~/infra/common.env
 set +a
+
 NEW_TAG="${IMAGE_TAG:-latest}"
 LAST_GOOD_FILE=".last-good-tag"
 OLD_TAG=$(cat "$LAST_GOOD_FILE" 2>/dev/null || echo "latest")
@@ -49,6 +50,10 @@ deploy_tag() {
 
       sleep 2;
     done
+
+    curl -sf -X POST -H "Content-Type: application/json" \
+      -d '{"status": "CANCEL_OVERRIDE"}' \
+      "http://127.0.0.1:${PORT}/actuator/serviceregistry" > /dev/null || true
 
     # 재기동한 인스턴스가 게이트웨이에 반영될 때까지 대기
     # 마지막 인스턴스 뒤에는 내릴 대상이 없으므로 기다리지 않음

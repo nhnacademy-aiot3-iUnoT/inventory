@@ -1,5 +1,6 @@
 services:
   inventory-1:
+    stop_grace_period: 45s
     image: ghcr.io/${GHCR_OWNER:-nhnacademy-aiot3-iunot}/inventory:${IMAGE_TAG:-latest}
     container_name: team1-inventory-1 # 도커 네트워크 안에서 다른 컨테이너가 이 이름으로 접근 (예: 게이트웨이가 team1-front:10402로 호출)
     env_file: .env
@@ -19,6 +20,7 @@ services:
     networks: [team1-network]
 
   inventory-2:
+    stop_grace_period: 45s
     image: ghcr.io/${GHCR_OWNER:-nhnacademy-aiot3-iunot}/inventory:${IMAGE_TAG:-latest}
     container_name: team1-inventory-2
     env_file: .env
